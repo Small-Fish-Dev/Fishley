@@ -1,5 +1,7 @@
 public partial class Fishley
 {
+	// TODO Put these in a single method and use that method for each of these
+
 	/// <summary>
 	/// Does this message contain "simple", returns true if yes
 	/// </summary>
@@ -19,10 +21,11 @@ public partial class Fishley
 			var matchingIndex = match.Index;
 			var matchingWord = match.Value;
             var startIndex = Math.Max(0, matchingIndex - 6);
-            var endIndex = Math.Min(message.Content.Count(), matchingIndex + matchingWord.Count() + 6 );
+            var endIndex = Math.Min( message.Content.Length, matchingIndex + matchingWord.Length + 6 );
+			var length = endIndex - startIndex;
 
-            var phrase = message.Content.Substring( startIndex, endIndex );
-			var replacedPhrase = phrase.Replace( matchingWord, $"~~{matchingWord}~~**shrimple**");
+            var phrase = message.Content.Substring( startIndex, length );
+			var replacedPhrase = phrase.Replace( matchingWord, $"~~{matchingWord}~~ **shrimple**");
 
 			await AddWarn( user, channel, $"Hey {user.DisplayName}, perhaps you meant to say: {replacedPhrase}" );
 			return true;
@@ -49,10 +52,11 @@ public partial class Fishley
 			var matchingIndex = match.Index;
 			var matchingWord = match.Value;
             var startIndex = Math.Max(0, matchingIndex - 6);
-            var endIndex = Math.Min(message.Content.Count(), matchingIndex + matchingWord.Count() + 6 );
+            var endIndex = Math.Min( message.Content.Length, matchingIndex + matchingWord.Length + 6 );
+			var length = endIndex - startIndex;
 
-            var phrase = message.Content.Substring( startIndex, endIndex );
-			var replacedPhrase = phrase.Replace( matchingWord, $"~~{matchingWord}~~**shrimple**");
+            var phrase = message.Content.Substring( startIndex, length );
+			var replacedPhrase = phrase.Replace( matchingWord, $"~~{matchingWord}~~ **clamplicated**");
 
 			await AddWarn( user, channel, $"Hey {user.DisplayName}, perhaps you meant to say: {replacedPhrase}" );
 			return true;
@@ -79,10 +83,11 @@ public partial class Fishley
 			var matchingIndex = match.Index;
 			var matchingWord = match.Value;
             var startIndex = Math.Max(0, matchingIndex - 6);
-            var endIndex = Math.Min(message.Content.Count(), matchingIndex + matchingWord.Count() + 6 );
+            var endIndex = Math.Min( message.Content.Length, matchingIndex + matchingWord.Length + 6 );
+			var length = endIndex - startIndex;
 
-            var phrase = message.Content.Substring( startIndex, endIndex );
-			var replacedPhrase = phrase.Replace( matchingWord, $"~~{matchingWord}~~**shrimple**");
+            var phrase = message.Content.Substring( startIndex, length );
+			var replacedPhrase = phrase.Replace( matchingWord, $"~~{matchingWord}~~ **conchfusing**");
 
 			await AddWarn( user, channel, $"Hey {user.DisplayName}, perhaps you meant to say: {replacedPhrase}" );
 			return true;
