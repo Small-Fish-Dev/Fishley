@@ -29,7 +29,7 @@ public partial class Fishley
         var _config = new DiscordSocketConfig
 		{
 			MessageCacheSize = ConfigGet<int>( "MessageCacheSize", 100 ),
-			GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent
+			GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent | GatewayIntents.GuildMembers
 		};
         _client = new DiscordSocketClient(_config);
 

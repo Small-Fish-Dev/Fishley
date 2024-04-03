@@ -7,13 +7,24 @@ public partial class Fishley
 	/// <returns></returns>
 	private static async Task<bool> HandleSimpleFilter(SocketUserMessage message)
     {
-		string simplePattern = ConfigGet( "SimpleRegex", @"[sS][iI][mM][pP][lL][eE]" );
+		string pattern = ConfigGet( "SimpleRegex", @"[sS][iI][mM][pP][lL][eE]" );
+		var regex = new Regex( pattern );
+		var match = regex.Match( message.Content );
 
-		if ( Regex.IsMatch(message.Content, simplePattern) )
+		if ( match.Success )
 		{
 			var channel = message.Channel as SocketTextChannel;
 			var user = message.Author as SocketGuildUser;
-			await AddWarn( user, channel, $"{user.DisplayName}, Rule #3" );
+
+			var matchingIndex = match.Index;
+			var matchingWord = match.Value;
+            var startIndex = Math.Max(0, matchingIndex - 6);
+            var endIndex = Math.Min(message.Content.Count(), matchingIndex + matchingWord.Count() + 6 );
+
+            var phrase = message.Content.Substring( startIndex, endIndex );
+			var replacedPhrase = phrase.Replace( matchingWord, $"~~{matchingWord}~~**shrimple**");
+
+			await AddWarn( user, channel, $"Hey {user.DisplayName}, perhaps you meant to say: {replacedPhrase}" );
 			return true;
 		}
 		return false;
@@ -26,13 +37,24 @@ public partial class Fishley
 	/// <returns></returns>
 	private static async Task<bool> HandleComplicatedFilter(SocketUserMessage message)
     {
-		string simplePattern = ConfigGet( "ComplicatedRegex", @"[cC][oO][mM][pP][lL][iI][cC][aA][tT][eE][dD]" );
+		string pattern = ConfigGet( "ComplicatedRegex", @"[cC][oO][mM][pP][lL][iI][cC][aA][tT][eE][dD]" );
+		var regex = new Regex( pattern );
+		var match = regex.Match( message.Content );
 
-		if ( Regex.IsMatch(message.Content, simplePattern) )
+		if ( match.Success )
 		{
 			var channel = message.Channel as SocketTextChannel;
 			var user = message.Author as SocketGuildUser;
-			await AddWarn( user, channel, $"{user.DisplayName}, Rule #3" );
+
+			var matchingIndex = match.Index;
+			var matchingWord = match.Value;
+            var startIndex = Math.Max(0, matchingIndex - 6);
+            var endIndex = Math.Min(message.Content.Count(), matchingIndex + matchingWord.Count() + 6 );
+
+            var phrase = message.Content.Substring( startIndex, endIndex );
+			var replacedPhrase = phrase.Replace( matchingWord, $"~~{matchingWord}~~**shrimple**");
+
+			await AddWarn( user, channel, $"Hey {user.DisplayName}, perhaps you meant to say: {replacedPhrase}" );
 			return true;
 		}
 		return false;
@@ -45,13 +67,24 @@ public partial class Fishley
 	/// <returns></returns>
 	private static async Task<bool> HandleConfusingFilter(SocketUserMessage message)
     {
-		string simplePattern = ConfigGet( "ConfusingRegex", @"[cC][oO][nN][fF][uU][sS][iI][nN][gG]" );
+		string pattern = ConfigGet( "ConfusingRegex", @"[cC][oO][nN][fF][uU][sS][iI][nN][gG]" );
+		var regex = new Regex( pattern );
+		var match = regex.Match( message.Content );
 
-		if ( Regex.IsMatch(message.Content, simplePattern) )
+		if ( match.Success )
 		{
 			var channel = message.Channel as SocketTextChannel;
 			var user = message.Author as SocketGuildUser;
-			await AddWarn( user, channel, $"{user.DisplayName}, Rule #3" );
+
+			var matchingIndex = match.Index;
+			var matchingWord = match.Value;
+            var startIndex = Math.Max(0, matchingIndex - 6);
+            var endIndex = Math.Min(message.Content.Count(), matchingIndex + matchingWord.Count() + 6 );
+
+            var phrase = message.Content.Substring( startIndex, endIndex );
+			var replacedPhrase = phrase.Replace( matchingWord, $"~~{matchingWord}~~**shrimple**");
+
+			await AddWarn( user, channel, $"Hey {user.DisplayName}, perhaps you meant to say: {replacedPhrase}" );
 			return true;
 		}
 		return false;
