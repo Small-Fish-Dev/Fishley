@@ -10,27 +10,8 @@ public partial class Fishley
 	private static async Task<bool> HandleSimpleFilter(SocketUserMessage message)
     {
 		string pattern = ConfigGet( "SimpleRegex", @"[sS][iI][mM][pP][lL][eE]" );
-		var regex = new Regex( pattern );
-		var match = regex.Match( message.Content );
-
-		if ( match.Success )
-		{
-			var channel = message.Channel as SocketTextChannel;
-			var user = message.Author as SocketGuildUser;
-
-			var matchingIndex = match.Index;
-			var matchingWord = match.Value;
-            var startIndex = Math.Max(0, matchingIndex - 6);
-            var endIndex = Math.Min( message.Content.Length, matchingIndex + matchingWord.Length + 6 );
-			var length = endIndex - startIndex;
-
-            var phrase = message.Content.Substring( startIndex, length );
-			var replacedPhrase = phrase.Replace( matchingWord, $"~~{matchingWord}~~ **shrimple**");
-
-			await AddWarn( user, channel, $"Hey {user.DisplayName}, perhaps you meant to say: {replacedPhrase}" );
-			return true;
-		}
-		return false;
+		
+		return await HandleFilter( message, pattern, "shrimple" );
 	}
 
 	/// <summary>
@@ -41,27 +22,8 @@ public partial class Fishley
 	private static async Task<bool> HandleComplicatedFilter(SocketUserMessage message)
     {
 		string pattern = ConfigGet( "ComplicatedRegex", @"[cC][oO][mM][pP][lL][iI][cC][aA][tT][eE][dD]" );
-		var regex = new Regex( pattern );
-		var match = regex.Match( message.Content );
-
-		if ( match.Success )
-		{
-			var channel = message.Channel as SocketTextChannel;
-			var user = message.Author as SocketGuildUser;
-
-			var matchingIndex = match.Index;
-			var matchingWord = match.Value;
-            var startIndex = Math.Max(0, matchingIndex - 6);
-            var endIndex = Math.Min( message.Content.Length, matchingIndex + matchingWord.Length + 6 );
-			var length = endIndex - startIndex;
-
-            var phrase = message.Content.Substring( startIndex, length );
-			var replacedPhrase = phrase.Replace( matchingWord, $"~~{matchingWord}~~ **clamplicated**");
-
-			await AddWarn( user, channel, $"Hey {user.DisplayName}, perhaps you meant to say: {replacedPhrase}" );
-			return true;
-		}
-		return false;
+		
+		return await HandleFilter( message, pattern, "clamplicated" );
 	}
 
 	/// <summary>
@@ -72,26 +34,62 @@ public partial class Fishley
 	private static async Task<bool> HandleConfusingFilter(SocketUserMessage message)
     {
 		string pattern = ConfigGet( "ConfusingRegex", @"[cC][oO][nN][fF][uU][sS][iI][nN][gG]" );
-		var regex = new Regex( pattern );
-		var match = regex.Match( message.Content );
+		
+		return await HandleFilter( message, pattern, "conchfusing" );
+	}
 
-		if ( match.Success )
+	/// <summary>
+	/// Handle a shrimple find and replace filter
+	/// </summary>
+	/// <param name="message"></param>
+	/// <param name="regexPattern"></param>
+	/// <param name="correctWord"></param>
+	/// <returns></returns>
+	private static async Task<bool> HandleFilter(SocketUserMessage message, string regexPattern, string correctWord)
+	{
+		if ( FindAndReplace( message.Content, regexPattern, correctWord, out string correctedMessage ))
 		{
 			var channel = message.Channel as SocketTextChannel;
 			var user = message.Author as SocketGuildUser;
 
-			var matchingIndex = match.Index;
-			var matchingWord = match.Value;
-            var startIndex = Math.Max(0, matchingIndex - 6);
-            var endIndex = Math.Min( message.Content.Length, matchingIndex + matchingWord.Length + 6 );
-			var length = endIndex - startIndex;
-
-            var phrase = message.Content.Substring( startIndex, length );
-			var replacedPhrase = phrase.Replace( matchingWord, $"~~{matchingWord}~~ **conchfusing**");
-
-			await AddWarn( user, channel, $"Hey {user.DisplayName}, perhaps you meant to say: {replacedPhrase}" );
+			await AddWarn( user, channel, $"Hey <@{user.Id}>, perhaps you meant to say: \n> {correctedMessage} \n" );
 			return true;
 		}
+		return false;
+	}
+
+	/// <summary>
+	/// Replace the offending word in a message
+	/// </summary>
+	/// <param name="messageToCheck"></param>
+	/// <param name="regexPattern"></param>
+	/// <param name="correctWord"></param>
+	/// <param name="correctedMessage"></param>
+	/// <param name="lettersAround"></param>
+	/// <returns></returns>
+	private static bool FindAndReplace( string messageToCheck, string regexPattern, string correctWord, out string correctedMessage, int lettersAroundIncluded = 10 )
+	{
+		correctedMessage = "";
+		var regex = new Regex( regexPattern );
+		var match = regex.Match( messageToCheck );
+
+		if ( match.Success )
+		{
+			var matchingIndex = match.Index;
+			var matchingWord = match.Value;
+            var startIndex = Math.Max(0, matchingIndex - lettersAroundIncluded);
+            var endIndex = Math.Min( messageToCheck.Length, matchingIndex + matchingWord.Length + lettersAroundIncluded );
+			var length = endIndex - startIndex;
+			var isStarting = startIndex == 0;
+			var isEnding = endIndex == messageToCheck.Length;
+
+            var phrase = messageToCheck.Substring( startIndex, length );
+			var replacedPhrase = phrase.Replace( matchingWord, $"~~{matchingWord}~~ **{correctWord}**");
+
+			correctedMessage = $"{(isStarting ? "" : "...")}{replacedPhrase}{(isEnding ? "" : "...")}";
+			return true;
+		}
+
 		return false;
 	}
 }

@@ -12,7 +12,7 @@ global using System.IO;
 public partial class Fishley
 {
 	private static DiscordSocketClient _client;
-	private static string _configPath => "config.json";
+	private static string _configPath => @"/home/ubre/Desktop/Fishley/config.json";
 	public static Dictionary<string, string> Config { get; private set; }
 
 	public static async Task Main()
