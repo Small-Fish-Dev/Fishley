@@ -66,8 +66,9 @@ public partial class Fishley
 	/// <param name="correctWord"></param>
 	/// <param name="correctedMessage"></param>
 	/// <param name="lettersAround"></param>
+	/// <param name="excludeLinks"></param>
 	/// <returns></returns>
-	private static bool FindAndReplace( string messageToCheck, string regexPattern, string correctWord, out string correctedMessage, int lettersAroundIncluded = 10 )
+	private static bool FindAndReplace( string messageToCheck, string regexPattern, string correctWord, out string correctedMessage, int lettersAroundIncluded = 10, bool excludeLinks = true )
 	{
 		correctedMessage = "";
 		var regex = new Regex( regexPattern );
@@ -77,6 +78,18 @@ public partial class Fishley
 		{
 			var matchingIndex = match.Index;
 			var matchingWord = match.Value;
+			
+			if ( excludeLinks )
+			{
+				var linkRegex = new Regex( @"(?:https?://)?(?:www\.)?\S+\.\S+" );
+				var linkMatch = linkRegex.Match( messageToCheck );
+				var linkStart = linkMatch.Index;
+				var linkEnd = linkStart + linkMatch.Value.Length;
+
+				if ( matchingIndex >= linkStart && matchingIndex + matchingWord.Length <= linkEnd ) // The match is inside a link
+					return false;
+			}
+
             var startIndex = Math.Max(0, matchingIndex - lettersAroundIncluded);
             var endIndex = Math.Min( messageToCheck.Length, matchingIndex + matchingWord.Length + lettersAroundIncluded );
 			var length = endIndex - startIndex;
