@@ -264,3 +264,4 @@ __pycache__/
 *.pyc
 
 config.json
+smallfish_database.db

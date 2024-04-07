@@ -8,6 +8,7 @@ global using System.Text.RegularExpressions;
 global using System.Collections.Generic;
 global using Newtonsoft.Json;
 global using System.IO;
+global using Microsoft.Data.Sqlite;
 
 public partial class Fishley
 {
@@ -16,7 +17,7 @@ public partial class Fishley
 	public static Dictionary<string, string> Config { get; private set; }
 
 	public static async Task Main()
-	{
+	{		
 		if ( !File.Exists( _configPath ) )
 		{
 			DebugSay( "Config file not found!" );
@@ -32,6 +33,8 @@ public partial class Fishley
 			GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent | GatewayIntents.GuildMembers
 		};
         _client = new DiscordSocketClient(_config);
+
+        InitializeDatabase();
 
 		_client.Log += Log;
         _client.MessageUpdated += MessageUpdated;
@@ -112,7 +115,7 @@ public partial class Fishley
             return;
 		if ( userMessage.Author.IsBot )
 			return;
-
+			
 		if ( !await HandleSimpleFilter( userMessage ) )
 			if ( !await HandleComplicatedFilter( userMessage ) )
 				await HandleConfusingFilter( userMessage );

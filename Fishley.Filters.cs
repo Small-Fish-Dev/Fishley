@@ -71,7 +71,7 @@ public partial class Fishley
 	private static bool FindAndReplace( string messageToCheck, string regexPattern, string correctWord, out string correctedMessage, int lettersAroundIncluded = 10, bool excludeLinks = true )
 	{
 		correctedMessage = "";
-		var regex = new Regex( regexPattern );
+		var regex = new Regex( regexPattern, RegexOptions.IgnoreCase );
 		var match = regex.Match( messageToCheck );
 
 		if ( match.Success )
@@ -81,7 +81,7 @@ public partial class Fishley
 			
 			if ( excludeLinks )
 			{
-				var linkRegex = new Regex( @"(?:https?://)?(?:www\.)?\S+\.\S+" );
+				var linkRegex = new Regex( @"(?:https?://)?(?:www\.)?\S+\.\S+", RegexOptions.IgnoreCase );
 				var linkMatch = linkRegex.Match( messageToCheck );
 				var linkStart = linkMatch.Index;
 				var linkEnd = linkStart + linkMatch.Value.Length;
