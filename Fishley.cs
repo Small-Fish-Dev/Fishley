@@ -8,7 +8,7 @@ global using System.Text.RegularExpressions;
 global using System.Collections.Generic;
 global using Newtonsoft.Json;
 global using System.IO;
-global using Microsoft.Data.Sqlite;
+global using LiteDB;
 
 public partial class Fishley
 {
@@ -115,7 +115,17 @@ public partial class Fishley
             return;
 		if ( userMessage.Author.IsBot )
 			return;
-			
+
+		var user = UserGet( userMessage.Author.Id );
+		DebugSay( $"{userMessage.Author.GlobalName} previously had {user.Warnings} warns" );
+		user.Warnings++;
+		var now = DateTime.UtcNow;
+		var then = DateTime.FromBinary( user.LastWarn );
+		var difference = (now - then).Seconds;
+		DebugSay( $"{userMessage.Author.GlobalName} last warn was {difference} seconds ago" );
+		user.LastWarn = DateTime.UtcNow.Ticks;
+		UserUpdate( user );
+
 		if ( !await HandleSimpleFilter( userMessage ) )
 			if ( !await HandleComplicatedFilter( userMessage ) )
 				await HandleConfusingFilter( userMessage );

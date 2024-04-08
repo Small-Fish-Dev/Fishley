@@ -263,5 +263,5 @@ paket-files/
 __pycache__/
 *.pyc
 
-config.json
-smallfish_database.db
+*.json
+*.db
