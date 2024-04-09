@@ -63,12 +63,10 @@ public partial class Fishley
 
 	public static async Task OnUpdate()
 	{
-		DebugSay( $"Passed: {WarnDecaySecondsPassed} Timer: {WarnDecayCheckTimer} Last: {LastWarnDecayCheck}");
 		if ( WarnDecaySecondsPassed >= WarnDecayCheckTimer )
 		{	
 			await WarnsDecayCheck();
 			LastWarnDecayCheck = DateTime.UtcNow;
-			DebugSay( "Checking for warns..." );
 		}
 	}
 
@@ -135,22 +133,17 @@ public partial class Fishley
             return;
 		if ( userMessage.Author.IsBot )
 			return;
-
-		var user = UserGet( userMessage.Author.Id );
-		user.Warnings++;
-		user.LastWarn = DateTime.UtcNow.Ticks;
-		UserUpdate( user );
-		DebugSay($"{userMessage.Author.GlobalName} warns are now {user.Warnings} last one was {user.LastWarn}");
-
-		if ( !await HandleSimpleFilter( userMessage ) )
-			if ( !await HandleComplicatedFilter( userMessage ) )
-				await HandleConfusingFilter( userMessage );
+			
+		await HandleFilters( userMessage );
     }
 
     private static async Task MessageUpdated(Cacheable<IMessage, ulong> before, SocketMessage after, ISocketMessageChannel channel)
     {
-        // If the message was not in the cache, downloading it will result in getting a copy of `after`.
-        var message = await before.GetOrDownloadAsync();
-        Console.WriteLine($"{message} -> {after}");
+        if ( after is not SocketUserMessage userMessage )
+            return;
+		if ( userMessage.Author.IsBot )
+			return;
+
+		await HandleFilters( userMessage );
     }
 }

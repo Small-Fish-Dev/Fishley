@@ -1,6 +1,11 @@
 public partial class Fishley
 {
-	// TODO Put these in a single method and use that method for each of these
+	private static async Task HandleFilters( SocketUserMessage message )
+	{
+		if ( !await HandleSimpleFilter( userMessage ) )
+			if ( !await HandleComplicatedFilter( userMessage ) )
+				await HandleConfusingFilter( userMessage );
+	}
 
 	/// <summary>
 	/// Does this message contain "simple", returns true if yes
