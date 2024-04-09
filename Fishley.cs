@@ -17,6 +17,8 @@ public partial class Fishley
 	public static SocketGuild SmallFishServer;
 	private static string _configPath => @"/home/ubre/Desktop/Fishley/config.json";
 	public static Dictionary<string, string> Config { get; private set; }
+	public static ulong SmallFishRole => ConfigGet<ulong>( "SmallFishRole", 1005599675530870824 );
+	public static ulong AdminRole => ConfigGet<ulong>( "AdminRole", 1197217122183544862 );
 
 	public static async Task Main()
 	{		
@@ -32,7 +34,12 @@ public partial class Fishley
         var _config = new DiscordSocketConfig
 		{
 			MessageCacheSize = ConfigGet<int>( "MessageCacheSize", 100 ),
-			GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent | GatewayIntents.GuildMembers
+			GatewayIntents = GatewayIntents.AllUnprivileged |
+			GatewayIntents.MessageContent |
+			GatewayIntents.GuildMembers |
+			GatewayIntents.GuildMessages |
+			GatewayIntents.DirectMessages |
+			GatewayIntents.MessageContent
 		};
         _client = new DiscordSocketClient(_config);
 
@@ -41,6 +48,7 @@ public partial class Fishley
 		_client.Log += Log;
         _client.MessageUpdated += MessageUpdated;
 		_client.MessageReceived += MessageReceived;
+		_client.ReactionAdded += ReactionAdded;
 
 		var token = ConfigGet( "Token", "ERROR" );
 
@@ -50,9 +58,10 @@ public partial class Fishley
 		await _client.LoginAsync(TokenType.Bot, token);
 		await _client.StartAsync();
 
-		Thread.Sleep( 5000 );
+		Thread.Sleep( 6000 );
 
 		SmallFishServer = _client.GetGuild( ConfigGet<ulong>( "SmallFish", 1005596271907717140 ) );
+		await CacheMessages();
 
 		while ( true )
 		{
@@ -127,6 +136,63 @@ public partial class Fishley
 		return Task.CompletedTask;
 	}
 
+	private static async Task CacheMessages()
+	{
+		foreach (var channel in SmallFishServer.TextChannels)
+		{
+			if ( SmallFishServer.CurrentUser.GetPermissions( channel ).ReadMessageHistory )
+			{
+				var messagesToDownload = 20; // Screw it just do 20 lol
+				var messages = await channel.GetMessagesAsync(limit: messagesToDownload).FlattenAsync();
+			}
+		}
+
+		DebugSay( "Messages cached" );
+	}
+
+	private static async Task ReactionAdded(Cacheable<IUserMessage, ulong> cacheableMessage, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
+	{
+		if ( reaction.Emote.Name == WarnEmoji )
+		{
+			if ( reaction.Channel is SocketGuildChannel guildChannel )
+			{
+				var giver = guildChannel.GetUser(reaction.UserId);
+				
+				if (giver != null)
+				{
+					if ( CanModerate( giver ) )
+					{
+						var message = await cacheableMessage.GetOrDownloadAsync();
+
+						if (message != null)
+						{
+							var user = guildChannel.GetUser(message.Author.Id);
+							
+							if (user != null)
+							{
+								if (guildChannel is SocketTextChannel textChannel)
+								{
+									if ( user.Id == _client.CurrentUser.Id )
+									{
+										await textChannel.SendMessageAsync( $"<@{giver.Id}> attempted to warn... me!? What did I do???" );
+									}
+									else
+									{
+										if ( CanModerate( user ) )
+											await textChannel.SendMessageAsync( $"<@{giver.Id}> attempted to warn <@{user.Id}> but I'm not powerful enough to do it." );
+										else
+											await AddWarn( user, textChannel, $"<@{giver.Id}> warned <@{user.Id}>" );
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+
 	private static async Task MessageReceived(SocketMessage message)
     {
         if ( message is not SocketUserMessage userMessage )
@@ -146,4 +212,8 @@ public partial class Fishley
 
 		await HandleFilters( userMessage );
     }
+
+	public static bool IsSmallFish( SocketGuildUser user ) => user.Roles.Any( x => x.Id == SmallFishRole );
+	public static bool IsAdmin( SocketGuildUser user ) => user.Roles.Any( x => x.Id == AdminRole );
+	public static bool CanModerate( SocketGuildUser user ) => IsAdmin( user ) || IsSmallFish( user );
 }

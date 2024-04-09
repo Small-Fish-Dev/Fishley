@@ -6,6 +6,7 @@ public partial class Fishley
 	public static int WarnRole2DecaySeconds => ConfigGet<int>( "WarnRole2DecaySeconds", 7200 );
 	public static ulong WarnRole3 => ConfigGet<ulong>( "WarnRole3", 1227004898802143252 );
 	public static int WarnRole3DecaySeconds => ConfigGet<int>( "WarnRole3DecaySeconds", 86400 );
+	public static string WarnEmoji => ConfigGet( "WarnEmoji", "warn" );
 
 	public static int WarnDecayCheckTimer => ConfigGet<int>( "WarnDecayCheckTimer", 60 );
 	public static DateTime LastWarnDecayCheck;
