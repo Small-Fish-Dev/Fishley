@@ -2,6 +2,7 @@ global using Discord.WebSocket;
 global using Discord.Commands;
 global using System;
 global using System.Threading.Tasks;
+global using System.Threading;
 global using System.Linq;
 global using Discord;
 global using System.Text.RegularExpressions;
@@ -13,6 +14,7 @@ global using LiteDB;
 public partial class Fishley
 {
 	private static DiscordSocketClient _client;
+	public static SocketGuild SmallFishServer;
 	private static string _configPath => @"/home/ubre/Desktop/Fishley/config.json";
 	public static Dictionary<string, string> Config { get; private set; }
 
@@ -48,8 +50,26 @@ public partial class Fishley
 		await _client.LoginAsync(TokenType.Bot, token);
 		await _client.StartAsync();
 
-		// Block this task until the program is closed.
-		await Task.Delay(-1);
+		Thread.Sleep( 5000 );
+
+		SmallFishServer = _client.GetGuild( ConfigGet<ulong>( "SmallFish", 1005596271907717140 ) );
+
+		while ( true )
+		{
+			await OnUpdate();
+			Thread.Sleep( 1000 );
+		}
+	}
+
+	public static async Task OnUpdate()
+	{
+		DebugSay( $"Passed: {WarnDecaySecondsPassed} Timer: {WarnDecayCheckTimer} Last: {LastWarnDecayCheck}");
+		if ( WarnDecaySecondsPassed >= WarnDecayCheckTimer )
+		{	
+			await WarnsDecayCheck();
+			LastWarnDecayCheck = DateTime.UtcNow;
+			DebugSay( "Checking for warns..." );
+		}
 	}
 
 	/// <summary>
@@ -117,14 +137,10 @@ public partial class Fishley
 			return;
 
 		var user = UserGet( userMessage.Author.Id );
-		DebugSay( $"{userMessage.Author.GlobalName} previously had {user.Warnings} warns" );
 		user.Warnings++;
-		var now = DateTime.UtcNow;
-		var then = DateTime.FromBinary( user.LastWarn );
-		var difference = (now - then).Seconds;
-		DebugSay( $"{userMessage.Author.GlobalName} last warn was {difference} seconds ago" );
 		user.LastWarn = DateTime.UtcNow.Ticks;
 		UserUpdate( user );
+		DebugSay($"{userMessage.Author.GlobalName} warns are now {user.Warnings} last one was {user.LastWarn}");
 
 		if ( !await HandleSimpleFilter( userMessage ) )
 			if ( !await HandleComplicatedFilter( userMessage ) )
