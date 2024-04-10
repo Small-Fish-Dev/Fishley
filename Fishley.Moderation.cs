@@ -16,29 +16,61 @@ public partial class Fishley
 	/// Add a warning to the user with the option to send a message in chat
 	/// </summary>
 	/// <param name="user"></param>
-	/// <param name="channel"></param>
+	/// <param name="socketMessage"></param>
 	/// <param name="message"></param>
 	/// <param name="includeWarnCount"></param>
+	/// <param name="reply"></param>
 	/// <returns></returns>
-    private static async Task AddWarn(SocketGuildUser user, SocketTextChannel channel = null, string message = null, bool includeWarnCount = true )
+    private static async Task AddWarn(SocketGuildUser user, SocketMessage socketMessage = null, string message = null, bool includeWarnCount = true, bool reply = true )
     {
 		var storedUser = UserGet( user.Id );
+		var channel = socketMessage.Channel;
 
-		if ( storedUser.Warnings == 0 )
-			await user.AddRoleAsync(user.Guild.Roles.FirstOrDefault( x => x.Id == WarnRole1 ) );
-		else if ( storedUser.Warnings == 1 )
-			await user.AddRoleAsync(user.Guild.Roles.FirstOrDefault( x => x.Id == WarnRole2 ) );
-		else if ( storedUser.Warnings == 2 )
-			await user.AddRoleAsync(user.Guild.Roles.FirstOrDefault( x => x.Id == WarnRole3 ) );
+		if ( !CanModerate( user ) )
+		{
+			if ( storedUser.Warnings == 0 )
+				await user.AddRoleAsync(user.Guild.Roles.FirstOrDefault( x => x.Id == WarnRole1 ) );
+			else if ( storedUser.Warnings == 1 )
+				await user.AddRoleAsync(user.Guild.Roles.FirstOrDefault( x => x.Id == WarnRole2 ) );
+			else if ( storedUser.Warnings == 2 )
+				await user.AddRoleAsync(user.Guild.Roles.FirstOrDefault( x => x.Id == WarnRole3 ) );
 
-		DebugSay( $"Given warning to {user.GlobalName}({user.Id})" );
+			storedUser.Warnings = Math.Min( storedUser.Warnings + 1, 3 );
+			storedUser.LastWarn = DateTime.Now.Ticks;
+			UserUpdate( storedUser );
 
-		storedUser.Warnings = Math.Min( storedUser.Warnings + 1, 3 );
-		storedUser.LastWarn = DateTime.Now.Ticks;
-		UserUpdate( storedUser );
+			DebugSay( $"Given warning to {user.GlobalName}({user.Id})" );
 
-		if ( channel != null && message != null )
-			await channel.SendMessageAsync( $"{message}{(includeWarnCount ? $" (Warning {storedUser.Warnings}/3)" : "")}" );
+			if ( channel != null && message != null )
+			{
+				if ( reply )
+				{
+					var reference = new MessageReference( socketMessage.Id );
+					await channel.SendMessageAsync( $"{message}{(includeWarnCount ? $" (Warning {storedUser.Warnings}/3)" : "")}", messageReference: reference );
+				}
+				else
+				{
+					await channel.SendMessageAsync( $"{message}{(includeWarnCount ? $" (Warning {storedUser.Warnings}/3)" : "")}" );
+				}
+			}
+		}
+		else
+		{
+			if ( channel != null && message != null )
+			{
+				if ( reply )
+				{
+					var reference = new MessageReference( socketMessage.Id );
+					await channel.SendMessageAsync( $"{message} I can't warn you so please don't do it again.", messageReference: reference );
+				}
+				else
+				{
+					await channel.SendMessageAsync( $"{message} I can't warn you so please don't do it again." );
+				}
+			}
+				
+			DebugSay( $"Attempted to give warning to {user.GlobalName}({user.Id})" );
+		}
     }
 
 	/// <summary>

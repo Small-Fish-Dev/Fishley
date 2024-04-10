@@ -182,7 +182,12 @@ public partial class Fishley
 										if ( CanModerate( user ) )
 											await textChannel.SendMessageAsync( $"<@{giver.Id}> attempted to warn <@{user.Id}> but I'm not powerful enough to do it." );
 										else
-											await AddWarn( user, textChannel, $"<@{giver.Id}> warned <@{user.Id}>" );
+										{
+											if (message is SocketMessage textMessage)
+												await AddWarn( user, textMessage, $"<@{giver.Id}> warned <@{user.Id}>" );
+											else
+												await AddWarn( user, null, $"<@{giver.Id}> warned <@{user.Id}>" );
+										}
 									}
 								}
 							}
@@ -200,12 +205,18 @@ public partial class Fishley
             return;
 		if ( userMessage.Author.IsBot )
 			return;
-			
-		if ( userMessage.Content.Contains( "emergency" ) )
+
+		if ( userMessage.Author is SocketGuildUser sender )
 		{
-			// emergency detected
-			await message.Channel.SendMessageAsync( "emergency! emergency! exiting!" );
-			Environment.Exit( 127 );
+			if ( CanModerate( sender ) )
+			{
+				if ( userMessage.Content.Contains( "emergency", StringComparison.OrdinalIgnoreCase ) )
+				{
+					// emergancy detected
+					await message.Channel.SendMessageAsync( "Emergency protocol initiated. Shutting down." );
+					Environment.Exit( 127 );
+				}
+			}
 		}
 		
 		await HandleFilters( userMessage );

@@ -54,10 +54,9 @@ public partial class Fishley
 	{
 		if ( FindAndReplace( message.Content, regexPattern, correctWord, out string correctedMessage ))
 		{
-			var channel = message.Channel as SocketTextChannel;
 			var user = message.Author as SocketGuildUser;
 
-			await AddWarn( user, channel, $"Hey <@{user.Id}>, perhaps you meant to say: \n> {correctedMessage} \n" );
+			await AddWarn( user, message, $"Hey <@{user.Id}>, perhaps you meant to say: \n> {correctedMessage} \n" );
 			return true;
 		}
 		return false;
