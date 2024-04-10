@@ -200,6 +200,13 @@ public partial class Fishley
 		if ( userMessage.Author.IsBot )
 			return;
 			
+		if ( userMessage.Content.Contains( "emergency" ) )
+		{
+			// emergency detected
+			await message.Channel.SendMessageAsync( "emergency! emergency! exiting!" );
+			Environment.Exit( 127 );
+		}
+		
 		await HandleFilters( userMessage );
     }
 
