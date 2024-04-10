@@ -65,7 +65,7 @@ public partial class Fishley
 
 	private static async Task WarnsDecayCheck()
 	{
-		var allWarnedUsers = Users.Query()
+		var allWarnedUsers = Users.FindAll()
 		.Where( x => x.Warnings > 0 )
 		.ToList();
 
@@ -75,6 +75,10 @@ public partial class Fishley
 			var nowTime = DateTime.UtcNow;
 			var secondsPassed = (nowTime - lastWarningTime).TotalSeconds;
 			var secondsToPass = warnedUser.Warnings == 1 ? WarnRole1DecaySeconds : ( warnedUser.Warnings == 2 ? WarnRole2DecaySeconds : WarnRole3DecaySeconds );
+
+			DebugSay( secondsPassed.ToString() );
+			DebugSay( secondsToPass.ToString() );
+			DebugSay( warnedUser.UserId.ToString() );
 
 			if ( secondsPassed >= secondsToPass )
 			{

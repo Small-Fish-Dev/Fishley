@@ -19,6 +19,7 @@ public partial class Fishley
 	public static Dictionary<string, string> Config { get; private set; }
 	public static ulong SmallFishRole => ConfigGet<ulong>( "SmallFishRole", 1005599675530870824 );
 	public static ulong AdminRole => ConfigGet<ulong>( "AdminRole", 1197217122183544862 );
+	public static bool Running { get; set; } = false;
 
 	public static async Task Main()
 	{		
@@ -49,6 +50,7 @@ public partial class Fishley
         _client.MessageUpdated += MessageUpdated;
 		_client.MessageReceived += MessageReceived;
 		_client.ReactionAdded += ReactionAdded;
+		_client.Ready += OnStart;
 
 		var token = ConfigGet( "Token", "ERROR" );
 
@@ -58,19 +60,32 @@ public partial class Fishley
 		await _client.LoginAsync(TokenType.Bot, token);
 		await _client.StartAsync();
 
-		Thread.Sleep( 6000 );
-
-		SmallFishServer = _client.GetGuild( ConfigGet<ulong>( "SmallFish", 1005596271907717140 ) );
-		await CacheMessages();
+		while ( !Running )
+		{
+			await Task.Delay( 100 ); // Check again after a few :-)
+		}
 
 		while ( true )
 		{
-			await OnUpdate();
-			Thread.Sleep( 1000 );
+			if ( Running )
+			{
+				await OnUpdate();
+				await Task.Delay( 1000 );
+			}
 		}
 	}
 
-	public static async Task OnUpdate()
+	private static async Task OnStart() 
+	{
+		SmallFishServer = _client.GetGuild( ConfigGet<ulong>( "SmallFish", 1005596271907717140 ) );
+		await SmallFishServer.DownloadUsersAsync();
+
+		Running = true;
+		await Task.CompletedTask;
+	}
+
+
+	private static async Task OnUpdate()
 	{
 		if ( WarnDecaySecondsPassed >= WarnDecayCheckTimer )
 		{	
@@ -134,20 +149,6 @@ public partial class Fishley
 	{
 		Console.WriteLine(msg.ToString());
 		return Task.CompletedTask;
-	}
-
-	private static async Task CacheMessages()
-	{
-		foreach (var channel in SmallFishServer.TextChannels)
-		{
-			if ( SmallFishServer.CurrentUser.GetPermissions( channel ).ReadMessageHistory )
-			{
-				var messagesToDownload = 20; // Screw it just do 20 lol
-				var messages = await channel.GetMessagesAsync(limit: messagesToDownload).FlattenAsync();
-			}
-		}
-
-		DebugSay( "Messages cached" );
 	}
 
 	private static async Task ReactionAdded(Cacheable<IUserMessage, ulong> cacheableMessage, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
