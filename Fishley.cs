@@ -199,7 +199,6 @@ public partial class Fishley
 		}
 	}
 
-
 	private static async Task MessageReceived(SocketMessage message)
     {
         if ( message is not SocketUserMessage userMessage )

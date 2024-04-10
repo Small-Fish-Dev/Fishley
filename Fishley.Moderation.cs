@@ -7,6 +7,7 @@ public partial class Fishley
 	public static ulong WarnRole3 => ConfigGet<ulong>( "WarnRole3", 1227004898802143252 );
 	public static int WarnRole3DecaySeconds => ConfigGet<int>( "WarnRole3DecaySeconds", 86400 );
 	public static string WarnEmoji => ConfigGet( "WarnEmoji", "warn" );
+	public static int TimeoutDuration => ConfigGet<int>( "WarnTimeoutSeconds", 600 );
 
 	public static int WarnDecayCheckTimer => ConfigGet<int>( "WarnDecayCheckTimer", 60 );
 	public static DateTime LastWarnDecayCheck;
@@ -28,12 +29,19 @@ public partial class Fishley
 
 		if ( !CanModerate( user ) )
 		{
+			var timedOut = false;
+
 			if ( storedUser.Warnings == 0 )
 				await user.AddRoleAsync(user.Guild.Roles.FirstOrDefault( x => x.Id == WarnRole1 ) );
 			else if ( storedUser.Warnings == 1 )
 				await user.AddRoleAsync(user.Guild.Roles.FirstOrDefault( x => x.Id == WarnRole2 ) );
 			else if ( storedUser.Warnings == 2 )
 				await user.AddRoleAsync(user.Guild.Roles.FirstOrDefault( x => x.Id == WarnRole3 ) );
+			else if ( storedUser.Warnings == 3 )
+			{
+				await user.SetTimeOutAsync( TimeSpan.FromSeconds( TimeoutDuration ) );
+				timedOut = true;
+			}
 
 			storedUser.Warnings = Math.Min( storedUser.Warnings + 1, 3 );
 			storedUser.LastWarn = DateTime.Now.Ticks;
@@ -46,11 +54,11 @@ public partial class Fishley
 				if ( reply )
 				{
 					var reference = new MessageReference( socketMessage.Id );
-					await channel.SendMessageAsync( $"{message}{(includeWarnCount ? $" (Warning {storedUser.Warnings}/3)" : "")}", messageReference: reference );
+					await channel.SendMessageAsync( $"{message}{(includeWarnCount ? $" ({(timedOut ? "Timed Out" : $"Warning {storedUser.Warnings}/3")})" : "")}", messageReference: reference );
 				}
 				else
 				{
-					await channel.SendMessageAsync( $"{message}{(includeWarnCount ? $" (Warning {storedUser.Warnings}/3)" : "")}" );
+					await channel.SendMessageAsync( $"{message}{(includeWarnCount ? $" ({(timedOut ? "Timed Out" : $"Warning {storedUser.Warnings}/3")})" : "")}" );
 				}
 			}
 		}
