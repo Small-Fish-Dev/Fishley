@@ -14,6 +14,7 @@ global using LiteDB;
 public partial class Fishley
 {
 	private static DiscordSocketClient _client;
+	public static ulong FishleyId => _client.CurrentUser.Id;
 	public static SocketGuild SmallFishServer;
 	private static string _configPath => @"/home/ubre/Desktop/Fishley/config.json";
 	public static Dictionary<string, string> Config { get; private set; }
@@ -219,7 +220,28 @@ public partial class Fishley
 			}
 		}
 		
-		await HandleFilters( userMessage );
+		if ( await HandleFilters( userMessage ) )
+			return;
+		
+		var mentioned = message.MentionedUsers.Any(user => user.Id == FishleyId);
+
+		if (mentioned)
+		{
+			List<string> phrases = new List<string>
+			{
+				"Fintastic day we're having!",
+				"Let minnow if you need anything!",
+				"Small fish, big dreams!",
+				"For what porpoise you call me?"
+			};
+
+			Random random = new Random( (int)DateTime.UtcNow.Ticks );
+			int randomIndex = random.Next(phrases.Count);
+			string randomPhrase = phrases[randomIndex];
+
+			var reference = new MessageReference( message.Id );
+			await message.Channel.SendMessageAsync( randomPhrase, messageReference: reference );
+		}
     }
 
     private static async Task MessageUpdated(Cacheable<IMessage, ulong> before, SocketMessage after, ISocketMessageChannel channel)

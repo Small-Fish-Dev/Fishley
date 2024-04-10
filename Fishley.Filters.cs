@@ -1,10 +1,13 @@
 public partial class Fishley
 {
-	private static async Task HandleFilters( SocketUserMessage message )
+	private static async Task<bool> HandleFilters( SocketUserMessage message )
 	{
-		if ( !await HandleSimpleFilter( message ) )
-			if ( !await HandleComplicatedFilter( message ) )
-				await HandleConfusingFilter( message );
+		if ( await HandleSimpleFilter( message ) || 
+		await HandleComplicatedFilter( message ) ||
+		await HandleConfusingFilter( message ) )
+			return true;
+		
+		return false;
 	}
 
 	/// <summary>
