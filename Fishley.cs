@@ -21,6 +21,8 @@ public partial class Fishley
 	public static ulong SmallFishRole => ConfigGet<ulong>( "SmallFishRole", 1005599675530870824 );
 	public static ulong AdminRole => ConfigGet<ulong>( "AdminRole", 1197217122183544862 );
 	public static bool Running { get; set; } = false;
+	public static DateTime LastMessage { get; set; } = DateTime.UtcNow;
+	public static int SecondsSinceLastMessage => (int)( DateTime.UtcNow - LastMessage ).TotalSeconds;
 
 	public static async Task Main()
 	{		
@@ -154,48 +156,31 @@ public partial class Fishley
 
 	private static async Task ReactionAdded(Cacheable<IUserMessage, ulong> cacheableMessage, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
 	{
-		if ( reaction.Emote.Name == WarnEmoji )
-		{
-			if ( reaction.Channel is SocketGuildChannel guildChannel )
-			{
-				var giver = guildChannel.GetUser(reaction.UserId);
-				
-				if (giver != null)
-				{
-					if ( CanModerate( giver ) )
-					{
-						var message = await cacheableMessage.GetOrDownloadAsync();
+		if ( reaction.Emote.Name != WarnEmoji ) return;
+		if ( reaction.Channel is not SocketGuildChannel guildChannel ) return;
 
-						if (message != null)
-						{
-							var user = guildChannel.GetUser(message.Author.Id);
-							
-							if (user != null)
-							{
-								if (guildChannel is SocketTextChannel textChannel)
-								{
-									if ( user.Id == _client.CurrentUser.Id )
-									{
-										await textChannel.SendMessageAsync( $"<@{giver.Id}> attempted to warn... me!? What did I do???" );
-									}
-									else
-									{
-										if ( CanModerate( user ) )
-											await textChannel.SendMessageAsync( $"<@{giver.Id}> attempted to warn <@{user.Id}> but I'm not powerful enough to do it." );
-										else
-										{
-											if (message is SocketMessage textMessage)
-												await AddWarn( user, textMessage, $"<@{giver.Id}> warned <@{user.Id}>" );
-											else
-												await AddWarn( user, null, $"<@{giver.Id}> warned <@{user.Id}>" );
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
+		var giver = guildChannel.GetUser(reaction.UserId);
+		if ( giver is null || !CanModerate( giver ) ) return;
+		
+		var message = await cacheableMessage.GetOrDownloadAsync();
+		if ( message is null ) return;
+		
+		var user = guildChannel.GetUser(message.Author.Id);
+		if ( user is null ) return;
+
+		if ( guildChannel is not SocketTextChannel textChannel ) return;
+		if (message is not SocketMessage textMessage) return;
+
+		if ( user.Id == _client.CurrentUser.Id )
+		{
+			await textChannel.SendMessageAsync( $"<@{giver.Id}> attempted to warn... me!? What did I do???" );
+		}
+		else
+		{
+			if ( CanModerate( user ) )
+				await textChannel.SendMessageAsync( $"<@{giver.Id}> attempted to warn <@{user.Id}> but I'm not powerful enough to do it." );
+			else
+				await AddWarn( user, textMessage, $"<@{giver.Id}> warned <@{user.Id}>" );
 		}
 	}
 
