@@ -25,7 +25,9 @@ public partial class Fishley
     private static async Task AddWarn(SocketGuildUser user, SocketMessage socketMessage = null, string message = null, bool includeWarnCount = true, bool reply = true )
     {
 		var storedUser = UserGet( user.Id );
-		var channel = socketMessage.Channel;
+
+		if ( socketMessage.Channel is not SocketTextChannel channel ) return;
+		if ( channel == null || message == null || socketMessage == null ) return;
 
 		if ( !CanModerate( user ) )
 		{
@@ -49,35 +51,13 @@ public partial class Fishley
 
 			DebugSay( $"Given warning to {user.GlobalName}({user.Id})" );
 
-			if ( channel != null && message != null )
-			{
-				if ( reply )
-				{
-					var reference = new MessageReference( socketMessage.Id );
-					await channel.SendMessageAsync( $"{message}{(includeWarnCount ? $" ({(timedOut ? "Timed Out" : $"Warning {storedUser.Warnings}/3")})" : "")}", messageReference: reference );
-				}
-				else
-				{
-					await channel.SendMessageAsync( $"{message}{(includeWarnCount ? $" ({(timedOut ? "Timed Out" : $"Warning {storedUser.Warnings}/3")})" : "")}" );
-				}
-			}
+			await SendMessage( channel, $"{message}{(includeWarnCount ? $" ({(timedOut ? "Timed Out" : $"Warning {storedUser.Warnings}/3")})" : "")}", reply ? socketMessage : null );
 		}
 		else
 		{
-			if ( channel != null && message != null )
-			{
-				if ( reply )
-				{
-					var reference = new MessageReference( socketMessage.Id );
-					await channel.SendMessageAsync( $"{message} I can't warn you so please don't do it again.", messageReference: reference );
-				}
-				else
-				{
-					await channel.SendMessageAsync( $"{message} I can't warn you so please don't do it again." );
-				}
-			}
-				
 			DebugSay( $"Attempted to give warning to {user.GlobalName}({user.Id})" );
+
+			await SendMessage( channel, $"{message} I can't warn you so please don't do it again.", reply ? socketMessage : null, 5f );
 		}
     }
 

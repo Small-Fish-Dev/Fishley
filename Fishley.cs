@@ -219,12 +219,12 @@ public partial class Fishley
 
 		if ( user.Id == _client.CurrentUser.Id )
 		{
-			await textChannel.SendMessageAsync( $"<@{giver.Id}> attempted to warn... me!? What did I do???" );
+			await SendMessage( textChannel, $"<@{giver.Id}> attempted to warn... me!? What did I do???", deleteAfterSeconds: 5f );
 		}
 		else
 		{
 			if ( CanModerate( user ) )
-				await textChannel.SendMessageAsync( $"<@{giver.Id}> attempted to warn <@{user.Id}> but I'm not powerful enough to do it." );
+				await SendMessage( textChannel, $"<@{giver.Id}> attempted to warn <@{user.Id}> but I'm not powerful enough to do it.", deleteAfterSeconds: 5f );
 			else
 				await AddWarn( user, textMessage, $"<@{giver.Id}> warned <@{user.Id}>" );
 		}
