@@ -98,6 +98,52 @@ public partial class Fishley
 	}
 
 	/// <summary>
+	/// Send a message in a channel, can reply to someone and can delete message after a while
+	/// </summary>
+	/// <param name="channel"></param>
+	/// <param name="message"></param>
+	/// <param name="messageToReply"></param>
+	/// <param name="deleteAfterSeconds"></param>
+	/// <returns></returns>
+	public static async Task<bool> SendMessage( SocketTextChannel channel, string message, SocketMessage messageToReply = null, float deleteAfterSeconds = 0 )
+	{
+		if ( channel is null ) return false;
+		if ( string.IsNullOrWhiteSpace( message ) || string.IsNullOrEmpty( message ) ) return false;
+
+		MessageReference replyTo = null;
+
+		if ( messageToReply != null )
+			replyTo = new MessageReference( messageToReply.Id );
+
+		var sentMessage = await channel.SendMessageAsync( message, messageReference: replyTo );
+
+		if ( sentMessage != null )
+		{
+			LastMessage = DateTime.UtcNow;
+
+			if ( deleteAfterSeconds > 0f )
+				DeleteMessageAsync( sentMessage, deleteAfterSeconds );
+
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	private static async void DeleteMessageAsync( Discord.Rest.RestUserMessage message, float seconds )
+	{
+		if ( message is null ) return;
+
+		await Task.Delay( (int)(seconds * 1000) );
+
+		if ( message is null ) return;
+
+		await message.DeleteAsync();
+	}
+
+	/// <summary>
 	/// Get a value from the config file, else return a default value
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
