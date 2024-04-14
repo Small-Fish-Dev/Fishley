@@ -10,11 +10,13 @@ global using System.Collections.Generic;
 global using Newtonsoft.Json;
 global using System.IO;
 global using LiteDB;
+global using System.Net.Http;
+global using Newtonsoft.Json.Linq;
 
 public partial class Fishley
 {
-	private static DiscordSocketClient _client;
-	public static ulong FishleyId => _client.CurrentUser.Id;
+	public static DiscordSocketClient Client;
+	public static ulong FishleyId => Client.CurrentUser.Id;
 	public static SocketGuild SmallFishServer;
 	private static string _configPath => @"/home/ubre/Desktop/Fishley/config.json";
 	public static Dictionary<string, string> Config { get; private set; }
@@ -45,23 +47,24 @@ public partial class Fishley
 			GatewayIntents.DirectMessages |
 			GatewayIntents.MessageContent
 		};
-        _client = new DiscordSocketClient(_config);
+        Client = new DiscordSocketClient(_config);
 
         InitializeDatabase();
 
-		_client.Log += Log;
-        _client.MessageUpdated += MessageUpdated;
-		_client.MessageReceived += MessageReceived;
-		_client.ReactionAdded += ReactionAdded;
-		_client.Ready += OnStart;
+		Client.Log += Log;
+        Client.MessageUpdated += MessageUpdated;
+		Client.MessageReceived += MessageReceived;
+		Client.ReactionAdded += ReactionAdded;
+		Client.Ready += OnReady;
+		Client.SlashCommandExecuted += SlashCommandHandler;
 
 		var token = ConfigGet( "Token", "ERROR" );
 
 		if ( token == "ERROR" )
 			DebugSay( "Token not found!" );
 
-		await _client.LoginAsync(TokenType.Bot, token);
-		await _client.StartAsync();
+		await Client.LoginAsync(TokenType.Bot, token);
+		await Client.StartAsync();
 
 		while ( !Running )
 		{
@@ -78,15 +81,18 @@ public partial class Fishley
 		}
 	}
 
-	private static async Task OnStart() 
+	private static async Task OnReady() 
 	{
-		SmallFishServer = _client.GetGuild( ConfigGet<ulong>( "SmallFish", 1005596271907717140 ) );
+		var guildId = ConfigGet<ulong>( "SmallFish", 1005596271907717140 );
+		SmallFishServer = Client.GetGuild( guildId );
 		await SmallFishServer.DownloadUsersAsync();
 
+		foreach ( var command in Commands.Values )
+			await SmallFishServer.CreateApplicationCommandAsync( command.Builder.Build() );
+		
 		Running = true;
 		await Task.CompletedTask;
 	}
-
 
 	private static async Task OnUpdate()
 	{
@@ -217,7 +223,7 @@ public partial class Fishley
 		if ( guildChannel is not SocketTextChannel textChannel ) return;
 		if (message is not SocketMessage textMessage) return;
 
-		if ( user.Id == _client.CurrentUser.Id )
+		if ( user.Id == Client.CurrentUser.Id )
 		{
 			await SendMessage( textChannel, $"<@{giver.Id}> attempted to warn... me!? What did I do???", deleteAfterSeconds: 5f );
 		}
