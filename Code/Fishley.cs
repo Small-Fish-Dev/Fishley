@@ -54,11 +54,11 @@ public partial class Fishley
         InitializeDatabase();
 
 		Client.Log += Log;
-        //Client.MessageUpdated += MessageUpdated;
-		//Client.MessageReceived += MessageReceived;
-		//Client.ReactionAdded += ReactionAdded;
+        Client.MessageUpdated += MessageUpdated;
+		Client.MessageReceived += MessageReceived;
+		Client.ReactionAdded += ReactionAdded;
 		Client.Ready += OnReady;
-		//Client.SlashCommandExecuted += SlashCommandHandler;
+		Client.SlashCommandExecuted += SlashCommandHandler;
 
 		var token = ConfigGet( "Token", "ERROR" );
 
