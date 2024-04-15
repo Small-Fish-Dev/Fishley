@@ -13,6 +13,7 @@ global using LiteDB;
 global using System.Net.Http;
 global using Newtonsoft.Json.Linq;
 global using HtmlAgilityPack;
+global using System.Text.Json;
 
 public partial class Fishley
 {
