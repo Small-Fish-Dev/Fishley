@@ -52,6 +52,14 @@ public partial class Fishley
         Client = new DiscordSocketClient(_config);
 
         InitializeDatabase();
+		await LoadFishes();
+
+		Console.WriteLine( $"Found {AllFish.Count()} fishes" );
+		var ordered = AllFish.OrderBy( x => x.MonthlyViews );
+		var min = ordered.First();
+		var max = ordered.Last();
+
+		Console.WriteLine( $"Max: {max.WikiPage}({max.MonthlyViews}) Min: {min.WikiPage}({min.MonthlyViews})" );
 
 		Client.Log += Log;
         Client.MessageUpdated += MessageUpdated;
