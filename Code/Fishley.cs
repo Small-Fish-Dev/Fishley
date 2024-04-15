@@ -55,11 +55,28 @@ public partial class Fishley
 		await LoadFishes();
 
 		Console.WriteLine( $"Found {AllFish.Count()} fishes" );
-		var ordered = AllFish.OrderBy( x => x.MonthlyViews );
-		var min = ordered.First();
-		var max = ordered.Last();
 
-		Console.WriteLine( $"Max: {max.WikiPage}({max.MonthlyViews}) Min: {min.WikiPage}({min.MonthlyViews})" );
+		var decileGroups = from fish in AllFish
+                           orderby fish.MonthlyViews
+                           group fish by GetDecile(AllFish, fish.MonthlyViews) into decileGroup
+                           select new
+                           {
+                               Decile = decileGroup.Key,
+                               AverageMonthlyViews = decileGroup.Average(x => x.MonthlyViews)
+                           };
+
+        // Output the results
+        foreach (var group in decileGroups)
+        {
+            Console.WriteLine($"Decile {group.Decile}: Average Monthly Views = {group.AverageMonthlyViews:F2}");
+        }
+		
+		
+		static int GetDecile(List<Fish> fishes, int monthlyViews)
+		{
+			int index = fishes.OrderBy(f => f.MonthlyViews).ToList().FindIndex(f => f.MonthlyViews == monthlyViews);
+			return index * 10 / fishes.Count;
+		}
 
 		Client.Log += Log;
         Client.MessageUpdated += MessageUpdated;
