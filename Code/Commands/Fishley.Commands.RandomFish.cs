@@ -13,7 +13,7 @@ public partial class Fishley
 			var rnd = new Random( (int)DateTime.UtcNow.Ticks );
 			var randomFish = AllFish[rnd.Next(AllFish.Count())];
 			
-			await command.RespondAsync($"Here's a random fish: {randomFish.WikiPage}");
+			await command.RespondAsync($"Here's a random fish: {randomFish.WikiPage} (Rarity: {randomFish.Rarity})");
 		}
 	}
 }
