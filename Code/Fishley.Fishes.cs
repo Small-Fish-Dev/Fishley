@@ -12,6 +12,30 @@ public partial class Fishley
 	}
 
 	public static List<string> FishRarities { get; set; } = new() {"F-", "F", "F+", "E-", "E", "E+", "D-", "D", "D+", "C-", "C", "C+", "B-", "B", "B+", "A-", "A", "A+", "S-", "S", "S+" };
+	public static Dictionary<string, string> FishRarityThumbnails { get; set; } = new() // Will make it better
+	{
+		{ "F-", "https://i.imgur.com/DueCNx8.png" },
+		{ "F", "https://i.imgur.com/eaasV91.png" },
+		{ "F+", "https://i.imgur.com/F6B8QQb.png" },
+		{ "E-", "https://i.imgur.com/epUwAHr.png" },
+		{ "E", "https://i.imgur.com/DhFsRcr.png" },
+		{ "E+", "https://i.imgur.com/Y6plinP.png" },
+		{ "D-", "https://i.imgur.com/JB0DNWj.png" },
+		{ "D", "https://i.imgur.com/uKhojQo.png" },
+		{ "D+", "https://i.imgur.com/zF8mXIt.png" },
+		{ "C-", "https://i.imgur.com/uKiJt8V.png" },
+		{ "C", "https://i.imgur.com/56qj9pX.png" },
+		{ "C+", "https://i.imgur.com/KLsqazN.png" },
+		{ "B-", "https://i.imgur.com/SwzHOrR.png" },
+		{ "B", "https://i.imgur.com/EZKH8Fn.png" },
+		{ "B+", "https://i.imgur.com/vV27igO.png" },
+		{ "A-", "https://i.imgur.com/VkqngLL.png" },
+		{ "A", "https://i.imgur.com/Cpnz0jC.png" },
+		{ "A+", "https://i.imgur.com/mhhf5e9.png" },
+		{ "S-", "https://i.imgur.com/UKMV4gu.png" },
+		{ "S", "https://i.imgur.com/QWdejAx.png" },
+		{ "S+", "https://i.imgur.com/Gb8dN1p.png" },
+	};
 	private static List<int> _fishPercentileGroups { get; set; } = new();
 
 	public static async Task LoadFishes()
@@ -36,9 +60,6 @@ public partial class Fishley
 
 		foreach (var fishGroup in fishGroups)
 			_fishPercentileGroups.Add(fishGroup.Max(x => x.MonthlyViews));
-
-		foreach (var fish in _fishPercentileGroups)
-			Console.WriteLine(fish);
 	}
 
 	public static int GetFishRarity( float monthlyViews )

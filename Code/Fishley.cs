@@ -24,9 +24,11 @@ public partial class Fishley
 	public static Dictionary<string, string> Config { get; private set; }
 	public static ulong SmallFishRole => ConfigGet<ulong>( "SmallFishRole", 1005599675530870824 );
 	public static ulong AdminRole => ConfigGet<ulong>( "AdminRole", 1197217122183544862 );
+	public static ulong SpamChannel => ConfigGet<ulong>( "SpamChannel", 1031998162212229120 );
 	public static bool Running { get; set; } = false;
 	public static DateTime LastMessage { get; set; } = DateTime.UtcNow;
 	public static int SecondsSinceLastMessage => (int)( DateTime.UtcNow - LastMessage ).TotalSeconds;
+	public static HttpClient HttpClient { get; set; } = new HttpClient();
 
 	public static async Task Main()
 	{		
@@ -53,7 +55,7 @@ public partial class Fishley
 
         InitializeDatabase();
 		await LoadFishes();
-		
+
 		Client.Log += Log;
         Client.MessageUpdated += MessageUpdated;
 		Client.MessageReceived += MessageReceived;
