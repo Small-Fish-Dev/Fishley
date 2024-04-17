@@ -28,20 +28,11 @@ public partial class Fishley
             if (pageImage != null)
                 imageUrl = pageImage.GetAttributeValue("content", string.Empty);
 			
-			string title = "";
-			// Extracting the title of the page
+			string title = "Fish";
             var titleNode = htmlDoc.DocumentNode.SelectSingleNode("//title");
+
             if (titleNode != null)
-            {
-                title = titleNode.InnerText;
-                // Optional: Remove the " - Wikipedia" suffix
-                title = title.Replace(" - Wikipedia", "");
-                Console.WriteLine("Page Title: " + title);
-            }
-            else
-            {
-                Console.WriteLine("No title found.");
-            }
+                title = titleNode.InnerText.Replace(" - Wikipedia", "");
 
 			var embed = new EmbedBuilder()
 				.WithColor(Color.Blue)
