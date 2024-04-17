@@ -39,9 +39,11 @@ public partial class Fishley
 				.WithTitle($"You caught: {title}!")
 				.WithDescription($"{randomFish.WikiPage}")
 				.WithImageUrl( imageUrl )
-				.WithThumbnailUrl( FishRarityThumbnails[randomFish.Rarity] )
+				.WithThumbnailUrl( FishRarities[randomFish.Rarity] )
 				.WithCurrentTimestamp()
 				.Build();
+
+			//var rarity = GetFishRarity( randomFish.MonthlyViews );
 			
 			await command.RespondAsync( embed: embed );
 		}
