@@ -10,6 +10,21 @@ public partial class Fishley
 		public string Rarity { get; set; }
 	}
 
+	public struct FishData
+	{
+		public string CommonName { get; set; } = "Fish";
+		public string PageName { get; set; } = "Fish";
+		public string WikiPage { get; set; } = "https://smallfi.sh";
+		public string WikiInfoPage { get; set; } = "https://smallfi.sh";
+		public int MonthlyViews { get; set; } = 0;
+		public string Rarity { get; set; } = "F-";
+		public string ImageLink { get; set; } = "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/832px-No-Image-Placeholder.svg.png";
+
+		public FishData() {}
+	}
+
+	public static List<FishData> AllBetterFishes { get; set; } = new();
+
 	public static Dictionary<string, string> FishRarities { get; set; } = new() // Will make it better
 	{
 		{ "F-", "https://i.imgur.com/DueCNx8.png" },
@@ -35,13 +50,18 @@ public partial class Fishley
 		{ "S+", "https://i.imgur.com/Gb8dN1p.png" },
 	};
 
+	public static string FishDatabasePath => @"/home/ubre/Desktop/Fishley/fishes.db";
+	public static LiteDatabase FishDatabase { get; set; } = new ( FishDatabasePath );
+	public static ILiteCollection<FishData> AllFishes => FishDatabase.GetCollection<FishData>( "fishes" );
+
+	public static void FishUpdate( FishData fish ) => AllFishes.Upsert( fish );
+
 	public static async Task LoadFishes()
 	{
 		var jsonFile = await File.ReadAllTextAsync( @"/home/ubre/Desktop/Fishley/fishes.json" );
 		AllFish = System.Text.Json.JsonSerializer.Deserialize<List<Fish>>( jsonFile );
 	}
 
-	
 	private static List<int> _fishPercentileGroups { get; set; } = new();
 
 	private static void InitializeFishRarities( float percentageSize )
@@ -79,5 +99,30 @@ public partial class Fishley
 		}
 
 		return FishRarities.ToArray()[_fishPercentileGroups.Count()].Key;
+	}
+
+	public static async Task ScrapeWikipediaLol()
+	{
+		foreach ( var fishLink in AllFish )
+		{
+            var response = await HttpClient.GetAsync( fishLink.WikiPage );
+            response.EnsureSuccessStatusCode();
+            string htmlContent = await response.Content.ReadAsStringAsync();
+
+            var htmlDoc = new HtmlDocument();
+            htmlDoc.LoadHtml( htmlContent );
+
+			var imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/832px-No-Image-Placeholder.svg.png"; // Placeholder
+            var pageImage = htmlDoc.DocumentNode.SelectSingleNode("//meta[@property='og:image']");
+
+            if ( pageImage != null )
+                imageUrl = pageImage.GetAttributeValue("content", string.Empty);
+
+			var title = "Fish";
+            var titleNode = htmlDoc.DocumentNode.SelectSingleNode("//title");
+
+            if ( titleNode != null )
+                title = titleNode.InnerText.Replace(" - Wikipedia", "");
+		}
 	}
 }
