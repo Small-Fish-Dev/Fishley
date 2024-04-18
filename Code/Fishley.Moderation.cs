@@ -96,10 +96,6 @@ public partial class Fishley
 			var secondsPassed = (nowTime - lastWarningTime).TotalSeconds;
 			var secondsToPass = warnedUser.Warnings == 1 ? WarnRole1DecaySeconds : ( warnedUser.Warnings == 2 ? WarnRole2DecaySeconds : WarnRole3DecaySeconds );
 
-			DebugSay( secondsPassed.ToString() );
-			DebugSay( secondsToPass.ToString() );
-			DebugSay( warnedUser.UserId.ToString() );
-
 			if ( secondsPassed >= secondsToPass )
 			{
 				var user = SmallFishServer.GetUser( warnedUser.UserId );

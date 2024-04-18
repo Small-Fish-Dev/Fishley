@@ -8,6 +8,8 @@ public partial class Fishley
 		public string WikiInfoPage { get; set; } = "https://smallfi.sh";
 		public int MonthlyViews { get; set; } = 0;
 		public string ImageLink { get; set; } = "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/832px-No-Image-Placeholder.svg.png";
+		public long LastSeen { get; set; } = 0;
+		public string Rarity { get; set; } = "F-";
 
 		public FishData() {}
 	}
@@ -43,9 +45,9 @@ public partial class Fishley
 
 	public static void FishUpdate( FishData fish ) 
 	{
-		AllFishes.Upsert( fish );
+		var added = AllFishes.Upsert( fish );
 
-		Console.WriteLine( $"Added {fish.CommonName} {fish.PageName} {fish.WikiPage} {fish.WikiInfoPage} {fish.MonthlyViews} {fish.ImageLink}" );
+		Console.WriteLine( $"{(added ? "Added" : "Updated")} {fish.CommonName} {fish.PageName} {fish.WikiPage} {fish.WikiInfoPage} {fish.MonthlyViews} {fish.ImageLink}" );
 	}
 
 	public static void LoadFishes()
@@ -53,6 +55,23 @@ public partial class Fishley
 		FishDatabase = new ( FishDatabasePath );
 		AllFishes = FishDatabase.GetCollection<FishData>( "fishes" );
 		InitializeFishRarities( 100f / FishRarities.Count() );
+
+		/* If I gotta update lol
+        var fishes = AllFishes.FindAll();
+
+		var newFishes = new LiteDatabase( @"/home/ubre/Desktop/Fishley/fishes2.db" ).GetCollection<FishData>( "fishes" );
+
+        foreach (var fish in fishes)
+        {
+			var newFish = fish;
+            newFish.WikiPage = $"https://en.wikipedia.org/wiki/{fish.PageName.Replace(" ", "_")}";
+			newFish.Rarity = GetFishRarity( fish.MonthlyViews );
+
+			newFishes.Upsert( newFish );
+        }
+
+        Console.WriteLine("All documents have been updated.");
+		Console.WriteLine( newFishes.Count() );*/
 	}
 
 	private static List<int> _fishPercentileGroups { get; set; } = new();
