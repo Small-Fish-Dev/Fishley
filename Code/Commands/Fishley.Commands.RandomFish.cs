@@ -12,6 +12,16 @@ public partial class Fishley
 
 		public async Task GetRandomFish(SocketSlashCommand command)
 		{
+			var user = UserGet( command.User.Id );
+			var now = DateTime.UtcNow;
+			var passed = (now - DateTime.FromBinary( user.LastFish )).TotalHours;
+
+			if ( passed <= 1 )
+			{
+				await command.RespondAsync( "There's no more fish around you, you must wait an hour before fishing again!" );
+				return;
+			}
+
 			var rnd = new Random( (int)DateTime.UtcNow.Ticks );
 			var randomFish = AllFishes.Query().ToList()[rnd.Next(AllFishes.Count())];
 
@@ -28,6 +38,7 @@ public partial class Fishley
 				.WithTitle($"{command.User.GlobalName} caught: {randomFish.CommonName}!")
 				.AddField( "Common Name:", randomFish.CommonName )
 				.AddField( "Scientific Name:", randomFish.PageName )
+				.AddField( "Sell amount:", $"${rarity.Item3}" )
 				.AddField( "Monthly Views:", randomFish.MonthlyViews.ToString( "N0" ) )
 				.AddField( "Last Seen:", lastSeen )
 				.WithDescription($"{randomFish.WikiPage}")
@@ -39,6 +50,10 @@ public partial class Fishley
 
 			randomFish.LastSeen = DateTime.UtcNow.Ticks;
 			FishUpdate( randomFish );
+
+			user.LastFish = DateTime.UtcNow.Ticks;
+			user.Money += rarity.Item3;
+			UserUpdate( user );
 
 			Console.WriteLine( $"{command.User.GlobalName} caught: {randomFish.CommonName} - {randomFish.WikiPage} - {randomFish.PageName} - {randomFish.MonthlyViews} - {randomFish.ImageLink}" );
 			

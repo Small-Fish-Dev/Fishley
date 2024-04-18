@@ -10,7 +10,8 @@ public partial class Fishley
 		public ulong UserId {get; set; } = 0;
 		public int Warnings { get; set; } = 0;
 		public long LastWarn { get; set; } = 0;
-		public decimal Money { get; set; } = 10.00M;
+		public decimal Money { get; set; } = 0.00m;
+		public long LastFish { get; set; } = 0;
 
 		public User() {}
 

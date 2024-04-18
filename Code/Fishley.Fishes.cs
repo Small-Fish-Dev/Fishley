@@ -16,29 +16,29 @@ public partial class Fishley
 		public Fish() {}
 	}
 
-	public static Dictionary<string, (string, Color)> FishRarities { get; set; } = new() // Will make it better
+	public static Dictionary<string, (string, Color, decimal)> FishRarities { get; set; } = new() // Will make it better
 	{
-		{ "F-", ("https://i.imgur.com/DueCNx8.png", new Color(6,84,228)) },
-		{ "F", ("https://i.imgur.com/eaasV91.png", new Color(6,84,228)) },
-		{ "F+", ("https://i.imgur.com/F6B8QQb.png", new Color(6,84,228)) },
-		{ "E-", ("https://i.imgur.com/epUwAHr.png", new Color(36,228,212)) },
-		{ "E", ("https://i.imgur.com/DhFsRcr.png", new Color(36,228,212)) },
-		{ "E+", ("https://i.imgur.com/Y6plinP.png", new Color(36,228,212)) },
-		{ "D-", ("https://i.imgur.com/JB0DNWj.png", new Color(42,228,127)) },
-		{ "D", ("https://i.imgur.com/uKhojQo.png", new Color(42,228,127)) },
-		{ "D+", ("https://i.imgur.com/zF8mXIt.png", new Color(42,228,127)) },
-		{ "C-", ("https://i.imgur.com/uKiJt8V.png", new Color(50,229,43)) },
-		{ "C", ("https://i.imgur.com/56qj9pX.png", new Color(50,229,43)) },
-		{ "C+", ("https://i.imgur.com/KLsqazN.png", new Color(50,229,43)) },
-		{ "B-", ("https://i.imgur.com/SwzHOrR.png", new Color(223,230,75)) },
-		{ "B", ("https://i.imgur.com/EZKH8Fn.png", new Color(223,230,75)) },
-		{ "B+", ("https://i.imgur.com/vV27igO.png", new Color(223,230,75)) },
-		{ "A-", ("https://i.imgur.com/VkqngLL.png", new Color(226,146,54)) },
-		{ "A", ("https://i.imgur.com/Cpnz0jC.png", new Color(226,146,54)) },
-		{ "A+", ("https://i.imgur.com/mhhf5e9.png", new Color(226,146,54)) },
-		{ "S-", ("https://i.imgur.com/UKMV4gu.png", new Color(228,58,43)) },
-		{ "S", ("https://i.imgur.com/QWdejAx.png", new Color(228,58,43)) },
-		{ "S+", ("https://i.imgur.com/Gb8dN1p.png", new Color(228,58,43)) },
+		{ "F-", ("https://i.imgur.com/DueCNx8.png", new Color(6,84,228), 0.005m) },
+		{ "F", ("https://i.imgur.com/eaasV91.png", new Color(6,84,228), 0.007m) },
+		{ "F+", ("https://i.imgur.com/F6B8QQb.png", new Color(6,84,228), 0.01m) },
+		{ "E-", ("https://i.imgur.com/epUwAHr.png", new Color(36,228,212), 0.015m) },
+		{ "E", ("https://i.imgur.com/DhFsRcr.png", new Color(36,228,212), 0.02m) },
+		{ "E+", ("https://i.imgur.com/Y6plinP.png", new Color(36,228,212), 0.03m) },
+		{ "D-", ("https://i.imgur.com/JB0DNWj.png", new Color(42,228,127), 0.05m) },
+		{ "D", ("https://i.imgur.com/uKhojQo.png", new Color(42,228,127), 0.07m) },
+		{ "D+", ("https://i.imgur.com/zF8mXIt.png", new Color(42,228,127), 0.1m) },
+		{ "C-", ("https://i.imgur.com/uKiJt8V.png", new Color(50,229,43), 0.15m) },
+		{ "C", ("https://i.imgur.com/56qj9pX.png", new Color(50,229,43), 0.2m) },
+		{ "C+", ("https://i.imgur.com/KLsqazN.png", new Color(50,229,43), 0.3m) },
+		{ "B-", ("https://i.imgur.com/SwzHOrR.png", new Color(223,230,75), 0.5m) },
+		{ "B", ("https://i.imgur.com/EZKH8Fn.png", new Color(223,230,75), 0.7m) },
+		{ "B+", ("https://i.imgur.com/vV27igO.png", new Color(223,230,75), 1m) },
+		{ "A-", ("https://i.imgur.com/VkqngLL.png", new Color(226,146,54), 1.5m) },
+		{ "A", ("https://i.imgur.com/Cpnz0jC.png", new Color(226,146,54), 2m) },
+		{ "A+", ("https://i.imgur.com/mhhf5e9.png", new Color(226,146,54), 3m) },
+		{ "S-", ("https://i.imgur.com/UKMV4gu.png", new Color(228,58,43), 5m) },
+		{ "S", ("https://i.imgur.com/QWdejAx.png", new Color(228,58,43), 7m) },
+		{ "S+", ("https://i.imgur.com/Gb8dN1p.png", new Color(228,58,43), 10m) },
 	};
 
 	public static string FishDatabasePath => @"/home/ubre/Desktop/Fishley/fishes.db";
