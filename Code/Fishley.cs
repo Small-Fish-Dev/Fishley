@@ -87,9 +87,11 @@ public partial class Fishley
 		SmallFishServer = Client.GetGuild( guildId );
 		await SmallFishServer.DownloadUsersAsync();
 
+		await SmallFishServer.DeleteApplicationCommandsAsync();
+
 		foreach ( var command in Commands.Values )
 			await SmallFishServer.CreateApplicationCommandAsync( command.Builder.Build() );
-		
+
 		Running = true;
 		await Task.CompletedTask;
 	}
