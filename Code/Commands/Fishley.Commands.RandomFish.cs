@@ -15,12 +15,14 @@ public partial class Fishley
 			var rnd = new Random( (int)DateTime.UtcNow.Ticks );
 			var randomFish = AllFishes.Query().ToList()[rnd.Next(AllFishes.Count())];
 
+			var rarity = FishRarities[GetFishRarity( randomFish.MonthlyViews )];
+
 			var embed = new EmbedBuilder()
-				.WithColor(Color.Blue)
+				.WithColor( rarity.Item2 )
 				.WithTitle($"You caught: {randomFish.CommonName}!")
 				.WithDescription($"{randomFish.WikiPage}")
 				.WithImageUrl( randomFish.ImageLink )
-				.WithThumbnailUrl( FishRarities[GetFishRarity( randomFish.MonthlyViews )] )
+				.WithThumbnailUrl( rarity.Item1 )
 				.WithCurrentTimestamp()
 				.Build();
 
