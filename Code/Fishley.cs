@@ -54,7 +54,7 @@ public partial class Fishley
         Client = new DiscordSocketClient(_config);
 
         InitializeDatabase();
-		await LoadFishes();
+		LoadFishes();
 
 		Client.Log += Log;
         Client.MessageUpdated += MessageUpdated;
@@ -250,8 +250,8 @@ public partial class Fishley
 				if ( userMessage.Content.Contains( "emergency", StringComparison.OrdinalIgnoreCase ) )
 				{
 					// emergancy detected
-					//await message.Channel.SendMessageAsync( "Emergency protocol initiated. Shutting down." );
-					//Environment.Exit( 127 );
+					await message.Channel.SendMessageAsync( "Emergency protocol initiated. Shutting down." );
+					Environment.Exit( 127 );
 				}
 			}
 		}
