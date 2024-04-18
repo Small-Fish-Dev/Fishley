@@ -1,7 +1,9 @@
 public partial class Fishley
 {
-	public struct FishData
+	public struct Fish
 	{
+		[BsonId]
+		public int Id { get; set; } = 0;
 		public string CommonName { get; set; } = "Fish";
 		public string PageName { get; set; } = "Fish";
 		public string WikiPage { get; set; } = "https://smallfi.sh";
@@ -11,7 +13,7 @@ public partial class Fishley
 		public long LastSeen { get; set; } = 0;
 		public string Rarity { get; set; } = "F-";
 
-		public FishData() {}
+		public Fish() {}
 	}
 
 	public static Dictionary<string, (string, Color)> FishRarities { get; set; } = new() // Will make it better
@@ -41,9 +43,9 @@ public partial class Fishley
 
 	public static string FishDatabasePath => @"/home/ubre/Desktop/Fishley/fishes.db";
 	public static LiteDatabase FishDatabase { get; set; }
-	public static ILiteCollection<FishData> AllFishes { get; set; }
+	public static ILiteCollection<Fish> AllFishes { get; set; }
 
-	public static void FishUpdate( FishData fish ) 
+	public static void FishUpdate( Fish fish ) 
 	{
 		var added = AllFishes.Upsert( fish );
 
@@ -53,25 +55,8 @@ public partial class Fishley
 	public static void LoadFishes()
 	{
 		FishDatabase = new ( FishDatabasePath );
-		AllFishes = FishDatabase.GetCollection<FishData>( "fishes" );
+		AllFishes = FishDatabase.GetCollection<Fish>( "fishes" );
 		InitializeFishRarities( 100f / FishRarities.Count() );
-
-		/* If I gotta update lol
-        var fishes = AllFishes.FindAll();
-
-		var newFishes = new LiteDatabase( @"/home/ubre/Desktop/Fishley/fishes2.db" ).GetCollection<FishData>( "fishes" );
-
-        foreach (var fish in fishes)
-        {
-			var newFish = fish;
-            newFish.WikiPage = $"https://en.wikipedia.org/wiki/{fish.PageName.Replace(" ", "_")}";
-			newFish.Rarity = GetFishRarity( fish.MonthlyViews );
-
-			newFishes.Upsert( newFish );
-        }
-
-        Console.WriteLine("All documents have been updated.");
-		Console.WriteLine( newFishes.Count() );*/
 	}
 
 	private static List<int> _fishPercentileGroups { get; set; } = new();
@@ -137,7 +122,7 @@ public partial class Fishley
 		var url = "https://en.wikipedia.org/wiki/List_of_fish_common_names";
         var httpClient = new HttpClient(new HttpClientHandler { AllowAutoRedirect = true });
         var html = await httpClient.GetStringAsync(url);
-		var fishData = new List<FishData>();
+		var fishData = new List<Fish>();
 		var initialLinksFound = new List<(string,string)>(); // href, common name
 
         var htmlDoc = new HtmlDocument();
@@ -238,7 +223,7 @@ public partial class Fishley
 				if ( int.TryParse( monthlyViews, out var parsedMonthlyViews ) )
 					realMonthlyViews = parsedMonthlyViews;
 				
-				var newFish = new FishData()
+				var newFish = new Fish()
 				{
 					CommonName = fishLink.Item2,
 					PageName = title,
@@ -294,7 +279,7 @@ public partial class Fishley
 			if ( int.TryParse( monthlyViews, out var parsedMonthlyViews ) )
 				realMonthlyViews = parsedMonthlyViews;
 				
-			var newFish = new FishData()
+			var newFish = new Fish()
 			{
 				CommonName = fishLink.Item2,
 				PageName = title,
