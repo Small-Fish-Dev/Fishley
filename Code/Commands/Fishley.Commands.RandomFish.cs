@@ -23,6 +23,8 @@ public partial class Fishley
 				.WithThumbnailUrl( FishRarities[GetFishRarity( randomFish.MonthlyViews )] )
 				.WithCurrentTimestamp()
 				.Build();
+
+				Console.WriteLine( $"{command.User.GlobalName} caught: {randomFish.CommonName} - {randomFish.WikiPage} - {randomFish.PageName} - {randomFish.MonthlyViews} - {randomFish.ImageLink}" );
 			
 			await command.RespondAsync( embed: embed );
 		}

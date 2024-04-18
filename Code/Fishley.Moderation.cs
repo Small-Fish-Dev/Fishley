@@ -46,7 +46,7 @@ public partial class Fishley
 			}
 
 			storedUser.Warnings = Math.Min( storedUser.Warnings + 1, 3 );
-			storedUser.LastWarn = DateTime.Now.Ticks;
+			storedUser.LastWarn = DateTime.UtcNow.Ticks;
 			UserUpdate( storedUser );
 
 			DebugSay( $"Given warning to {user.GlobalName}({user.Id})" );
