@@ -130,7 +130,7 @@ public partial class Fishley
 		}
 	}
 
-	public static async Task AddFishPage(  HttpClient client, HtmlDocument document, string url, string commonName, int waitBetweenCalls = 1000 )
+	public static async Task AddFishPage( HttpClient client, HtmlDocument document, string url, string commonName, int waitBetweenCalls = 1000 )
 	{
 		var documentNode = document.DocumentNode;
 
@@ -144,15 +144,15 @@ public partial class Fishley
 		if ( pageImage != null ) // TODO If no image found, get the taxonomy image, else get the family image
 			imageUrl = pageImage.GetAttributeValue( "content", imageUrl );
 
-		var pageTitle = commonName;
+		var pageName = commonName;
 		var titleNode = documentNode.SelectSingleNode("//title");
 
 		if ( titleNode != null )
-			pageTitle = titleNode.InnerText.Replace(" - Wikipedia", "");
+			pageName = titleNode.InnerText.Replace(" - Wikipedia", "");
 		else
 		{
-			if ( pageTitle == null ) // If we didn't even have a common name to go off of
-				pageTitle = pageIdentifier.Replace( "_", " " ); // Beautify the identifier and use it as the title
+			if ( pageName == null ) // If we didn't even have a common name to go off of
+				pageName = pageIdentifier.Replace( "_", " " ); // Beautify the identifier and use it as the title
 		}
 		#endregion
 
@@ -176,15 +176,24 @@ public partial class Fishley
 		int.TryParse( monthlyViewsData, out var monthlyViews );
 		#endregion
 
-		var newFish = new Fish()
+		var newFish = new Fish( pageId )
 		{
-			CommonName = fishLink.Item2,
-			PageName = title,
-			WikiPage = $"https://en.wikipedia.org/wiki/{fishLink.Item2}",
+			CommonName = commonName,
+			PageName = pageName,
+			WikiPage = url,
 			WikiInfoPage = infoPageLink,
-			MonthlyViews = realMonthlyViews,
+			MonthlyViews = monthlyViews,
 			ImageLink = imageUrl
 		};
+
+		DebugSay( "Found a new fish:" );
+		Console.WriteLine( $"PageId: {pageId}" );
+		Console.WriteLine( $"CommonName: {commonName}" );
+		Console.WriteLine( $"PageName: {pageName}" );
+		Console.WriteLine( $"WikiPage: {url}" );
+		Console.WriteLine( $"WikiInfoPage: {infoPageLink}" );
+		Console.WriteLine( $"MonthlyViews: {monthlyViews}" );
+		Console.WriteLine( $"ImageLink: {imageUrl}" );
 	}
 
 	public static async Task ScrapeWikipediaLol()

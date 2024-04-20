@@ -95,6 +95,7 @@ public partial class Fishley
 			await SmallFishServer.CreateApplicationCommandAsync( command.Builder.Build() );
 
 		Running = true;
+		await ScrapeWikipediaLol();
 		await Task.CompletedTask;
 	}
 
