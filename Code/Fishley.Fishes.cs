@@ -1,5 +1,7 @@
+namespace Fishley;
+
 public partial class Fishley
-{
+{/*
 	public struct Fish
 	{
 		[BsonId]
@@ -296,4 +298,4 @@ public partial class Fishley
 			FishUpdate( newFish );
 		}
 	}
-}
+*/}

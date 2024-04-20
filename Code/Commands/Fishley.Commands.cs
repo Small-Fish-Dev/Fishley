@@ -1,3 +1,5 @@
+namespace Fishley;
+
 public partial class Fishley
 {
 	public static Dictionary<string, DiscordSlashCommand> Commands = new()

@@ -11,7 +11,11 @@
     <PackageReference Include="Discord.Net.Webhook" Version="3.14.1" />
     <PackageReference Include="Discord.Net.Websocket" Version="3.14.1" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.60" />
-    <PackageReference Include="LiteDB" Version="5.0.19" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.4">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.4" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.3" />
   </ItemGroup>

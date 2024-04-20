@@ -1,3 +1,5 @@
+namespace Fishley;
+
 public partial class Fishley
 {
 	public class RandomFishCommand : DiscordSlashCommand
@@ -12,6 +14,7 @@ public partial class Fishley
 
 		public async Task GetRandomFish(SocketSlashCommand command)
 		{
+			/*
 			var user = UserGet( command.User.Id );
 			var now = DateTime.UtcNow;
 			var passed = (now - DateTime.FromBinary( user.LastFish )).TotalSeconds;
@@ -56,8 +59,8 @@ public partial class Fishley
 			UserUpdate( user );
 
 			Console.WriteLine( $"{command.User.GlobalName} caught: {randomFish.CommonName} - {randomFish.WikiPage} - {randomFish.PageName} - {randomFish.MonthlyViews} - {randomFish.ImageLink}" );
-			
-			await command.RespondAsync( embed: embed );
+			*/
+			await command.RespondAsync( "hello" );
 		}
 	}
 }

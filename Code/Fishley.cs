@@ -9,11 +9,14 @@ global using System.Text.RegularExpressions;
 global using System.Collections.Generic;
 global using Newtonsoft.Json;
 global using System.IO;
-global using LiteDB;
 global using System.Net.Http;
 global using Newtonsoft.Json.Linq;
 global using HtmlAgilityPack;
 global using System.Text.Json;
+global using Microsoft.EntityFrameworkCore;
+global using System.ComponentModel.DataAnnotations;
+
+namespace Fishley;
 
 public partial class Fishley
 {
@@ -53,7 +56,7 @@ public partial class Fishley
 		};
         Client = new DiscordSocketClient(_config);
 
-		LoadFishes();
+		//LoadFishes();
 
 		Client.Log += Log;
         Client.MessageUpdated += MessageUpdated;
@@ -88,8 +91,8 @@ public partial class Fishley
 
 		await SmallFishServer.DeleteApplicationCommandsAsync();
 
-		foreach ( var command in Commands.Values )
-			await SmallFishServer.CreateApplicationCommandAsync( command.Builder.Build() );
+		//foreach ( var command in Commands.Values ) TODO REMOVE
+		//	await SmallFishServer.CreateApplicationCommandAsync( command.Builder.Build() );
 
 		Running = true;
 		await Task.CompletedTask;
@@ -99,7 +102,7 @@ public partial class Fishley
 	{
 		if ( WarnDecaySecondsPassed >= WarnDecayCheckTimer )
 		{	
-			await WarnsDecayCheck();
+			//await WarnsDecayCheck();
 			LastWarnDecayCheck = DateTime.UtcNow;
 		}
 	}
@@ -214,7 +217,7 @@ public partial class Fishley
 		}
 		else
 		{
-			if ( CanModerate( user ) )
+			if ( false ) // CanModerate( user ) ) TODO REMOVE
 				await SendMessage( textChannel, $"<@{giver.Id}> attempted to warn <@{user.Id}> but I'm not powerful enough to do it.", deleteAfterSeconds: 5f );
 			else
 				await AddWarn( user, textMessage, $"<@{giver.Id}> warned <@{user.Id}>" );

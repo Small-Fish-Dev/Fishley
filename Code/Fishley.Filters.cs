@@ -1,3 +1,5 @@
+namespace Fishley;
+
 public partial class Fishley
 {
 	private static async Task<bool> HandleFilters( SocketUserMessage message )
@@ -17,7 +19,7 @@ public partial class Fishley
 	/// <returns></returns>
 	private static async Task<bool> HandleSimpleFilter(SocketUserMessage message)
     {
-		string pattern = ConfigGet( "SimpleRegex", @"[sS][iI][mM][pP][lL][eE]" );
+		string pattern = ConfigGet<string>( "SimpleRegex" );
 		
 		return await HandleFilter( message, pattern, "shrimple" );
 	}
@@ -29,7 +31,7 @@ public partial class Fishley
 	/// <returns></returns>
 	private static async Task<bool> HandleComplicatedFilter(SocketUserMessage message)
     {
-		string pattern = ConfigGet( "ComplicatedRegex", @"[cC][oO][mM][pP][lL][iI][cC][aA][tT][eE][dD]" );
+		string pattern = ConfigGet<string>( "ComplicatedRegex" );
 		
 		return await HandleFilter( message, pattern, "clamplicated" );
 	}
@@ -41,7 +43,7 @@ public partial class Fishley
 	/// <returns></returns>
 	private static async Task<bool> HandleConfusingFilter(SocketUserMessage message)
     {
-		string pattern = ConfigGet( "ConfusingRegex", @"[cC][oO][nN][fF][uU][sS][iI][nN][gG]" );
+		string pattern = ConfigGet<string>( "ConfusingRegex" );
 		
 		return await HandleFilter( message, pattern, "conchfusing" );
 	}

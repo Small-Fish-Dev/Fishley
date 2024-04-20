@@ -1,3 +1,5 @@
+namespace Fishley;
+
 public partial class Fishley
 {
 	public static ulong WarnRole1 => ConfigGet<ulong>( "WarnRole1" );
@@ -24,12 +26,14 @@ public partial class Fishley
 	/// <returns></returns>
     private static async Task AddWarn(SocketGuildUser user, SocketMessage socketMessage = null, string message = null, bool includeWarnCount = true, bool reply = true )
     {
-		var storedUser = UserGet( user.Id );
+		DebugSay( "Hello" );
+		var storedUser = await GetOrCreateUser( user.Id );
+		DebugSay( storedUser.UserId.ToString() );
 
 		if ( socketMessage.Channel is not SocketTextChannel channel ) return;
 		if ( channel == null || message == null || socketMessage == null ) return;
 
-		if ( !CanModerate( user ) )
+		if ( true ) // !CanModerate( user ) ) // TODO REMOVE TRUE
 		{
 			var timedOut = false;
 
@@ -46,8 +50,8 @@ public partial class Fishley
 			}
 
 			storedUser.Warnings = Math.Min( storedUser.Warnings + 1, 3 );
-			storedUser.LastWarn = DateTime.UtcNow.Ticks;
-			UserUpdate( storedUser );
+			storedUser.LastWarn = DateTime.UtcNow;
+			await UpdateUser( storedUser );
 
 			DebugSay( $"Given warning to {user.GlobalName}({user.Id})" );
 
@@ -68,7 +72,7 @@ public partial class Fishley
 	/// <returns></returns>
     private static async Task RemoveWarn(SocketGuildUser user)
     {
-		var storedUser = UserGet( user.Id );
+		var storedUser = await GetOrCreateUser( user.Id );
 
 		if ( storedUser.Warnings == 3 )
 			await user.RemoveRoleAsync(user.Guild.Roles.FirstOrDefault( x => x.Id == WarnRole3 ) );
@@ -80,28 +84,29 @@ public partial class Fishley
 		DebugSay( $"Removed warning from {user.GlobalName}({user.Id})" );
 
 		storedUser.Warnings = Math.Max( storedUser.Warnings - 1, 0 );
-		UserUpdate( storedUser );
+		await UpdateUser( storedUser );
     }
 
 	private static async Task WarnsDecayCheck()
 	{
-		var allWarnedUsers = Users.FindAll()
-		.Where( x => x.Warnings > 0 )
-		.ToList();
-
-		foreach ( var warnedUser in allWarnedUsers )
+		using ( var context = new FishleyDbContext() )
 		{
-			var lastWarningTime = DateTime.FromBinary( warnedUser.LastWarn );
-			var nowTime = DateTime.UtcNow;
-			var secondsPassed = (nowTime - lastWarningTime).TotalSeconds;
-			var secondsToPass = warnedUser.Warnings == 1 ? WarnRole1DecaySeconds : ( warnedUser.Warnings == 2 ? WarnRole2DecaySeconds : WarnRole3DecaySeconds );
+			var allWarnedUsers = await context.Users.AsAsyncEnumerable()
+			.Where( x => x.Warnings > 0 )
+			.ToListAsync();
 
-			if ( secondsPassed >= secondsToPass )
+			foreach ( var warnedUser in allWarnedUsers )
 			{
-				var user = SmallFishServer.GetUser( warnedUser.UserId );
+				var secondsPassed = ( DateTime.UtcNow - warnedUser.LastWarn ).TotalSeconds;
+				var secondsToPass = warnedUser.Warnings == 1 ? WarnRole1DecaySeconds : ( warnedUser.Warnings == 2 ? WarnRole2DecaySeconds : WarnRole3DecaySeconds );
 
-				if ( user != null )
-					await RemoveWarn( user );
+				if ( secondsPassed >= secondsToPass )
+				{
+					var user = SmallFishServer.GetUser( warnedUser.UserId );
+
+					if ( user != null )
+						await RemoveWarn( user );
+				}
 			}
 		}
 	}
