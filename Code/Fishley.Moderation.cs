@@ -28,12 +28,11 @@ public partial class Fishley
     {
 		DebugSay( "Hello" );
 		var storedUser = await GetOrCreateUser( user.Id );
-		DebugSay( storedUser.UserId.ToString() );
 
 		if ( socketMessage.Channel is not SocketTextChannel channel ) return;
 		if ( channel == null || message == null || socketMessage == null ) return;
 
-		if ( true ) // !CanModerate( user ) ) // TODO REMOVE TRUE
+		if ( !CanModerate( user ) )
 		{
 			var timedOut = false;
 

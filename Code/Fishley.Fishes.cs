@@ -1,23 +1,7 @@
 namespace Fishley;
 
 public partial class Fishley
-{/*
-	public struct Fish
-	{
-		[BsonId]
-		public int Id { get; set; } = 0;
-		public string CommonName { get; set; } = "Fish";
-		public string PageName { get; set; } = "Fish";
-		public string WikiPage { get; set; } = "https://smallfi.sh";
-		public string WikiInfoPage { get; set; } = "https://smallfi.sh";
-		public int MonthlyViews { get; set; } = 0;
-		public string ImageLink { get; set; } = "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/832px-No-Image-Placeholder.svg.png";
-		public long LastSeen { get; set; } = 0;
-		public string Rarity { get; set; } = "F-";
-
-		public Fish() {}
-	}
-
+{
 	public static Dictionary<string, (string, Color, decimal)> FishRarities { get; set; } = new() // Will make it better
 	{
 		{ "F-", ("https://i.imgur.com/DueCNx8.png", new Color(6,84,228), 0.005m) },
@@ -43,32 +27,16 @@ public partial class Fishley
 		{ "S+", ("https://i.imgur.com/Gb8dN1p.png", new Color(228,58,43), 10m) },
 	};
 
-	public static string FishDatabasePath => @"/home/ubre/Desktop/Fishley/fishes.db";
-	public static LiteDatabase FishDatabase => new ( FishDatabasePath );
-	public static ILiteCollection<Fish> AllFishes => FishDatabase.GetCollection<Fish>( "fishes" );
-
-	public static void FishUpdate( Fish fish ) 
-	{
-		using (var database = FishDatabase )
-		{
-			database.BeginTrans();
-			var fishes = AllFishes;
-	 		var added = fishes.Upsert( fish );
-			database.Commit();
-
-			Console.WriteLine( $"{(added ? "Added" : "Updated")} {fish.CommonName} {fish.PageName} {fish.WikiPage} {fish.WikiInfoPage} {fish.MonthlyViews} {fish.ImageLink}" );
-		}
-	}
-
 	public static void LoadFishes()
 	{
-		InitializeFishRarities( 100f / FishRarities.Count() );
+		//InitializeFishRarities( 100f / FishRarities.Count() );
 	}
 
 	private static List<int> _fishPercentileGroups { get; set; } = new();
 
 	private static void InitializeFishRarities( float percentageSize )
 	{
+		/*
 		var totalFishes = AllFishes.Count();
 		var groupSize = totalFishes * (percentageSize / 100f);
 
@@ -81,7 +49,7 @@ public partial class Fishley
 		_fishPercentileGroups?.Clear();
 
 		foreach (var fishGroup in fishGroups)
-			_fishPercentileGroups.Add(fishGroup.Max(x => x.MonthlyViews));
+			_fishPercentileGroups.Add(fishGroup.Max(x => x.MonthlyViews));*/
 	}
 
 	public static string GetFishRarity( float monthlyViews )
@@ -102,8 +70,10 @@ public partial class Fishley
 		return FishRarities.ToArray()[_fishPercentileGroups.Count()].Key;
 	}
 
-	private static bool IsFish( string text )
+	private static bool IsFish( HtmlDocument document )
 	{
+		var text = document.DocumentNode.InnerText;
+
 		if ( text.Contains( "Agnatha", StringComparison.OrdinalIgnoreCase ) ) return true;
 		if ( text.Contains( "Chondrichthyes", StringComparison.OrdinalIgnoreCase ) ) return true;
 		if ( text.Contains( "Osteichthyes", StringComparison.OrdinalIgnoreCase ) ) return true;
@@ -113,8 +83,10 @@ public partial class Fishley
 		return false;
 	}
 
-	private static bool IsIndexedPage( string text )
+	private static bool IsIndexedPage( HtmlDocument document )
 	{
+		var text = document.DocumentNode.InnerText;
+
 		if ( text.Contains("page lists  articles associated with the title", StringComparison.OrdinalIgnoreCase ) ) return true;
 		if ( text.Contains("This page is an index of articles", StringComparison.OrdinalIgnoreCase ) ) return true;
 		if ( text.Contains("This disambiguation page lists articles associated", StringComparison.OrdinalIgnoreCase ) ) return true;
@@ -123,179 +95,103 @@ public partial class Fishley
 		return false;
 	}
 
-	public static async Task ScrapeWikipediaLol()
+	public static async Task ExplorePage( HttpClient client, string url, string commonName = null, bool startingPage = false, int waitBetweenCalls = 1000 )
 	{
-		var url = "https://en.wikipedia.org/wiki/List_of_fish_common_names";
-        var httpClient = new HttpClient(new HttpClientHandler { AllowAutoRedirect = true });
-        var html = await httpClient.GetStringAsync(url);
-		var fishData = new List<Fish>();
-		var initialLinksFound = new List<(string,string)>(); // href, common name
+		var response = await client.GetStringAsync( url );
+		var htmlDocument = new HtmlDocument();
+		htmlDocument.LoadHtml( response );
 
-        var htmlDoc = new HtmlDocument();
-        htmlDoc.LoadHtml(html);
+		await Task.Delay( waitBetweenCalls ); // Wait before doing anything else, we don't want to overload Wikipedia (Or get blocked!)
 
-		// Get every hyperlink in lists that's valid
-        var linkNodes = htmlDoc.DocumentNode.SelectNodes("//ul/li/a[contains(@href, '/wiki/') and not(contains(@href, ':'))]");
-
-        if ( linkNodes != null )
-        {
-			foreach (var node in linkNodes)
-			{
-				var href = node.Attributes["href"].Value;
-				var commonName = node.InnerText;
-				Console.WriteLine($"Found fish: {commonName}, Link: https://en.wikipedia.org{href}");
-				
-				initialLinksFound.Add( (href, commonName) );
-            }
-        }
-
-		var redirectsFounds = new List<(string, string)>(); // In case we find redirects instead of fishes
-
-		foreach ( var fishLink in initialLinksFound )
+		// Is this page a collection of links?
+		if ( startingPage || IsIndexedPage( htmlDocument ) )
 		{
-			await Task.Delay( 1000 ); // Wait 1 second, don't wanna get blocked by wikipedia
+			// Get every valid hyperlink that is inside of a list
+			var outgoingLinks = htmlDocument.DocumentNode.SelectNodes("//ul/li/a[contains(@href, '/wiki/') and not(contains(@href, ':'))]");
 
-			var fishUrl = $"https://en.wikipedia.org{fishLink.Item1}";
-			var linkHtml = await httpClient.GetStringAsync(fishUrl);
-			var linkDoc = new HtmlDocument();
-			linkDoc.LoadHtml(linkHtml);
-			var docText = linkDoc.DocumentNode.InnerText;
-			Console.WriteLine( $"Checking for {fishLink.Item2}" );
-
-			if ( IsIndexedPage( docText ) )
+			if ( outgoingLinks != null )
 			{
-				// Get every hyperlink in lists that's valid
-				var initialLinkNodes = linkDoc.DocumentNode.SelectNodes("//ul/li/a[contains(@href, '/wiki/') and not(contains(@href, ':'))]");
-				if (initialLinkNodes != null)
+				foreach ( var linkNode in outgoingLinks )
 				{
-					for (int i = 0; i < initialLinkNodes.Count; i++)
-					{
-						var node = initialLinkNodes[i];
-                        var href = node.Attributes["href"].Value;
-                        var commonName = node.InnerText;
-                        Console.WriteLine($"Found fish: {commonName}, Link: https://en.wikipedia.org{href}");
+					var reference = linkNode.Attributes["href"].Value;
+					var innerText = linkNode.InnerText;
+					var pageName = commonName == null ? innerText : commonName; // Do we have a wider common name to display?
 
-						redirectsFounds.Add( (href, commonName) );
-					}
+					// Recursively go through all links, let's find all the fish!
+					await ExplorePage( client, $"https://en.wikipedia.org{reference}", pageName, false, waitBetweenCalls );
 				}
-			}
-			else
-			{
-				if ( !IsFish( docText ) ) continue;
-
-				var imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/832px-No-Image-Placeholder.svg.png"; // Placeholder
-				var pageImage = linkDoc.DocumentNode.SelectSingleNode("//meta[@property='og:image']");
-
-				if ( pageImage != null ) // TODO If no image found, get the family image
-				{
-					imageUrl = pageImage.GetAttributeValue("content", string.Empty);
-				}
-				else
-				{
-					// If no og:image found, try to get the image from the scientific classification box
-					var scientificClassificationImage = linkDoc.DocumentNode.SelectSingleNode("//table[@class='infobox biota']/following-sibling::div[@class='thumb']/descendant::img");
-
-					if (scientificClassificationImage != null)
-					{
-						imageUrl = scientificClassificationImage.GetAttributeValue("src", string.Empty);
-						// Add the protocol if it's missing
-						if (!imageUrl.StartsWith("http"))
-						{
-							imageUrl = "https:" + imageUrl;
-						}
-					}
-				}
-
-				var title = "Fish";
-				var titleNode = linkDoc.DocumentNode.SelectSingleNode("//title");
-
-				if ( titleNode != null )
-					title = titleNode.InnerText.Replace(" - Wikipedia", "");
-
-				var pageName = fishLink.Item1.Split("/wiki/").Last();
-				var infoPageLink = $"https://en.wikipedia.org/w/index.php?title={pageName}&action=info";
-
-				await Task.Delay( 1000 );
-
-				var infoResponse = await httpClient.GetAsync(infoPageLink);
-				var infoHtml = await infoResponse.Content.ReadAsStringAsync();
-				var infoDocument = new HtmlDocument();
-				infoDocument.LoadHtml(infoHtml);
-
-				var viewNode = infoDocument.DocumentNode.SelectSingleNode("//tr[@id='mw-pvi-month-count']/td/div/a");
-				var monthlyViews = viewNode?.InnerText.Trim().Replace( ",", "" ).Replace( ".", "" ) ?? "0";
-				var realMonthlyViews = 0;
-
-				if ( int.TryParse( monthlyViews, out var parsedMonthlyViews ) )
-					realMonthlyViews = parsedMonthlyViews;
-				
-				var newFish = new Fish()
-				{
-					CommonName = fishLink.Item2,
-					PageName = title,
-					WikiPage = $"https://en.wikipedia.org/wiki/{fishLink.Item2}",
-					WikiInfoPage = infoPageLink,
-					MonthlyViews = realMonthlyViews,
-					ImageLink = imageUrl
-				};
-
-				FishUpdate( newFish );
 			}
 		}
-
-		foreach ( var fishLink in redirectsFounds ) // TODO: Reuse code
+		else
 		{
-			await Task.Delay( 1000 ); // Wait 1 second, don't wanna get blocked by wikipedia
-
-			var fishUrl = $"https://en.wikipedia.org{fishLink.Item1}";
-			var linkHtml = await httpClient.GetStringAsync(fishUrl);
-			var linkDoc = new HtmlDocument();
-			linkDoc.LoadHtml(linkHtml);
-			var docText = linkDoc.DocumentNode.InnerText;
-			Console.WriteLine( $"Checking for {fishLink.Item2}" );
-
-			if ( !IsFish( docText ) ) continue;
-
-			var imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/832px-No-Image-Placeholder.svg.png"; // Placeholder
-			var pageImage = linkDoc.DocumentNode.SelectSingleNode("//meta[@property='og:image']");
-
-			if ( pageImage != null ) // TODO If no image found, get the family image
-				imageUrl = pageImage.GetAttributeValue("content", string.Empty);
-
-			var title = "Fish";
-			var titleNode = linkDoc.DocumentNode.SelectSingleNode("//title");
-
-			if ( titleNode != null )
-				title = titleNode.InnerText.Replace(" - Wikipedia", "");
-
-			var pageName = fishLink.Item1.Split("/wiki/").Last();
-			var infoPageLink = $"https://en.wikipedia.org/w/index.php?title={pageName}&action=info";
-
-			await Task.Delay( 1000 );
-
-			var infoResponse = await httpClient.GetAsync(infoPageLink);
-			var infoHtml = await infoResponse.Content.ReadAsStringAsync();
-			var infoDocument = new HtmlDocument();
-			infoDocument.LoadHtml(infoHtml);
-
-			var viewNode = infoDocument.DocumentNode.SelectSingleNode("//tr[@id='mw-pvi-month-count']/td/div/a");
-			var monthlyViews = viewNode?.InnerText.Trim().Replace( ",", "" ).Replace( ".", "" ) ?? "0";
-			var realMonthlyViews = 0;
-
-			if ( int.TryParse( monthlyViews, out var parsedMonthlyViews ) )
-				realMonthlyViews = parsedMonthlyViews;
-				
-			var newFish = new Fish()
-			{
-				CommonName = fishLink.Item2,
-				PageName = title,
-				WikiPage = $"https://en.wikipedia.org/wiki/{fishLink.Item2}",
-				WikiInfoPage = infoPageLink,
-				MonthlyViews = realMonthlyViews,
-				ImageLink = imageUrl
-			};
-
-			FishUpdate( newFish );
+			// Is this page a fish or is it Mark Twain again?
+			if ( IsFish( htmlDocument ) )
+				await AddFishPage( client, htmlDocument, url, commonName, waitBetweenCalls );
 		}
 	}
-*/}
+
+	public static async Task AddFishPage(  HttpClient client, HtmlDocument document, string url, string commonName, int waitBetweenCalls = 1000 )
+	{
+		var documentNode = document.DocumentNode;
+
+		var pageIdentifier = url.Split("/wiki/").Last();
+		var infoPageLink = $"https://en.wikipedia.org/w/index.php?title={pageIdentifier}&action=info";
+
+		#region Setting the title and image
+		var imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/832px-No-Image-Placeholder.svg.png"; // Placeholder image
+		var pageImage = documentNode.SelectSingleNode("//meta[@property='og:image']"); // Fetch the embed image
+
+		if ( pageImage != null ) // TODO If no image found, get the taxonomy image, else get the family image
+			imageUrl = pageImage.GetAttributeValue( "content", imageUrl );
+
+		var pageTitle = commonName;
+		var titleNode = documentNode.SelectSingleNode("//title");
+
+		if ( titleNode != null )
+			pageTitle = titleNode.InnerText.Replace(" - Wikipedia", "");
+		else
+		{
+			if ( pageTitle == null ) // If we didn't even have a common name to go off of
+				pageTitle = pageIdentifier.Replace( "_", " " ); // Beautify the identifier and use it as the title
+		}
+		#endregion
+
+		await Task.Delay( waitBetweenCalls ); // We're about to make another request so wait
+
+		#region Setting the metadata
+		var infoResponse = await client.GetStringAsync( infoPageLink );
+		var infoHtmlDocument = new HtmlDocument();
+		infoHtmlDocument.LoadHtml( infoResponse );
+		var infoDocumentNode = infoHtmlDocument.DocumentNode;
+
+		var pageIdNode = infoDocumentNode.SelectSingleNode( "//tr[@id='mw-pageinfo-article-id']/td[2]" );
+		var pageIdData = pageIdNode?.InnerText.Trim().Replace( ",", "" ).Replace( ".", "" ) ?? "0"; // Clean string to parse
+		int.TryParse( pageIdData, out var pageId );
+
+		if ( pageId == 0 )
+			pageId = new Random( (int)DateTime.UtcNow.Ticks ).Next(); // Avoid multiple pages with the same Id at all costs
+
+		var monthlyViewsNode = infoDocumentNode.SelectSingleNode( "//tr[@id='mw-pvi-month-count']/td/div/a" );
+		var monthlyViewsData = monthlyViewsNode?.InnerText.Trim().Replace( ",", "" ).Replace( ".", "" ) ?? "0"; // Clean string to parse
+		int.TryParse( monthlyViewsData, out var monthlyViews );
+		#endregion
+
+		var newFish = new Fish()
+		{
+			CommonName = fishLink.Item2,
+			PageName = title,
+			WikiPage = $"https://en.wikipedia.org/wiki/{fishLink.Item2}",
+			WikiInfoPage = infoPageLink,
+			MonthlyViews = realMonthlyViews,
+			ImageLink = imageUrl
+		};
+	}
+
+	public static async Task ScrapeWikipediaLol()
+	{
+		var startingUrl = "https://en.wikipedia.org/wiki/List_of_fish_common_names";
+        var httpClient = new HttpClient(new HttpClientHandler { AllowAutoRedirect = true });
+
+		await ExplorePage( httpClient, startingUrl, null, true, 1000 );
+	}
+}

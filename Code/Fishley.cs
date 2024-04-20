@@ -91,8 +91,8 @@ public partial class Fishley
 
 		await SmallFishServer.DeleteApplicationCommandsAsync();
 
-		//foreach ( var command in Commands.Values ) TODO REMOVE
-		//	await SmallFishServer.CreateApplicationCommandAsync( command.Builder.Build() );
+		foreach ( var command in Commands.Values )
+			await SmallFishServer.CreateApplicationCommandAsync( command.Builder.Build() );
 
 		Running = true;
 		await Task.CompletedTask;
@@ -102,7 +102,7 @@ public partial class Fishley
 	{
 		if ( WarnDecaySecondsPassed >= WarnDecayCheckTimer )
 		{	
-			//await WarnsDecayCheck();
+			await WarnsDecayCheck();
 			LastWarnDecayCheck = DateTime.UtcNow;
 		}
 	}
@@ -217,7 +217,7 @@ public partial class Fishley
 		}
 		else
 		{
-			if ( false ) // CanModerate( user ) ) TODO REMOVE
+			if ( CanModerate( user ) )
 				await SendMessage( textChannel, $"<@{giver.Id}> attempted to warn <@{user.Id}> but I'm not powerful enough to do it.", deleteAfterSeconds: 5f );
 			else
 				await AddWarn( user, textMessage, $"<@{giver.Id}> warned <@{user.Id}>" );
