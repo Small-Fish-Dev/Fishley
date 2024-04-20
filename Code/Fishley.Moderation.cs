@@ -1,15 +1,15 @@
 public partial class Fishley
 {
-	public static ulong WarnRole1 => ConfigGet<ulong>( "WarnRole1", 1063893887564914869 );
-	public static int WarnRole1DecaySeconds => ConfigGet<int>( "WarnRole1DecaySeconds", 900 );
-	public static ulong WarnRole2 => ConfigGet<ulong>( "WarnRole2", 1063894349617823766 );
-	public static int WarnRole2DecaySeconds => ConfigGet<int>( "WarnRole2DecaySeconds", 7200 );
-	public static ulong WarnRole3 => ConfigGet<ulong>( "WarnRole3", 1227004898802143252 );
-	public static int WarnRole3DecaySeconds => ConfigGet<int>( "WarnRole3DecaySeconds", 86400 );
-	public static string WarnEmoji => ConfigGet( "WarnEmoji", "warn" );
-	public static int TimeoutDuration => ConfigGet<int>( "WarnTimeoutSeconds", 600 );
+	public static ulong WarnRole1 => ConfigGet<ulong>( "WarnRole1" );
+	public static int WarnRole1DecaySeconds => ConfigGet<int>( "WarnRole1DecaySeconds" );
+	public static ulong WarnRole2 => ConfigGet<ulong>( "WarnRole2" );
+	public static int WarnRole2DecaySeconds => ConfigGet<int>( "WarnRole2DecaySeconds" );
+	public static ulong WarnRole3 => ConfigGet<ulong>( "WarnRole3" );
+	public static int WarnRole3DecaySeconds => ConfigGet<int>( "WarnRole3DecaySeconds" );
+	public static string WarnEmoji => ConfigGet<string>( "WarnEmoji" );
+	public static int TimeoutDuration => ConfigGet<int>( "WarnTimeoutSeconds" );
 
-	public static int WarnDecayCheckTimer => ConfigGet<int>( "WarnDecayCheckTimer", 60 );
+	public static int WarnDecayCheckTimer => ConfigGet<int>( "WarnDecayCheckTimer" );
 	public static DateTime LastWarnDecayCheck;
 	public static int WarnDecaySecondsPassed => (int)( DateTime.UtcNow - LastWarnDecayCheck ).TotalSeconds;
 

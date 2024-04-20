@@ -22,9 +22,9 @@ public partial class Fishley
 	public static SocketGuild SmallFishServer;
 	private static string _configPath => @"/home/ubre/Desktop/Fishley/config.json";
 	public static Dictionary<string, string> Config { get; private set; }
-	public static ulong SmallFishRole => ConfigGet<ulong>( "SmallFishRole", 1005599675530870824 );
-	public static ulong AdminRole => ConfigGet<ulong>( "AdminRole", 1197217122183544862 );
-	public static ulong SpamChannel => ConfigGet<ulong>( "SpamChannel", 1031998162212229120 );
+	public static ulong SmallFishRole => ConfigGet<ulong>( "SmallFishRole" );
+	public static ulong AdminRole => ConfigGet<ulong>( "AdminRole" );
+	public static ulong SpamChannel => ConfigGet<ulong>( "SpamChannel" );
 	public static bool Running { get; set; } = false;
 	public static DateTime LastMessage { get; set; } = DateTime.UtcNow;
 	public static int SecondsSinceLastMessage => (int)( DateTime.UtcNow - LastMessage ).TotalSeconds;
@@ -43,7 +43,7 @@ public partial class Fishley
 
         var _config = new DiscordSocketConfig
 		{
-			MessageCacheSize = ConfigGet<int>( "MessageCacheSize", 100 ),
+			MessageCacheSize = ConfigGet<int>( "MessageCacheSize" ),
 			GatewayIntents = GatewayIntents.AllUnprivileged |
 			GatewayIntents.MessageContent |
 			GatewayIntents.GuildMembers |
@@ -53,7 +53,6 @@ public partial class Fishley
 		};
         Client = new DiscordSocketClient(_config);
 
-        InitializeDatabase();
 		LoadFishes();
 
 		Client.Log += Log;
@@ -63,9 +62,9 @@ public partial class Fishley
 		Client.Ready += OnReady;
 		Client.SlashCommandExecuted += SlashCommandHandler;
 
-		var token = ConfigGet( "Token", "ERROR" );
+		var token = ConfigGet<string>( "Token" );
 
-		if ( token == "ERROR" )
+		if ( token == null )
 			DebugSay( "Token not found!" );
 
 		await Client.LoginAsync(TokenType.Bot, token);
@@ -83,7 +82,7 @@ public partial class Fishley
 
 	private static async Task OnReady() 
 	{
-		var guildId = ConfigGet<ulong>( "SmallFish", 1005596271907717140 );
+		var guildId = ConfigGet<ulong>( "SmallFish" );
 		SmallFishServer = Client.GetGuild( guildId );
 		await SmallFishServer.DownloadUsersAsync();
 
@@ -156,9 +155,8 @@ public partial class Fishley
 	/// </summary>
 	/// <typeparam name="T"></typeparam>
 	/// <param name="key"></param>
-	/// <param name="defaultValue"></param>
 	/// <returns></returns>
-	public static T ConfigGet<T>( string key, T defaultValue )
+	public static T ConfigGet<T>( string key )
 	{
 		if ( Config.TryGetValue( key, out var configValue ) )
 		{
@@ -167,30 +165,15 @@ public partial class Fishley
 				T parsedValue = (T)Convert.ChangeType(configValue, typeof(T));
 				return parsedValue;
 			}
-			catch (FormatException)
-			{
-				return defaultValue;
-			}
+			catch ( Exception ex ) when ( ex is FormatException || ex is InvalidCastException || ex is OverflowException )
+            {
+				DebugSay( $"Couldn't get {key} so I'm returning the default.");
+                return default;
+            }
 		}
 
-		DebugSay( $"Couldn't get {key} so I'm using the default of {defaultValue}");
-		return defaultValue;
-	}
-
-	/// <summary>
-	/// Get a value from the config file, else return a default value
-	/// </summary>
-	/// <typeparam name="T"></typeparam>
-	/// <param name="key"></param>
-	/// <param name="defaultValue"></param>
-	/// <returns></returns>
-	public static string ConfigGet( string key, string defaultValue )
-	{
-		if ( Config.TryGetValue( key, out var configValue ) )
-			return configValue;
-
-		DebugSay( $"Couldn't get {key} so I'm using the default of {defaultValue}");
-		return defaultValue;
+		DebugSay( $"Couldn't get {key} so I'm returning the default.");
+		return default;
 	}
 
 	/// <summary>

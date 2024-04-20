@@ -42,20 +42,24 @@ public partial class Fishley
 	};
 
 	public static string FishDatabasePath => @"/home/ubre/Desktop/Fishley/fishes.db";
-	public static LiteDatabase FishDatabase { get; set; }
-	public static ILiteCollection<Fish> AllFishes { get; set; }
+	public static LiteDatabase FishDatabase => new ( FishDatabasePath );
+	public static ILiteCollection<Fish> AllFishes => FishDatabase.GetCollection<Fish>( "fishes" );
 
 	public static void FishUpdate( Fish fish ) 
 	{
-		var added = AllFishes.Upsert( fish );
+		using (var database = FishDatabase )
+		{
+			database.BeginTrans();
+			var fishes = AllFishes;
+	 		var added = fishes.Upsert( fish );
+			database.Commit();
 
-		Console.WriteLine( $"{(added ? "Added" : "Updated")} {fish.CommonName} {fish.PageName} {fish.WikiPage} {fish.WikiInfoPage} {fish.MonthlyViews} {fish.ImageLink}" );
+			Console.WriteLine( $"{(added ? "Added" : "Updated")} {fish.CommonName} {fish.PageName} {fish.WikiPage} {fish.WikiInfoPage} {fish.MonthlyViews} {fish.ImageLink}" );
+		}
 	}
 
 	public static void LoadFishes()
 	{
-		FishDatabase = new ( FishDatabasePath );
-		AllFishes = FishDatabase.GetCollection<Fish>( "fishes" );
 		InitializeFishRarities( 100f / FishRarities.Count() );
 	}
 

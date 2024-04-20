@@ -14,11 +14,11 @@ public partial class Fishley
 		{
 			var user = UserGet( command.User.Id );
 			var now = DateTime.UtcNow;
-			var passed = (now - DateTime.FromBinary( user.LastFish )).TotalHours;
+			var passed = (now - DateTime.FromBinary( user.LastFish )).TotalSeconds;
 
-			if ( passed <= 1 )
+			if ( passed <= 5 )
 			{
-				await command.RespondAsync( "There's no more fish around you, you must wait an hour before fishing again!" );
+				await command.RespondAsync( "You're fishing too much, wait 5 seconds.", ephemeral: true );
 				return;
 			}
 

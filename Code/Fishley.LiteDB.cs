@@ -1,7 +1,7 @@
 public partial class Fishley
 {
-	public static string DatabasePath => ConfigGet( "Database", "smallfish_database.db" );
-	public static LiteDatabase Database { get; set; }
+	public static string DatabasePath => ConfigGet<string>( "Database" );
+	public static LiteDatabase Database => new LiteDatabase( DatabasePath );
 	public static ILiteCollection<User> Users => Database.GetCollection<User>( "users" );
 
 	public class User
@@ -21,8 +21,6 @@ public partial class Fishley
 		}
 	}
 
-    private static void InitializeDatabase() => Database = new ( DatabasePath );
-
 	public static User UserGet( ulong userId )
 	{
 		var user = Users.Find( x => x.UserId == userId )
@@ -39,7 +37,16 @@ public partial class Fishley
 	}
 	public static bool UserExists( ulong userId ) => Users.Exists( x => x.UserId == userId );
 	public static bool UserExists( User user ) => UserExists( user.UserId );
-	public static void UserUpdate( User user ) => Users.Upsert( user );
+	public static void UserUpdate( User user )
+	{
+		using ( var database = new LiteDatabase( DatabasePath ) )
+		{
+			database.BeginTrans();
+			var users = Database.GetCollection<User>( "users" );
+	 		users.Upsert( user );
+			database.Commit();
+		}
+	}
 	
 	public static void UserDelete( ulong userId )
 	{
