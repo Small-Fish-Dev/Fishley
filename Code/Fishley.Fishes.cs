@@ -104,14 +104,20 @@ public partial class Fishley
 		return false;
 	}
 
-	public static async Task ExplorePage( HttpClient client, string url, string commonName = null, bool startingPage = false, int waitBetweenCalls = 1000, List<string> visitedUrls = null )
+	public static async Task ExplorePage( HttpClient client, string url, string commonName = null, bool startingPage = false, int waitBetweenCalls = 1000, List<string> visitedUrls = null, int currentRecursion = 0 )
 	{
 		if ( startingPage )
 			visitedUrls = new();
 
 		if ( visitedUrls.Contains( url ) )
 		{
-			DebugSay( $"Visited {url} already, skipping" );
+			DebugSay( $"Visited {url} already, skipping.." );
+			return;
+		}
+
+		if ( currentRecursion >= 3 )
+		{
+			DebugSay( $"We are looking too deep man, skipping..." );
 			return;
 		}
 
@@ -153,10 +159,9 @@ public partial class Fishley
 				{
 					var reference = linkNode.Attributes["href"].Value;
 					var innerText = linkNode.InnerText;
-					var pageName = commonName == null ? innerText : commonName; // Do we have a wider common name to display?
 
 					// Recursively go through all links, let's find all the fish!
-					await ExplorePage( client, $"https://en.wikipedia.org{reference}", pageName, false, waitBetweenCalls, visitedUrls );
+					await ExplorePage( client, $"https://en.wikipedia.org{reference}", innerText, false, waitBetweenCalls, visitedUrls, currentRecursion + 1 );
 				}
 			}
 		}
