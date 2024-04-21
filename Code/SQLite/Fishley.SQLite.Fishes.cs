@@ -5,7 +5,7 @@ public partial class Fishley
 	public class Fish
 	{
 		[Key]
-		public int Id { get; set; }
+		public int PageId { get; set; }
 		public string CommonName { get; set; }
 		public string PageName { get; set; }
 		public string WikiPage { get; set; }
@@ -15,9 +15,22 @@ public partial class Fishley
 		public DateTime LastSeen { get; set; }
 		public string Rarity { get; set; }
 
-		public Fish( int id )
+		public Fish( int pageId )
 		{
-			Id = id;
+			PageId = pageId;
+		}
+		
+		public Fish( FishData fish )
+		{
+			PageId = fish.PageId;
+			CommonName = fish.CommonName;
+			PageName = fish.PageName;
+			WikiPage = fish.WikiPage;
+			WikiInfoPage = fish.WikiInfoPage;
+			MonthlyViews = fish.MonthlyViews;
+			ImageLink = fish.ImageLink;
+			LastSeen = fish.LastSeen;
+			Rarity = fish.Rarity;
 		}
 
 		public void Copy( FishData fish )
@@ -35,7 +48,7 @@ public partial class Fishley
 
 	public class FishData
 	{
-		public int Id { get; set; }
+		public int PageId { get; set; }
 		public string CommonName { get; set; }
 		public string PageName { get; set; }
 		public string WikiPage { get; set; }
@@ -45,14 +58,14 @@ public partial class Fishley
 		public DateTime LastSeen { get; set; }
 		public string Rarity { get; set; }
 
-		public FishData( int id )
+		public FishData( int pageId )
 		{
-			Id = id;
+			PageId = pageId;
 		}
 
 		public FishData( Fish fish )
 		{
-			Id = fish.Id;
+			PageId = fish.PageId;
 			CommonName = fish.CommonName;
 			PageName = fish.PageName;
 			WikiPage = fish.WikiPage;
@@ -63,34 +76,17 @@ public partial class Fishley
 			Rarity = fish.Rarity;
 		}
 	}
-	
-	public static async Task<User> GetOrCreateUser( ulong userId )
+
+	public static async Task UpdateOrCreateFish( FishData fish )
 	{
 		using (var db = new FishleyDbContext())
 		{
-			var user = await db.Users.FindAsync(userId);
+			var foundFish = await db.Fishes.FindAsync( fish.PageId );
 
-			if (user == null)
-			{
-				user = new DiscordUser(userId);
-				db.Users.Add(user);
-				await db.SaveChangesAsync();
-			}
-
-			return new User( user );
-		}
-	}
-
-	public static async Task UpdateUser( User user )
-	{
-		using (var db = new FishleyDbContext())
-		{
-			var foundUser = await db.Users.FindAsync( user.UserId );
-
-			if ( foundUser == null )
-				db.Users.Add( new DiscordUser( user.UserId ) );
+			if ( foundFish == null )
+				db.Fishes.Add( new Fish( fish ) );
 			else
-				foundUser.Copy( user );
+				foundFish.Copy( fish );
 
 			await db.SaveChangesAsync();
 		}

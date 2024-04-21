@@ -91,8 +91,8 @@ public partial class Fishley
 
 		await SmallFishServer.DeleteApplicationCommandsAsync();
 
-		foreach ( var command in Commands.Values )
-			await SmallFishServer.CreateApplicationCommandAsync( command.Builder.Build() );
+		//foreach ( var command in Commands.Values )
+		//	await SmallFishServer.CreateApplicationCommandAsync( command.Builder.Build() );
 
 		Running = true;
 		await ScrapeWikipediaLol();

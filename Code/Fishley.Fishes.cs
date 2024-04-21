@@ -97,15 +97,32 @@ public partial class Fishley
 
 	public static async Task ExplorePage( HttpClient client, string url, string commonName = null, bool startingPage = false, int waitBetweenCalls = 1000 )
 	{
-		var response = await client.GetStringAsync( url );
+		DebugSay( $"Exploring {url}" );
+		var response = await client.GetAsync( url, HttpCompletionOption.ResponseHeadersRead );
+
+		if ( !response.IsSuccessStatusCode )
+		{
+			DebugSay( $"Unable to fetch {url}. Status code: {response.StatusCode}" );
+			return;
+		}
+
+		var finalUrl = response.RequestMessage.RequestUri.AbsoluteUri;
+		if ( finalUrl != url )
+		{
+			DebugSay( $"{url} redirected to {finalUrl}" ); // This never works lol
+			url = finalUrl;
+		}
+
+		var loadedPage = await response.Content.ReadAsStringAsync();
 		var htmlDocument = new HtmlDocument();
-		htmlDocument.LoadHtml( response );
+		htmlDocument.LoadHtml( loadedPage );
 
 		await Task.Delay( waitBetweenCalls ); // Wait before doing anything else, we don't want to overload Wikipedia (Or get blocked!)
 
 		// Is this page a collection of links?
 		if ( startingPage || IsIndexedPage( htmlDocument ) )
 		{
+			DebugSay( $"{url} is an indexed page" );
 			// Get every valid hyperlink that is inside of a list
 			var outgoingLinks = htmlDocument.DocumentNode.SelectNodes("//ul/li/a[contains(@href, '/wiki/') and not(contains(@href, ':'))]");
 
@@ -132,6 +149,7 @@ public partial class Fishley
 
 	public static async Task AddFishPage( HttpClient client, HtmlDocument document, string url, string commonName, int waitBetweenCalls = 1000 )
 	{
+		DebugSay( $"Adding fish: {url}" );
 		var documentNode = document.DocumentNode;
 
 		var pageIdentifier = url.Split("/wiki/").Last();
@@ -139,16 +157,30 @@ public partial class Fishley
 
 		#region Setting the title and image
 		var imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/832px-No-Image-Placeholder.svg.png"; // Placeholder image
-		var pageImage = documentNode.SelectSingleNode("//meta[@property='og:image']"); // Fetch the embed image
+		var pageImage = documentNode.SelectSingleNode( "//meta[@property='og:image']" ); // Fetch the embed image
 
 		if ( pageImage != null ) // TODO If no image found, get the taxonomy image, else get the family image
+		{
 			imageUrl = pageImage.GetAttributeValue( "content", imageUrl );
+		}
+		else
+		{
+			var taxonomyImageNode = documentNode.SelectSingleNode( "//table[contains(@class, 'infobox biota')]//img" );
+
+			if ( taxonomyImageNode != null)
+			{
+				imageUrl = taxonomyImageNode.GetAttributeValue("src", string.Empty);
+
+				if ( !imageUrl.StartsWith( "http:", StringComparison.OrdinalIgnoreCase ) && !imageUrl.StartsWith( "https:", StringComparison.OrdinalIgnoreCase ) ) // Make sure it's using a full url
+					imageUrl = "https:" + imageUrl;
+			}
+		}
 
 		var pageName = commonName;
-		var titleNode = documentNode.SelectSingleNode("//title");
+		var titleNode = documentNode.SelectSingleNode( "//title" );
 
 		if ( titleNode != null )
-			pageName = titleNode.InnerText.Replace(" - Wikipedia", "");
+			pageName = titleNode.InnerText.Replace( " - Wikipedia", "" );
 		else
 		{
 			if ( pageName == null ) // If we didn't even have a common name to go off of
@@ -201,6 +233,7 @@ public partial class Fishley
 		var startingUrl = "https://en.wikipedia.org/wiki/List_of_fish_common_names";
         var httpClient = new HttpClient(new HttpClientHandler { AllowAutoRedirect = true });
 
-		await ExplorePage( httpClient, startingUrl, null, true, 1000 );
+		await ExplorePage( httpClient, "https://en.wikipedia.org/wiki/Sturgeon", "Sturgeon", false, 1000 );
+		//await ExplorePage( httpClient, startingUrl, null, true, 1000 );
 	}
 }
