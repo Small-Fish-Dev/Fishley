@@ -100,6 +100,7 @@ public partial class Fishley
 		if ( text.Contains("This disambiguation page lists articles associated", StringComparison.OrdinalIgnoreCase ) ) return true;
 		if ( text.Contains("Index of animals with the same common name", StringComparison.OrdinalIgnoreCase ) ) return true;
 		if ( text.Contains("is a common name", StringComparison.OrdinalIgnoreCase ) ) return true;
+		if ( text.Contains("This article lists fish", StringComparison.OrdinalIgnoreCase ) ) return true;
 
 		return false;
 	}
@@ -115,11 +116,13 @@ public partial class Fishley
 			return;
 		}
 
-		if ( currentRecursion >= 3 )
+		if ( currentRecursion >= 4 )
 		{
 			DebugSay( $"We are looking too deep man, skipping..." );
 			return;
 		}
+
+		await Task.Delay( waitBetweenCalls ); // Wait before doing anything else, we don't want to overload Wikipedia (Or get blocked!)
 
 		DebugSay( $"Exploring {url}" );
 		var response = await client.GetAsync( url, HttpCompletionOption.ResponseHeadersRead );
@@ -143,8 +146,6 @@ public partial class Fishley
 		var loadedPage = await response.Content.ReadAsStringAsync();
 		var htmlDocument = new HtmlDocument();
 		htmlDocument.LoadHtml( loadedPage );
-
-		await Task.Delay( waitBetweenCalls ); // Wait before doing anything else, we don't want to overload Wikipedia (Or get blocked!)
 
 		// Is this page a collection of links?
 		if ( startingPage || IsIndexedPage( htmlDocument ) )
