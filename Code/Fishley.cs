@@ -56,14 +56,12 @@ public partial class Fishley
 		};
         Client = new DiscordSocketClient(_config);
 
-		//LoadFishes();
-
-		//Client.Log += Log;
-        //Client.MessageUpdated += MessageUpdated;
-		//Client.MessageReceived += MessageReceived;
-		//Client.ReactionAdded += ReactionAdded;
+		Client.Log += Log;
+        Client.MessageUpdated += MessageUpdated;
+		Client.MessageReceived += MessageReceived;
+		Client.ReactionAdded += ReactionAdded;
 		Client.Ready += OnReady;
-		//Client.SlashCommandExecuted += SlashCommandHandler;
+		Client.SlashCommandExecuted += SlashCommandHandler;
 
 		var token = ConfigGet<string>( "Token" );
 
@@ -91,10 +89,10 @@ public partial class Fishley
 
 		await SmallFishServer.DeleteApplicationCommandsAsync();
 
-		//foreach ( var command in Commands.Values )
-		//	await SmallFishServer.CreateApplicationCommandAsync( command.Builder.Build() );
+		foreach ( var command in Commands.Values )
+			await SmallFishServer.CreateApplicationCommandAsync( command.Builder.Build() );
 
-		await ScrapeWikipediaLol();
+		//await ScrapeWikipediaLol();
 		Running = true;
 		await Task.CompletedTask;
 	}
@@ -103,7 +101,7 @@ public partial class Fishley
 	{
 		if ( WarnDecaySecondsPassed >= WarnDecayCheckTimer )
 		{	
-			//await WarnsDecayCheck();
+			await WarnsDecayCheck();
 			LastWarnDecayCheck = DateTime.UtcNow;
 		}
 	}

@@ -27,36 +27,37 @@ public partial class Fishley
 		{ "S+", ("https://i.imgur.com/Gb8dN1p.png", new Color(228,58,43), 10m) },
 	};
 
-	public static void LoadFishes()
-	{
-		//InitializeFishRarities( 100f / FishRarities.Count() );
-	}
-
 	private static List<int> _fishPercentileGroups { get; set; } = new();
 
-	private static void InitializeFishRarities( float percentageSize )
+	private static async Task InitializeFishRarities( float percentageSize )
 	{
-		/*
-		var totalFishes = AllFishes.Count();
-		var groupSize = totalFishes * (percentageSize / 100f);
+		using (var db = new FishleyDbContext())
+		{
+			var fishes = db.Fishes.AsEnumerable();
 
-		int effectiveGroupSize = (int)Math.Ceiling(groupSize);
+			var totalFishes = fishes.Count();
+			var groupSize = totalFishes * (percentageSize / 100f);
 
-		var fishGroups = AllFishes.Query().ToList().OrderBy(x => x.MonthlyViews)
-			.Select((fish, index) => new { Fish = fish, Index = index })
-			.GroupBy(x => x.Index / effectiveGroupSize, x => x.Fish);
+			int effectiveGroupSize = (int)Math.Ceiling(groupSize);
 
-		_fishPercentileGroups?.Clear();
+			var fishGroups = fishes.ToList().OrderBy(x => x.MonthlyViews)
+				.Select((fish, index) => new { Fish = fish, Index = index })
+				.GroupBy(x => x.Index / effectiveGroupSize, x => x.Fish);
 
-		foreach (var fishGroup in fishGroups)
-			_fishPercentileGroups.Add(fishGroup.Max(x => x.MonthlyViews));*/
+			_fishPercentileGroups?.Clear();
+
+			foreach ( var fishGroup in fishGroups )
+				_fishPercentileGroups.Add(fishGroup.Max(x => x.MonthlyViews));
+
+			foreach ( var fish in fishes )
+				fish.Rarity = GetFishRarity( fish.MonthlyViews );
+			
+			await db.SaveChangesAsync();
+		}
 	}
 
 	public static string GetFishRarity( float monthlyViews )
 	{
-		if ( _fishPercentileGroups == null || _fishPercentileGroups.Count() == 0)
-			InitializeFishRarities( 100f / FishRarities.Count() );
-
 		var currentGroup = 0;
 
 		foreach ( var group in _fishPercentileGroups )
@@ -264,5 +265,6 @@ public partial class Fishley
         var httpClient = new HttpClient(new HttpClientHandler { AllowAutoRedirect = true });
 
 		await ExplorePage( httpClient, startingUrl, null, true, 1000 );
+		await InitializeFishRarities( 100f / FishRarities.Count() );
 	}
 }
