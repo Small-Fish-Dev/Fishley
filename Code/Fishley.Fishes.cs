@@ -72,13 +72,21 @@ public partial class Fishley
 
 	private static bool IsFish( HtmlDocument document )
 	{
-		var text = document.DocumentNode.InnerText;
+		var taxonomyNode = document.DocumentNode.SelectSingleNode( "//tr[td[contains(., 'Class:') or contains(., 'Clade:') or contains(., 'Superclass:')]]/td[2]/a" );
 
-		if ( text.Contains( "Agnatha", StringComparison.OrdinalIgnoreCase ) ) return true;
-		if ( text.Contains( "Chondrichthyes", StringComparison.OrdinalIgnoreCase ) ) return true;
-		if ( text.Contains( "Osteichthyes", StringComparison.OrdinalIgnoreCase ) ) return true;
-		if ( text.Contains( "Actinopterygii", StringComparison.OrdinalIgnoreCase ) ) return true;
-		if ( text.Contains( "Sarcopterygii", StringComparison.OrdinalIgnoreCase ) ) return true;
+		if (taxonomyNode == null)
+			taxonomyNode = document.DocumentNode.SelectSingleNode( "//tr[td[contains(., 'Class:') or contains(., 'Clade:') or contains(., 'Superclass:')]]/td[2]" ); // No link found let's try plain text
+
+        if ( taxonomyNode != null )
+        {
+			var animalType = taxonomyNode.InnerText.Trim();
+
+			if ( animalType.Contains( "Agnatha", StringComparison.OrdinalIgnoreCase ) ) return true;
+			if ( animalType.Contains( "Chondrichthyes", StringComparison.OrdinalIgnoreCase ) ) return true;
+			if ( animalType.Contains( "Osteichthyes", StringComparison.OrdinalIgnoreCase ) ) return true;
+			if ( animalType.Contains( "Actinopterygii", StringComparison.OrdinalIgnoreCase ) ) return true;
+			if ( animalType.Contains( "Sarcopterygii", StringComparison.OrdinalIgnoreCase ) ) return true;
+		}
 
 		return false;
 	}
@@ -91,12 +99,22 @@ public partial class Fishley
 		if ( text.Contains("This page is an index of articles", StringComparison.OrdinalIgnoreCase ) ) return true;
 		if ( text.Contains("This disambiguation page lists articles associated", StringComparison.OrdinalIgnoreCase ) ) return true;
 		if ( text.Contains("Index of animals with the same common name", StringComparison.OrdinalIgnoreCase ) ) return true;
+		if ( text.Contains("is a common name", StringComparison.OrdinalIgnoreCase ) ) return true;
 
 		return false;
 	}
 
-	public static async Task ExplorePage( HttpClient client, string url, string commonName = null, bool startingPage = false, int waitBetweenCalls = 1000 )
+	public static async Task ExplorePage( HttpClient client, string url, string commonName = null, bool startingPage = false, int waitBetweenCalls = 1000, List<string> visitedUrls = null )
 	{
+		if ( startingPage )
+			visitedUrls = new();
+
+		if ( visitedUrls.Contains( url ) )
+		{
+			DebugSay( $"Visited {url} already, skipping" );
+			return;
+		}
+
 		DebugSay( $"Exploring {url}" );
 		var response = await client.GetAsync( url, HttpCompletionOption.ResponseHeadersRead );
 
@@ -106,11 +124,14 @@ public partial class Fishley
 			return;
 		}
 
+		visitedUrls.Add( url );
+
 		var finalUrl = response.RequestMessage.RequestUri.AbsoluteUri;
 		if ( finalUrl != url )
 		{
 			DebugSay( $"{url} redirected to {finalUrl}" ); // This never works lol
 			url = finalUrl;
+			visitedUrls.Add( url );
 		}
 
 		var loadedPage = await response.Content.ReadAsStringAsync();
@@ -135,7 +156,7 @@ public partial class Fishley
 					var pageName = commonName == null ? innerText : commonName; // Do we have a wider common name to display?
 
 					// Recursively go through all links, let's find all the fish!
-					await ExplorePage( client, $"https://en.wikipedia.org{reference}", pageName, false, waitBetweenCalls );
+					await ExplorePage( client, $"https://en.wikipedia.org{reference}", pageName, false, waitBetweenCalls, visitedUrls );
 				}
 			}
 		}

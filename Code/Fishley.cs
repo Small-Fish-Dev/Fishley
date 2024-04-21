@@ -58,12 +58,12 @@ public partial class Fishley
 
 		//LoadFishes();
 
-		Client.Log += Log;
-        Client.MessageUpdated += MessageUpdated;
-		Client.MessageReceived += MessageReceived;
-		Client.ReactionAdded += ReactionAdded;
+		//Client.Log += Log;
+        //Client.MessageUpdated += MessageUpdated;
+		//Client.MessageReceived += MessageReceived;
+		//Client.ReactionAdded += ReactionAdded;
 		Client.Ready += OnReady;
-		Client.SlashCommandExecuted += SlashCommandHandler;
+		//Client.SlashCommandExecuted += SlashCommandHandler;
 
 		var token = ConfigGet<string>( "Token" );
 
@@ -94,8 +94,8 @@ public partial class Fishley
 		//foreach ( var command in Commands.Values )
 		//	await SmallFishServer.CreateApplicationCommandAsync( command.Builder.Build() );
 
-		Running = true;
 		await ScrapeWikipediaLol();
+		Running = true;
 		await Task.CompletedTask;
 	}
 
@@ -103,7 +103,7 @@ public partial class Fishley
 	{
 		if ( WarnDecaySecondsPassed >= WarnDecayCheckTimer )
 		{	
-			await WarnsDecayCheck();
+			//await WarnsDecayCheck();
 			LastWarnDecayCheck = DateTime.UtcNow;
 		}
 	}
