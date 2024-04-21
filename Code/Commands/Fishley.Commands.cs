@@ -5,8 +5,8 @@ public partial class Fishley
 	public static Dictionary<string, DiscordSlashCommand> Commands = new()
 	{
 		{ "fish", new RandomFishCommand() },
-		{ "speak", new SpeakCommand() },
-		{ "balance", new BalanceCommand() }
+		//{ "speak", new SpeakCommand() },
+		//{ "balance", new BalanceCommand() }
 	};
 
 	private static async Task SlashCommandHandler( SocketSlashCommand command )

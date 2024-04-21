@@ -33,21 +33,22 @@ public partial class Fishley
 	{
 		using (var db = new FishleyDbContext())
 		{
-			var fishes = db.Fishes.AsEnumerable();
-
-			var totalFishes = fishes.Count();
+			var fishes = db.Fishes;
+			var totalFishes = await fishes.CountAsync();
 			var groupSize = totalFishes * (percentageSize / 100f);
 
 			int effectiveGroupSize = (int)Math.Ceiling(groupSize);
 
-			var fishGroups = fishes.ToList().OrderBy(x => x.MonthlyViews)
+			var fishGroups = await fishes.AsAsyncEnumerable()
+				.OrderBy(x => x.MonthlyViews)
 				.Select((fish, index) => new { Fish = fish, Index = index })
-				.GroupBy(x => x.Index / effectiveGroupSize, x => x.Fish);
+				.GroupBy(x => x.Index / effectiveGroupSize, x => x.Fish)
+				.ToListAsync();
 
 			_fishPercentileGroups?.Clear();
 
 			foreach ( var fishGroup in fishGroups )
-				_fishPercentileGroups.Add(fishGroup.Max(x => x.MonthlyViews));
+				_fishPercentileGroups.Add( await fishGroup.MaxAsync(x => x.MonthlyViews) );
 
 			foreach ( var fish in fishes )
 				fish.Rarity = GetFishRarity( fish.MonthlyViews );
@@ -120,6 +121,12 @@ public partial class Fishley
 		if ( currentRecursion >= 4 )
 		{
 			DebugSay( $"We are looking too deep man, skipping..." );
+			return;
+		}
+
+		if ( url.Contains( "#" ) )
+		{
+			DebugSay( $"This is a section of a page, ignore..." );
 			return;
 		}
 
@@ -204,6 +211,10 @@ public partial class Fishley
 					imageUrl = "https:" + imageUrl;
 			}
 		}
+
+		// This page had no image at all and it picked the "Edit" image! Go back to placeholder
+		if ( imageUrl == "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/OOjs_UI_icon_edit-ltr.svg/15px-OOjs_UI_icon_edit-ltr.svg.png" )
+			imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/832px-No-Image-Placeholder.svg.png";
 
 		var pageName = commonName;
 		var titleNode = documentNode.SelectSingleNode( "//title" );

@@ -77,6 +77,40 @@ public partial class Fishley
 		}
 	}
 
+	/// <summary>
+	/// Get a random fish of that rarity, null if you're fine with any fish (Automatically updates the last seen)
+	/// </summary>
+	/// <param name="rarity"></param>
+	/// <returns></returns>
+	public static async Task<Fish> GetRandomFishFromRarity( string rarity = null )
+	{
+		using (var db = new FishleyDbContext())
+		{
+			var fishes = db.Fishes;
+
+			var foundFishes = fishes.AsAsyncEnumerable();
+
+			if ( rarity != null && FishRarities.ContainsKey( rarity ) )
+				foundFishes = foundFishes.Where( x => x.Rarity == rarity );
+
+			int count = await foundFishes.CountAsync();
+
+			if (count == 0)
+				return null;
+			
+			int index = new Random( (int)DateTime.UtcNow.Ticks ).Next( count );
+			var randomFish = await foundFishes.OrderBy( x => x.PageId )
+				.Skip( index )
+				.FirstOrDefaultAsync();
+
+			randomFish.LastSeen = DateTime.UtcNow;
+
+			await db.SaveChangesAsync();
+
+			return randomFish;
+		}
+	}
+
 	public static async Task UpdateOrCreateFish( FishData fish )
 	{
 		using (var db = new FishleyDbContext())

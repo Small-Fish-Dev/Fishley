@@ -14,10 +14,9 @@ public partial class Fishley
 
 		public async Task GetRandomFish(SocketSlashCommand command)
 		{
-			/*
-			var user = UserGet( command.User.Id );
+			//var user = UserGet( command.User.Id );
 			var now = DateTime.UtcNow;
-			var passed = (now - DateTime.FromBinary( user.LastFish )).TotalSeconds;
+			var passed = 6;//(now - DateTime.FromBinary( user.LastFish )).TotalSeconds;
 
 			if ( passed <= 5 )
 			{
@@ -25,16 +24,15 @@ public partial class Fishley
 				return;
 			}
 
-			var rnd = new Random( (int)DateTime.UtcNow.Ticks );
-			var randomFish = AllFishes.Query().ToList()[rnd.Next(AllFishes.Count())];
-
-			var rarity = FishRarities[GetFishRarity( randomFish.MonthlyViews )];
+			var randomFish = await GetRandomFishFromRarity( "S+" );
 			var unixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-			var sinceEpoch = DateTime.FromBinary( randomFish.LastSeen ) - unixEpoch;
+			var sinceEpoch = randomFish.LastSeen - unixEpoch;
 			var lastSeen = $"<t:{sinceEpoch.TotalSeconds}:R>";
 
-			if ( randomFish.LastSeen == 0 )
+			if ( sinceEpoch.TotalDays >= 3650 ) // I forgot how to check for default value so let's just say more than 10 years ago
 				lastSeen = "Never!";
+
+			var rarity = FishRarities[randomFish.Rarity];
 
 			var embed = new EmbedBuilder()
 				.WithColor( rarity.Item2 )
@@ -51,16 +49,12 @@ public partial class Fishley
 				.WithCurrentTimestamp()
 				.Build();
 
-			randomFish.LastSeen = DateTime.UtcNow.Ticks;
-			FishUpdate( randomFish );
-
-			user.LastFish = DateTime.UtcNow.Ticks;
-			user.Money += rarity.Item3;
-			UserUpdate( user );
+			//user.LastFish = DateTime.UtcNow.Ticks;
+			//user.Money += rarity.Item3;
+			//UserUpdate( user );
 
 			Console.WriteLine( $"{command.User.GlobalName} caught: {randomFish.CommonName} - {randomFish.WikiPage} - {randomFish.PageName} - {randomFish.MonthlyViews} - {randomFish.ImageLink}" );
-			*/
-			await command.RespondAsync( "hello" );
+			await command.RespondAsync( embed: embed );
 		}
 	}
 }

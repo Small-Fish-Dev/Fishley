@@ -92,7 +92,7 @@ public partial class Fishley
 		foreach ( var command in Commands.Values )
 			await SmallFishServer.CreateApplicationCommandAsync( command.Builder.Build() );
 
-		//await ScrapeWikipediaLol();
+		await ScrapeWikipediaLol();
 		Running = true;
 		await Task.CompletedTask;
 	}
