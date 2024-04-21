@@ -159,12 +159,13 @@ public partial class Fishley
 		var imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/832px-No-Image-Placeholder.svg.png"; // Placeholder image
 		var pageImage = documentNode.SelectSingleNode( "//meta[@property='og:image']" ); // Fetch the embed image
 
-		if ( pageImage != null ) // TODO If no image found, get the taxonomy image, else get the family image
+		if ( pageImage != null )
 		{
 			imageUrl = pageImage.GetAttributeValue( "content", imageUrl );
 		}
 		else
 		{
+			// Find the taxonomy image if no embed image is used
 			var taxonomyImageNode = documentNode.SelectSingleNode( "//table[contains(@class, 'infobox biota')]//img" );
 
 			if ( taxonomyImageNode != null)
@@ -208,7 +209,7 @@ public partial class Fishley
 		int.TryParse( monthlyViewsData, out var monthlyViews );
 		#endregion
 
-		var newFish = new Fish( pageId )
+		var newFish = new FishData( pageId )
 		{
 			CommonName = commonName,
 			PageName = pageName,
@@ -226,6 +227,8 @@ public partial class Fishley
 		Console.WriteLine( $"WikiInfoPage: {infoPageLink}" );
 		Console.WriteLine( $"MonthlyViews: {monthlyViews}" );
 		Console.WriteLine( $"ImageLink: {imageUrl}" );
+
+		await UpdateOrCreateFish( newFish );
 	}
 
 	public static async Task ScrapeWikipediaLol()
@@ -233,7 +236,6 @@ public partial class Fishley
 		var startingUrl = "https://en.wikipedia.org/wiki/List_of_fish_common_names";
         var httpClient = new HttpClient(new HttpClientHandler { AllowAutoRedirect = true });
 
-		await ExplorePage( httpClient, "https://en.wikipedia.org/wiki/Sturgeon", "Sturgeon", false, 1000 );
-		//await ExplorePage( httpClient, startingUrl, null, true, 1000 );
+		await ExplorePage( httpClient, startingUrl, null, true, 1000 );
 	}
 }
