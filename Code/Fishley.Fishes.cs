@@ -118,7 +118,7 @@ public partial class Fishley
 			return;
 		}
 
-		if ( currentRecursion >= 4 )
+		if ( currentRecursion >= 3 )
 		{
 			DebugSay( $"We are looking too deep man, skipping..." );
 			return;

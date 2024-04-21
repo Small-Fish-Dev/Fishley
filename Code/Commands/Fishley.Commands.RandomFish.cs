@@ -14,9 +14,9 @@ public partial class Fishley
 
 		public async Task GetRandomFish(SocketSlashCommand command)
 		{
-			//var user = UserGet( command.User.Id );
+			var user = await GetOrCreateUser( command.User.Id );
 			var now = DateTime.UtcNow;
-			var passed = 6;//(now - DateTime.FromBinary( user.LastFish )).TotalSeconds;
+			var passed = (now - user.LastFish ).TotalSeconds;
 
 			if ( passed <= 5 )
 			{
@@ -24,12 +24,14 @@ public partial class Fishley
 				return;
 			}
 
-			var randomFish = await GetRandomFishFromRarity( "S+" );
+			var randomFish = await GetRandomFishFromRarity( new ListSelector().SelectItem( FishRarities, 5, 5 ).Key );
 			var unixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 			var sinceEpoch = randomFish.LastSeen - unixEpoch;
-			var lastSeen = $"<t:{sinceEpoch.TotalSeconds}:R>";
+			var lastSeen = $"<t:{(int)sinceEpoch.TotalSeconds}:R>";
 
-			if ( sinceEpoch.TotalDays >= 3650 ) // I forgot how to check for default value so let's just say more than 10 years ago
+			DebugSay( $"{lastSeen} {sinceEpoch} {randomFish.LastSeen}" );
+
+			if ( sinceEpoch.TotalDays >= 365 ) // I forgot how to check for default value so let's just say more than a year ago
 				lastSeen = "Never!";
 
 			var rarity = FishRarities[randomFish.Rarity];
@@ -37,24 +39,23 @@ public partial class Fishley
 			var embed = new EmbedBuilder()
 				.WithColor( rarity.Item2 )
 				.WithTitle($"{command.User.GlobalName} caught: {randomFish.CommonName}!")
-				.AddField( "Common Name:", randomFish.CommonName )
 				.AddField( "Scientific Name:", randomFish.PageName )
 				.AddField( "Sell amount:", $"${rarity.Item3}" )
-				.AddField( "Monthly Views:", randomFish.MonthlyViews.ToString( "N0" ) )
 				.AddField( "Last Seen:", lastSeen )
 				.WithDescription($"{randomFish.WikiPage}")
 				.WithImageUrl( randomFish.ImageLink )
 				.WithThumbnailUrl( rarity.Item1 )
 				.WithAuthor( command.User )
-				.WithCurrentTimestamp()
+				.WithFooter( x => x.Text = $"Fish Identifier: {randomFish.PageId}" )
 				.Build();
 
-			//user.LastFish = DateTime.UtcNow.Ticks;
-			//user.Money += rarity.Item3;
-			//UserUpdate( user );
+			user.LastFish = DateTime.UtcNow;
+			user.Money += rarity.Item3;
 
-			Console.WriteLine( $"{command.User.GlobalName} caught: {randomFish.CommonName} - {randomFish.WikiPage} - {randomFish.PageName} - {randomFish.MonthlyViews} - {randomFish.ImageLink}" );
-			await command.RespondAsync( embed: embed );
+			await UpdateUser( user );
+
+			Console.WriteLine( $"{command.User.GlobalName} caught: {randomFish.PageId} {randomFish.CommonName} - {randomFish.WikiPage} - {randomFish.PageName} - {randomFish.MonthlyViews} - {randomFish.ImageLink}" );
+			await command.RespondAsync( $"<@{command.User.Id}>" embed: embed );
 		}
 	}
 }
