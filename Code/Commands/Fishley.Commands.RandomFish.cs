@@ -31,7 +31,7 @@ public partial class Fishley
 
 			DebugSay( $"{lastSeen} {sinceEpoch} {randomFish.LastSeen}" );
 
-			if ( sinceEpoch.TotalDays >= 365 ) // I forgot how to check for default value so let's just say more than a year ago
+			if ( randomFish.LastSeen == DateTime.MinValue )
 				lastSeen = "Never!";
 
 			var rarity = FishRarities[randomFish.Rarity];
@@ -55,7 +55,7 @@ public partial class Fishley
 			await UpdateUser( user );
 
 			Console.WriteLine( $"{command.User.GlobalName} caught: {randomFish.PageId} {randomFish.CommonName} - {randomFish.WikiPage} - {randomFish.PageName} - {randomFish.MonthlyViews} - {randomFish.ImageLink}" );
-			await command.RespondAsync( $"<@{command.User.Id}>" embed: embed );
+			await command.RespondAsync( $"<@{command.User.Id}>", embed: embed );
 		}
 	}
 }
