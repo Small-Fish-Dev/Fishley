@@ -26,42 +26,48 @@ public partial class Fishley
 	/// <returns></returns>
     private static async Task AddWarn(SocketGuildUser user, SocketMessage socketMessage = null, string message = null, bool includeWarnCount = true, bool reply = true )
     {
-		DebugSay( "Hello" );
 		var storedUser = await GetOrCreateUser( user.Id );
 
 		if ( socketMessage.Channel is not SocketTextChannel channel ) return;
 		if ( channel == null || message == null || socketMessage == null ) return;
+		if ( socketMessage.Reactions.Count( x => x.Key.Name == WarnEmoji ) >= 1 ) return; // Don't warn if this message led to a warn already
 
-		if ( !CanModerate( user ) )
-		{
-			var timedOut = false;
-
-			if ( storedUser.Warnings == 0 )
-				await user.AddRoleAsync(user.Guild.Roles.FirstOrDefault( x => x.Id == WarnRole1 ) );
-			else if ( storedUser.Warnings == 1 )
-				await user.AddRoleAsync(user.Guild.Roles.FirstOrDefault( x => x.Id == WarnRole2 ) );
-			else if ( storedUser.Warnings == 2 )
-				await user.AddRoleAsync(user.Guild.Roles.FirstOrDefault( x => x.Id == WarnRole3 ) );
-			else if ( storedUser.Warnings == 3 )
-			{
-				await user.SetTimeOutAsync( TimeSpan.FromSeconds( TimeoutDuration ) );
-				timedOut = true;
-			}
-
-			storedUser.Warnings = Math.Min( storedUser.Warnings + 1, 3 );
-			storedUser.LastWarn = DateTime.UtcNow;
-			await UpdateUser( storedUser );
-
-			DebugSay( $"Given warning to {user.GlobalName}({user.Id})" );
-
-			await SendMessage( channel, $"{message}{(includeWarnCount ? $" ({(timedOut ? "Timed Out" : $"Warning {storedUser.Warnings}/3")})" : "")}", reply ? socketMessage : null );
-		}
-		else
+		if ( CanModerate( user ) )
 		{
 			DebugSay( $"Attempted to give warning to {user.GlobalName}({user.Id})" );
-
 			await SendMessage( channel, $"{message} I can't warn you so please don't do it again.", reply ? socketMessage : null, 5f );
+			return;
 		}
+
+		var timedOut = false;
+
+		switch ( storedUser.Warnings )
+		{
+			case <= 0:
+				await user.AddRoleAsync(user.Guild.Roles.FirstOrDefault( x => x.Id == WarnRole1 ) );
+				break;
+			case 1:
+				await user.AddRoleAsync(user.Guild.Roles.FirstOrDefault( x => x.Id == WarnRole2 ) );
+				break;
+			case 2:
+				await user.AddRoleAsync(user.Guild.Roles.FirstOrDefault( x => x.Id == WarnRole3 ) );
+				break;
+			case >= 3:
+				await user.SetTimeOutAsync( TimeSpan.FromSeconds( TimeoutDuration ) );
+				timedOut = true;
+				break;
+		}
+
+		storedUser.Warnings = Math.Min( storedUser.Warnings + 1, 3 );
+		storedUser.LastWarn = DateTime.UtcNow;
+		await UpdateUser( storedUser );
+
+		DebugSay( $"Given warning to {user.GlobalName}({user.Id})" );
+		await SendMessage( channel, $"{message}{(includeWarnCount ? $" ({(timedOut ? "Timed Out" : $"Warning {storedUser.Warnings}/3")})" : "")}", reply ? socketMessage : null );
+
+		var warnEmoji = SmallFishServer.Emotes.FirstOrDefault( x => x.Name == WarnEmoji ); // TODO Better way to get emojies
+		if ( warnEmoji != null )
+			await socketMessage.AddReactionAsync( warnEmoji );
     }
 
 	/// <summary>
