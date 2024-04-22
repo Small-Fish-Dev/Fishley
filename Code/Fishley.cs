@@ -25,8 +25,6 @@ public partial class Fishley
 	public static SocketGuild SmallFishServer;
 	private static string _configPath => @"/home/ubre/Desktop/Fishley/config.json";
 	public static Dictionary<string, string> Config { get; private set; }
-	public static ulong SmallFishRole => ConfigGet<ulong>( "SmallFishRole" );
-	public static ulong AdminRole => ConfigGet<ulong>( "AdminRole" );
 	public static ulong SpamChannel => ConfigGet<ulong>( "SpamChannel" );
 	public static bool Running { get; set; } = false;
 	public static DateTime LastMessage { get; set; } = DateTime.UtcNow;
@@ -276,8 +274,4 @@ public partial class Fishley
 
 		await HandleFilters( userMessage );
     }
-
-	public static bool IsSmallFish( SocketGuildUser user ) => user.Roles.Any( x => x.Id == SmallFishRole );
-	public static bool IsAdmin( SocketGuildUser user ) => user.Roles.Any( x => x.Id == AdminRole );
-	public static bool CanModerate( SocketGuildUser user ) => IsAdmin( user ) || IsSmallFish( user );
 }
