@@ -205,7 +205,7 @@ public partial class Fishley
 
 		if ( guildChannel is not SocketTextChannel textChannel ) return;
 		if (message is not SocketMessage textMessage) return;
-		if ( textMessage.Reactions.Count( x => x.Key.Name == WarnEmoji ) >= 1 ) return; // Don't warn if this message led to a warn already
+		if ( textMessage.Reactions.Count( x => x.Key.Name == WarnEmoji.Name ) >= 1 ) return; // Don't warn if this message led to a warn already
 
 		if ( user.Id == Client.CurrentUser.Id )
 		{

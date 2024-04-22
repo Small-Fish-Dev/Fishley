@@ -73,12 +73,18 @@ public partial class Fishley
     {
 		var storedUser = await GetOrCreateUser( user.Id );
 
-		if ( storedUser.Warnings == 3 )
-			await user.RemoveRoleAsync(user.Guild.Roles.FirstOrDefault( x => x.Id == WarnRole3 ) );
-		else if ( storedUser.Warnings == 2 )
-			await user.RemoveRoleAsync(user.Guild.Roles.FirstOrDefault( x => x.Id == WarnRole2 ) );
-		else if ( storedUser.Warnings == 1 )
-			await user.RemoveRoleAsync(user.Guild.Roles.FirstOrDefault( x => x.Id == WarnRole1 ) );
+		switch ( storedUser.Warnings )
+		{
+			case 1:
+				await user.RemoveRoleAsync( Warning1Role );
+				break;
+			case 2:
+				await user.RemoveRoleAsync( Warning2Role );
+				break;
+			case 3:
+				await user.RemoveRoleAsync( Warning3Role );
+				break;
+		}
 
 		DebugSay( $"Removed warning from {user.GlobalName}({user.Id})" );
 
