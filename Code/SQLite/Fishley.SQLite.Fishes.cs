@@ -82,7 +82,7 @@ public partial class Fishley
 	/// </summary>
 	/// <param name="rarity"></param>
 	/// <returns></returns>
-	public static async Task<Fish> GetRandomFishFromRarity( string rarity = null )
+	public static async Task<FishData> GetRandomFishFromRarity( string rarity = null )
 	{
 		using (var db = new FishleyDbContext())
 		{
@@ -103,11 +103,7 @@ public partial class Fishley
 				.Skip( index )
 				.FirstOrDefaultAsync();
 
-			randomFish.LastSeen = DateTime.UtcNow;
-
-			await db.SaveChangesAsync();
-
-			return randomFish;
+			return new FishData( randomFish );
 		}
 	}
 

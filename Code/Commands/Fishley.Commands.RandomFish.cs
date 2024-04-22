@@ -54,6 +54,9 @@ public partial class Fishley
 
 			await UpdateUser( user );
 
+			randomFish.LastSeen = DateTime.UtcNow;
+			await UpdateOrCreateFish( randomFish );
+
 			Console.WriteLine( $"{command.User.GlobalName} caught: {randomFish.PageId} {randomFish.CommonName} - {randomFish.WikiPage} - {randomFish.PageName} - {randomFish.MonthlyViews} - {randomFish.ImageLink}" );
 			await command.RespondAsync( $"<@{command.User.Id}>", embed: embed );
 		}
