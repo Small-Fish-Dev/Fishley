@@ -15,12 +15,12 @@ public partial class Fishley
 		public DateTime LastSeen { get; set; }
 		public string Rarity { get; set; }
 
-		public Fish( int pageId )
+		public Fish(int pageId)
 		{
 			PageId = pageId;
 		}
-		
-		public Fish( FishData fish )
+
+		public Fish(FishData fish)
 		{
 			PageId = fish.PageId;
 			CommonName = fish.CommonName;
@@ -33,7 +33,7 @@ public partial class Fishley
 			Rarity = fish.Rarity;
 		}
 
-		public void Copy( FishData fish )
+		public void Copy(FishData fish)
 		{
 			CommonName = fish.CommonName;
 			PageName = fish.PageName;
@@ -58,12 +58,12 @@ public partial class Fishley
 		public DateTime LastSeen { get; set; }
 		public string Rarity { get; set; }
 
-		public FishData( int pageId )
+		public FishData(int pageId)
 		{
 			PageId = pageId;
 		}
 
-		public FishData( Fish fish )
+		public FishData(Fish fish)
 		{
 			PageId = fish.PageId;
 			CommonName = fish.CommonName;
@@ -82,7 +82,7 @@ public partial class Fishley
 	/// </summary>
 	/// <param name="rarity"></param>
 	/// <returns></returns>
-	public static async Task<FishData> GetRandomFishFromRarity( string rarity = null )
+	public static async Task<FishData> GetRandomFishFromRarity(string rarity = null)
 	{
 		using (var db = new FishleyDbContext())
 		{
@@ -90,33 +90,33 @@ public partial class Fishley
 
 			var foundFishes = fishes.AsAsyncEnumerable();
 
-			if ( rarity != null && FishRarities.ContainsKey( rarity ) )
-				foundFishes = foundFishes.Where( x => x.Rarity == rarity );
+			if (rarity != null && FishRarities.ContainsKey(rarity))
+				foundFishes = foundFishes.Where(x => x.Rarity == rarity);
 
 			int count = await foundFishes.CountAsync();
 
 			if (count == 0)
 				return null;
-			
-			int index = new Random( (int)DateTime.UtcNow.Ticks ).Next( count );
-			var randomFish = await foundFishes.OrderBy( x => x.PageId )
-				.Skip( index )
+
+			int index = new Random((int)DateTime.UtcNow.Ticks).Next(count);
+			var randomFish = await foundFishes.OrderBy(x => x.PageId)
+				.Skip(index)
 				.FirstOrDefaultAsync();
 
-			return new FishData( randomFish );
+			return new FishData(randomFish);
 		}
 	}
 
-	public static async Task UpdateOrCreateFish( FishData fish )
+	public static async Task UpdateOrCreateFish(FishData fish)
 	{
 		using (var db = new FishleyDbContext())
 		{
-			var foundFish = await db.Fishes.FindAsync( fish.PageId );
+			var foundFish = await db.Fishes.FindAsync(fish.PageId);
 
-			if ( foundFish == null )
-				db.Fishes.Add( new Fish( fish ) );
+			if (foundFish == null)
+				db.Fishes.Add(new Fish(fish));
 			else
-				foundFish.Copy( fish );
+				foundFish.Copy(fish);
 
 			await db.SaveChangesAsync();
 		}

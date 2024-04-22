@@ -9,25 +9,25 @@ public partial class Fishley
 		{ "balance", new BalanceCommand() }
 	};
 
-	private static async Task SlashCommandHandler( SocketSlashCommand command )
+	private static async Task SlashCommandHandler(SocketSlashCommand command)
 	{
 		var name = command.Data.Name;
 		var channel = command.Channel;
 
-		if ( Commands.ContainsKey( name ) )
+		if (Commands.ContainsKey(name))
 		{
 			var commandClass = Commands[name];
 
-			if ( commandClass.SpamOnly && channel != SpamChannel )
+			if (commandClass.SpamOnly && channel != SpamChannel)
 			{
-				await command.RespondAsync( $"You can only use this command in the <#{SpamChannel}> channel.", ephemeral: true );
+				await command.RespondAsync($"You can only use this command in the <#{SpamChannel}> channel.", ephemeral: true);
 				return;
 			}
 
-			await Commands[name].Function.Invoke( command );
+			await Commands[name].Function.Invoke(command);
 		}
 		else
-			await command.RespondAsync( "That command is unavailable. Bug off now!", ephemeral: true );
+			await command.RespondAsync("That command is unavailable. Bug off now!", ephemeral: true);
 	}
 
 	public abstract class DiscordSlashCommand

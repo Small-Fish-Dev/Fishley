@@ -27,23 +27,23 @@ public partial class Fishley
 	public static Dictionary<string, string> Config { get; private set; }
 	public static bool Running { get; set; } = false;
 	public static DateTime LastMessage { get; set; } = DateTime.UtcNow;
-	public static int SecondsSinceLastMessage => (int)( DateTime.UtcNow - LastMessage ).TotalSeconds;
+	public static int SecondsSinceLastMessage => (int)(DateTime.UtcNow - LastMessage).TotalSeconds;
 	public static HttpClient HttpClient { get; set; } = new HttpClient();
 
 	public static async Task Main()
-	{		
-		if ( !File.Exists( _configPath ) )
+	{
+		if (!File.Exists(_configPath))
 		{
-			DebugSay( "Config file not found!" );
+			DebugSay("Config file not found!");
 			return;
 		}
-		
-		var configFile = File.ReadAllText( _configPath );
-		Config = JsonConvert.DeserializeObject<Dictionary<string, string>>( configFile );
 
-        var _config = new DiscordSocketConfig
+		var configFile = File.ReadAllText(_configPath);
+		Config = JsonConvert.DeserializeObject<Dictionary<string, string>>(configFile);
+
+		var _config = new DiscordSocketConfig
 		{
-			MessageCacheSize = ConfigGet<int>( "MessageCacheSize" ),
+			MessageCacheSize = ConfigGet<int>("MessageCacheSize"),
 			GatewayIntents = GatewayIntents.AllUnprivileged |
 			GatewayIntents.MessageContent |
 			GatewayIntents.GuildMembers |
@@ -51,52 +51,52 @@ public partial class Fishley
 			GatewayIntents.DirectMessages |
 			GatewayIntents.MessageContent
 		};
-        Client = new DiscordSocketClient(_config);
+		Client = new DiscordSocketClient(_config);
 
 		Client.Log += Log;
-        Client.MessageUpdated += MessageUpdated;
+		Client.MessageUpdated += MessageUpdated;
 		Client.MessageReceived += MessageReceived;
 		Client.ReactionAdded += ReactionAdded;
 		Client.Ready += OnReady;
 		Client.SlashCommandExecuted += SlashCommandHandler;
 
-		var token = ConfigGet<string>( "Token" );
+		var token = ConfigGet<string>("Token");
 
-		if ( token == null )
-			DebugSay( "Token not found!" );
+		if (token == null)
+			DebugSay("Token not found!");
 
 		await Client.LoginAsync(TokenType.Bot, token);
 		await Client.StartAsync();
 
-		while ( true )
+		while (true)
 		{
-			if ( Running )
+			if (Running)
 			{
 				await OnUpdate();
-				await Task.Delay( 1000 );
+				await Task.Delay(1000);
 			}
 		}
 	}
 
-	private static async Task OnReady() 
+	private static async Task OnReady()
 	{
-		var guildId = ConfigGet<ulong>( "SmallFish" );
-		SmallFishServer = Client.GetGuild( guildId );
+		var guildId = ConfigGet<ulong>("SmallFish");
+		SmallFishServer = Client.GetGuild(guildId);
 		await SmallFishServer.DownloadUsersAsync();
 
 		await SmallFishServer.DeleteApplicationCommandsAsync();
 
-		foreach ( var command in Commands.Values )
-			await SmallFishServer.CreateApplicationCommandAsync( command.Builder.Build() );
-			
+		foreach (var command in Commands.Values)
+			await SmallFishServer.CreateApplicationCommandAsync(command.Builder.Build());
+
 		Running = true;
 		await Task.CompletedTask;
 	}
 
 	private static async Task OnUpdate()
 	{
-		if ( WarnDecaySecondsPassed >= WarnDecayCheckTimer )
-		{	
+		if (WarnDecaySecondsPassed >= WarnDecayCheckTimer)
+		{
 			await WarnsDecayCheck();
 			LastWarnDecayCheck = DateTime.UtcNow;
 		}
@@ -110,24 +110,24 @@ public partial class Fishley
 	/// <param name="messageToReply"></param>
 	/// <param name="deleteAfterSeconds"></param>
 	/// <returns></returns>
-	public static async Task<bool> SendMessage( SocketTextChannel channel, string message, SocketMessage messageToReply = null, float deleteAfterSeconds = 0 )
+	public static async Task<bool> SendMessage(SocketTextChannel channel, string message, SocketMessage messageToReply = null, float deleteAfterSeconds = 0)
 	{
-		if ( channel is null ) return false;
-		if ( string.IsNullOrWhiteSpace( message ) || string.IsNullOrEmpty( message ) ) return false;
+		if (channel is null) return false;
+		if (string.IsNullOrWhiteSpace(message) || string.IsNullOrEmpty(message)) return false;
 
 		MessageReference replyTo = null;
 
-		if ( messageToReply != null )
-			replyTo = new MessageReference( messageToReply.Id );
+		if (messageToReply != null)
+			replyTo = new MessageReference(messageToReply.Id);
 
-		var sentMessage = await channel.SendMessageAsync( message, messageReference: replyTo );
+		var sentMessage = await channel.SendMessageAsync(message, messageReference: replyTo);
 
-		if ( sentMessage != null )
+		if (sentMessage != null)
 		{
 			LastMessage = DateTime.UtcNow;
 
-			if ( deleteAfterSeconds > 0f )
-				DeleteMessageAsync( sentMessage, deleteAfterSeconds );
+			if (deleteAfterSeconds > 0f)
+				DeleteMessageAsync(sentMessage, deleteAfterSeconds);
 
 			return true;
 		}
@@ -137,13 +137,13 @@ public partial class Fishley
 		}
 	}
 
-	private static async void DeleteMessageAsync( Discord.Rest.RestUserMessage message, float seconds )
+	private static async void DeleteMessageAsync(Discord.Rest.RestUserMessage message, float seconds)
 	{
-		if ( message is null ) return;
+		if (message is null) return;
 
-		await Task.Delay( (int)(seconds * 1000) );
+		await Task.Delay((int)(seconds * 1000));
 
-		if ( message is null ) return;
+		if (message is null) return;
 
 		await message.DeleteAsync();
 	}
@@ -154,23 +154,23 @@ public partial class Fishley
 	/// <typeparam name="T"></typeparam>
 	/// <param name="key"></param>
 	/// <returns></returns>
-	public static T ConfigGet<T>( string key )
+	public static T ConfigGet<T>(string key)
 	{
-		if ( Config.TryGetValue( key, out var configValue ) )
+		if (Config.TryGetValue(key, out var configValue))
 		{
 			try
 			{
 				T parsedValue = (T)Convert.ChangeType(configValue, typeof(T));
 				return parsedValue;
 			}
-			catch ( Exception ex ) when ( ex is FormatException || ex is InvalidCastException || ex is OverflowException )
-            {
-				DebugSay( $"Couldn't get {key} so I'm returning the default.");
-                return default;
-            }
+			catch (Exception ex) when (ex is FormatException || ex is InvalidCastException || ex is OverflowException)
+			{
+				DebugSay($"Couldn't get {key} so I'm returning the default.");
+				return default;
+			}
 		}
 
-		DebugSay( $"Couldn't get {key} so I'm returning the default.");
+		DebugSay($"Couldn't get {key} so I'm returning the default.");
 		return default;
 	}
 
@@ -178,9 +178,9 @@ public partial class Fishley
 	/// Make Fishley say something in console!
 	/// </summary>
 	/// <param name="phrase"></param>
-	internal static void DebugSay( string phrase )
+	internal static void DebugSay(string phrase)
 	{
-		Console.WriteLine( $"Fishley: {phrase}" );
+		Console.WriteLine($"Fishley: {phrase}");
 	}
 
 	private static Task Log(LogMessage msg)
@@ -191,58 +191,58 @@ public partial class Fishley
 
 	private static async Task ReactionAdded(Cacheable<IUserMessage, ulong> cacheableMessage, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
 	{
-		if ( reaction.Emote.Name != WarnEmoji.Name ) return;
-		if ( reaction.Channel is not SocketGuildChannel guildChannel ) return;
+		if (reaction.Emote.Name != WarnEmoji.Name) return;
+		if (reaction.Channel is not SocketGuildChannel guildChannel) return;
 
 		var giver = guildChannel.GetUser(reaction.UserId);
-		if ( giver is null || !CanModerate( giver ) ) return;
-		
+		if (giver is null || !CanModerate(giver)) return;
+
 		var message = await cacheableMessage.GetOrDownloadAsync();
-		if ( message is null ) return;
-		
+		if (message is null) return;
+
 		var user = guildChannel.GetUser(message.Author.Id);
-		if ( user is null ) return;
+		if (user is null) return;
 
-		if ( guildChannel is not SocketTextChannel textChannel ) return;
+		if (guildChannel is not SocketTextChannel textChannel) return;
 		if (message is not SocketMessage textMessage) return;
-		if ( textMessage.Reactions.Count( x => x.Key.Name == WarnEmoji.Name ) >= 1 ) return; // Don't warn if this message led to a warn already
+		if (textMessage.Reactions.Count(x => x.Key.Name == WarnEmoji.Name) >= 1) return; // Don't warn if this message led to a warn already
 
-		if ( user.Id == Client.CurrentUser.Id )
+		if (user.Id == Client.CurrentUser.Id)
 		{
-			await SendMessage( textChannel, $"<@{giver.Id}> attempted to warn... me!? What did I do???", deleteAfterSeconds: 5f );
+			await SendMessage(textChannel, $"<@{giver.Id}> attempted to warn... me!? What did I do???", deleteAfterSeconds: 5f);
 		}
 		else
 		{
-			if ( CanModerate( user ) )
-				await SendMessage( textChannel, $"<@{giver.Id}> attempted to warn <@{user.Id}> but I'm not powerful enough to do it.", deleteAfterSeconds: 5f );
+			if (CanModerate(user))
+				await SendMessage(textChannel, $"<@{giver.Id}> attempted to warn <@{user.Id}> but I'm not powerful enough to do it.", deleteAfterSeconds: 5f);
 			else
-				await AddWarn( user, textMessage, $"<@{giver.Id}> warned <@{user.Id}>" );
+				await AddWarn(user, textMessage, $"<@{giver.Id}> warned <@{user.Id}>");
 		}
 	}
 
 	private static async Task MessageReceived(SocketMessage message)
-    {
-        if ( message is not SocketUserMessage userMessage )
-            return;
-		if ( userMessage.Author.IsBot )
+	{
+		if (message is not SocketUserMessage userMessage)
+			return;
+		if (userMessage.Author.IsBot)
 			return;
 
-		if ( userMessage.Author is SocketGuildUser sender )
+		if (userMessage.Author is SocketGuildUser sender)
 		{
-			if ( CanModerate( sender ) )
+			if (CanModerate(sender))
 			{
-				if ( userMessage.Content.Contains( "emergency", StringComparison.OrdinalIgnoreCase ) )
+				if (userMessage.Content.Contains("emergency", StringComparison.OrdinalIgnoreCase))
 				{
 					// emergancy detected
-					await message.Channel.SendMessageAsync( "Emergency protocol initiated. Shutting down." );
-					Environment.Exit( 127 );
+					await message.Channel.SendMessageAsync("Emergency protocol initiated. Shutting down.");
+					Environment.Exit(127);
 				}
 			}
 		}
-		
-		if ( await HandleFilters( userMessage ) )
+
+		if (await HandleFilters(userMessage))
 			return;
-		
+
 		var mentioned = message.MentionedUsers.Any(user => user.Id == FishleyId);
 
 		if (mentioned)
@@ -255,22 +255,22 @@ public partial class Fishley
 				"For what porpoise you call me?"
 			};
 
-			Random random = new Random( (int)DateTime.UtcNow.Ticks );
+			Random random = new Random((int)DateTime.UtcNow.Ticks);
 			int randomIndex = random.Next(phrases.Count);
 			string randomPhrase = phrases[randomIndex];
 
-			var reference = new MessageReference( message.Id );
-			await message.Channel.SendMessageAsync( randomPhrase, messageReference: reference );
+			var reference = new MessageReference(message.Id);
+			await message.Channel.SendMessageAsync(randomPhrase, messageReference: reference);
 		}
-    }
+	}
 
-    private static async Task MessageUpdated(Cacheable<IMessage, ulong> before, SocketMessage after, ISocketMessageChannel channel)
-    {
-        if ( after is not SocketUserMessage userMessage )
-            return;
-		if ( userMessage.Author.IsBot )
+	private static async Task MessageUpdated(Cacheable<IMessage, ulong> before, SocketMessage after, ISocketMessageChannel channel)
+	{
+		if (after is not SocketUserMessage userMessage)
+			return;
+		if (userMessage.Author.IsBot)
 			return;
 
-		await HandleFilters( userMessage );
-    }
+		await HandleFilters(userMessage);
+	}
 }
