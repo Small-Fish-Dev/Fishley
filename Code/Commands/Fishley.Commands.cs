@@ -12,7 +12,7 @@ public partial class Fishley
 	private static async Task SlashCommandHandler( SocketSlashCommand command )
 	{
 		var name = command.Data.Name;
-		var channel = command.ChannelId;
+		var channel = command.Channel;
 
 		if ( Commands.ContainsKey( name ) )
 		{

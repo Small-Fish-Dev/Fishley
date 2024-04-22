@@ -2,16 +2,12 @@ namespace Fishley;
 
 public partial class Fishley
 {
-	public static ulong WarnRole1 => ConfigGet<ulong>( "WarnRole1" );
-	public static int WarnRole1DecaySeconds => ConfigGet<int>( "WarnRole1DecaySeconds" );
-	public static ulong WarnRole2 => ConfigGet<ulong>( "WarnRole2" );
-	public static int WarnRole2DecaySeconds => ConfigGet<int>( "WarnRole2DecaySeconds" );
-	public static ulong WarnRole3 => ConfigGet<ulong>( "WarnRole3" );
-	public static int WarnRole3DecaySeconds => ConfigGet<int>( "WarnRole3DecaySeconds" );
-	public static string WarnEmoji => ConfigGet<string>( "WarnEmoji" );
-	public static int TimeoutDuration => ConfigGet<int>( "WarnTimeoutSeconds" );
+	public static int WarnRole1DecaySeconds => 60 * 10; // 10 minutes
+	public static int WarnRole2DecaySeconds => 60 * 60; // 1 hour
+	public static int WarnRole3DecaySeconds => 60 * 60 * 6; // 6 hours
+	public static int TimeoutDuration => 60 * 10; // 10 minutes
 
-	public static int WarnDecayCheckTimer => ConfigGet<int>( "WarnDecayCheckTimer" );
+	public static int WarnDecayCheckTimer => 60; // 1 minute
 	public static DateTime LastWarnDecayCheck;
 	public static int WarnDecaySecondsPassed => (int)( DateTime.UtcNow - LastWarnDecayCheck ).TotalSeconds;
 
@@ -30,7 +26,7 @@ public partial class Fishley
 
 		if ( socketMessage.Channel is not SocketTextChannel channel ) return;
 		if ( channel == null || message == null || socketMessage == null ) return;
-		if ( socketMessage.Reactions.Count( x => x.Key.Name == WarnEmoji ) >= 1 ) return; // Don't warn if this message led to a warn already
+		if ( socketMessage.Reactions.Count( x => x.Key.Name == WarnEmoji.Name ) >= 1 ) return; // Don't warn if this message led to a warn already
 
 		if ( CanModerate( user ) )
 		{
@@ -44,13 +40,13 @@ public partial class Fishley
 		switch ( storedUser.Warnings )
 		{
 			case <= 0:
-				await user.AddRoleAsync(user.Guild.Roles.FirstOrDefault( x => x.Id == WarnRole1 ) );
+				await user.AddRoleAsync( Warning1Role );
 				break;
 			case 1:
-				await user.AddRoleAsync(user.Guild.Roles.FirstOrDefault( x => x.Id == WarnRole2 ) );
+				await user.AddRoleAsync( Warning2Role );
 				break;
 			case 2:
-				await user.AddRoleAsync(user.Guild.Roles.FirstOrDefault( x => x.Id == WarnRole3 ) );
+				await user.AddRoleAsync( Warning3Role );
 				break;
 			case >= 3:
 				await user.SetTimeOutAsync( TimeSpan.FromSeconds( TimeoutDuration ) );
@@ -65,9 +61,7 @@ public partial class Fishley
 		DebugSay( $"Given warning to {user.GlobalName}({user.Id})" );
 		await SendMessage( channel, $"{message}{(includeWarnCount ? $" ({(timedOut ? "Timed Out" : $"Warning {storedUser.Warnings}/3")})" : "")}", reply ? socketMessage : null );
 
-		var warnEmoji = SmallFishServer.Emotes.FirstOrDefault( x => x.Name == WarnEmoji ); // TODO Better way to get emojies
-		if ( warnEmoji != null )
-			await socketMessage.AddReactionAsync( warnEmoji );
+		await socketMessage.AddReactionAsync( WarnEmoji );
     }
 
 	/// <summary>

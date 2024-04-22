@@ -25,7 +25,6 @@ public partial class Fishley
 	public static SocketGuild SmallFishServer;
 	private static string _configPath => @"/home/ubre/Desktop/Fishley/config.json";
 	public static Dictionary<string, string> Config { get; private set; }
-	public static ulong SpamChannel => ConfigGet<ulong>( "SpamChannel" );
 	public static bool Running { get; set; } = false;
 	public static DateTime LastMessage { get; set; } = DateTime.UtcNow;
 	public static int SecondsSinceLastMessage => (int)( DateTime.UtcNow - LastMessage ).TotalSeconds;
@@ -192,7 +191,7 @@ public partial class Fishley
 
 	private static async Task ReactionAdded(Cacheable<IUserMessage, ulong> cacheableMessage, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
 	{
-		if ( reaction.Emote.Name != WarnEmoji ) return;
+		if ( reaction.Emote.Name != WarnEmoji.Name ) return;
 		if ( reaction.Channel is not SocketGuildChannel guildChannel ) return;
 
 		var giver = guildChannel.GetUser(reaction.UserId);
