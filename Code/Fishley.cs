@@ -15,6 +15,8 @@ global using HtmlAgilityPack;
 global using System.Text.Json;
 global using Microsoft.EntityFrameworkCore;
 global using System.ComponentModel.DataAnnotations;
+global using System.ServiceModel.Syndication;
+global using System.Xml;
 
 namespace Fishley;
 
@@ -107,6 +109,8 @@ public partial class Fishley
 			await WarnsDecayCheck();
 			LastWarnDecayCheck = DateTime.UtcNow;
 		}
+
+		await ComputeScrapers();
 	}
 
 	/// <summary>
