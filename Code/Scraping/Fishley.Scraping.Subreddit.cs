@@ -4,14 +4,12 @@ public partial class Fishley
 {
 	public class SubredditScraper : WebsiteScraper
 	{
-		public override string Url => "https://old.reddit.com/r/sandbox/new/.rss";
+		public override string Url => "https://www.reddit.com/r/sandbox/new/.rss";
 		public override int SecondsCooldown => 60; // Every minute
 		public override SocketGuildChannel ChannelToPost => SboxFeedChannel;
 
 		public override async Task<string> Fetch()
 		{
-			string url = "https://old.reddit.com/r/sandbox/new/.rss";
-
 			using (HttpClient client = new HttpClient())
 			{
 				// We are a browser ;-)
@@ -20,7 +18,7 @@ public partial class Fishley
 				try
 				{
 					// Fetch the RSS feed content
-					HttpResponseMessage response = await client.GetAsync(url);
+					HttpResponseMessage response = await client.GetAsync(Url);
 					response.EnsureSuccessStatusCode();
 					string rssContent = await response.Content.ReadAsStringAsync();
 
