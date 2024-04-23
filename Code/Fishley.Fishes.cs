@@ -333,7 +333,7 @@ public partial class Fishley
 				if (FishData.LastSeen == DateTime.MinValue)
 					lastSeen = "Never!";
 
-				embedBuilder = embedBuilder.AddField("Common Name:", lastSeen);
+				embedBuilder = embedBuilder.AddField("Last Seen:", lastSeen);
 			}
 
 			if (Image)
@@ -341,8 +341,7 @@ public partial class Fishley
 
 			if (Rarity)
 			{
-				embedBuilder = embedBuilder.AddField("Common Name:", FishData.CommonName)
-				.WithColor(rarity.Item2)
+				embedBuilder = embedBuilder.WithColor(rarity.Item2)
 				.WithThumbnailUrl(rarity.Item1);
 			}
 

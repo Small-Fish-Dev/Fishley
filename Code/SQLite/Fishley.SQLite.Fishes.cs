@@ -112,7 +112,7 @@ public partial class Fishley
 	/// </summary>
 	/// <param name="fishId"></param>
 	/// <returns></returns>
-	public static async Task<FishData> GetFish(long fishId)
+	public static async Task<FishData> GetFish(int fishId)
 	{
 		using (var db = new FishleyDbContext())
 		{
@@ -129,7 +129,7 @@ public partial class Fishley
 	/// </summary>
 	/// <param name="fishId"></param>
 	/// <returns></returns>
-	public static async Task<bool> RemoveFish(long fishId)
+	public static async Task<bool> RemoveFish(int fishId)
 	{
 		using (var db = new FishleyDbContext())
 		{
