@@ -107,6 +107,44 @@ public partial class Fishley
 		}
 	}
 
+
+	/// <summary>
+	/// Get a fish by id
+	/// </summary>
+	/// <param name="fishId"></param>
+	/// <returns></returns>
+	public static async Task<FishData> GetFish(long fishId)
+	{
+		using (var db = new FishleyDbContext())
+		{
+			var fish = await db.Fishes.FindAsync(fishId);
+
+			if (fish == null) return null;
+
+			return new FishData(fish);
+		}
+	}
+
+	/// <summary>
+	/// Remove a fish by id
+	/// </summary>
+	/// <param name="fishId"></param>
+	/// <returns></returns>
+	public static async Task<bool> RemoveFish(long fishId)
+	{
+		using (var db = new FishleyDbContext())
+		{
+			var fish = await db.Fishes.FindAsync(fishId);
+
+			if (fish == null) return false;
+
+			db.Fishes.Remove(fish);
+
+			await db.SaveChangesAsync();
+			return true;
+		}
+	}
+
 	public static async Task UpdateOrCreateFish(FishData fish)
 	{
 		using (var db = new FishleyDbContext())
