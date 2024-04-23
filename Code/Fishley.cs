@@ -224,7 +224,7 @@ public partial class Fishley
 			if (CanModerate(user))
 				await SendMessage(textChannel, $"<@{giver.Id}> attempted to warn <@{user.Id}> but I'm not powerful enough to do it.", deleteAfterSeconds: 5f);
 			else
-				await AddWarn(user, textMessage, $"<@{giver.Id}> warned <@{user.Id}>");
+				await AddWarn(user, textMessage, $"<@{giver.Id}> warned <@{user.Id}>", warnEmoteAlreadyThere: true);
 		}
 	}
 

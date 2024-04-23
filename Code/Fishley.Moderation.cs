@@ -19,14 +19,15 @@ public partial class Fishley
 	/// <param name="message"></param>
 	/// <param name="includeWarnCount"></param>
 	/// <param name="reply"></param>
+	/// <param name="warnEmoteAlreadyThere"></param>
 	/// <returns></returns>
-	private static async Task AddWarn(SocketGuildUser user, SocketMessage socketMessage = null, string message = null, bool includeWarnCount = true, bool reply = true)
+	private static async Task AddWarn(SocketGuildUser user, SocketMessage socketMessage = null, string message = null, bool includeWarnCount = true, bool reply = true, bool warnEmoteAlreadyThere = false)
 	{
 		var storedUser = await GetOrCreateUser(user.Id);
 
 		if (socketMessage.Channel is not SocketTextChannel channel) return;
 		if (channel == null || message == null || socketMessage == null) return;
-		if (socketMessage.Reactions.Count(x => x.Key.Name == WarnEmoji.Name) >= 1) return; // Don't warn if this message led to a warn already
+		if (socketMessage.Reactions.Count(x => x.Key.Name == WarnEmoji.Name) >= (warnEmoteAlreadyThere ? 2 : 1)) return; // Don't warn if this message led to a warn already
 
 		if (CanModerate(user))
 		{
