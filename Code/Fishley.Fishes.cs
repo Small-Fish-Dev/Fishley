@@ -313,9 +313,6 @@ public partial class Fishley
 		var htmlDocument = new HtmlDocument();
 		htmlDocument.LoadHtml(loadedPage);
 
-		if (!IsFish(htmlDocument))
-			return (false, $"Not a fish!", 0);
-
 		var fishId = await AddFishPage(client, htmlDocument, url, commonName);
 		var addedFish = await GetFish(fishId);
 
