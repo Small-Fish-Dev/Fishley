@@ -29,6 +29,29 @@ public partial class Fishley
 
 	private static List<int> _fishPercentileGroups { get; set; } = new();
 
+	private static async Task InitializeFishRarityGroups(float percentageSize)
+	{
+		using (var db = new FishleyDbContext())
+		{
+			var fishes = db.Fishes;
+			var totalFishes = await fishes.CountAsync();
+			var groupSize = totalFishes * (percentageSize / 100f);
+
+			int effectiveGroupSize = (int)Math.Ceiling(groupSize);
+
+			var fishGroups = await fishes.AsAsyncEnumerable()
+				.OrderBy(x => x.MonthlyViews)
+				.Select((fish, index) => new { Fish = fish, Index = index })
+				.GroupBy(x => x.Index / effectiveGroupSize, x => x.Fish)
+				.ToListAsync();
+
+			_fishPercentileGroups?.Clear();
+
+			foreach (var fishGroup in fishGroups)
+				_fishPercentileGroups.Add(await fishGroup.MaxAsync(x => x.MonthlyViews));
+		}
+	}
+
 	private static async Task InitializeFishRarities(float percentageSize)
 	{
 		using (var db = new FishleyDbContext())
