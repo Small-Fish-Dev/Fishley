@@ -102,6 +102,12 @@ public partial class Fishley
 				.WithRequired(true)
 				.WithType(ApplicationCommandOptionType.String)
 			)
+			.AddOption(new SlashCommandOptionBuilder()
+				.WithName("common_name")
+				.WithDescription("The common name of the fish")
+				.WithRequired(true)
+				.WithType(ApplicationCommandOptionType.String)
+			)
 		)
 		.WithDefaultMemberPermissions(GuildPermission.Administrator);
 
@@ -148,13 +154,28 @@ public partial class Fishley
 
 						var embed = new FishEmbedBuilder(fishData, "Fish has been removed").Build();
 						await command.RespondAsync(embed: embed);
+						DebugSay($"Removed from database fish: {fishData.WikiPage}");
 					}
 					break;
 				case "add":
 					{
 						var wikiPage = (string)commandType.Options.First().Value;
+						var commonName = (string)commandType.Options.Last().Value;
 
-						// TODO IMPLEMENT
+						await command.RespondAsync($"Fetching page...", ephemeral: true);
+						var channel = (SocketTextChannel)command.Channel;
+
+						var fishResponse = await AddFish(wikiPage, commonName);
+
+						if (!fishResponse.Item1)
+						{
+							await SendMessage(channel, $"Couldn't add: {fishResponse.Item2}", deleteAfterSeconds: 5);
+							return;
+						}
+
+						var addedFish = await GetFish(fishResponse.Item3);
+						var embed = new FishEmbedBuilder(addedFish, "Fish has been added").Build();
+						await SendMessage(channel, $"<@{command.User.Id}>", embed: embed);
 					}
 					break;
 			}

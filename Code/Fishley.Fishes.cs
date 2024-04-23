@@ -69,7 +69,7 @@ public partial class Fishley
 			currentGroup++;
 		}
 
-		return FishRarities.ToArray()[_fishPercentileGroups.Count()].Key;
+		return FishRarities.Last().Key;
 	}
 
 	private static bool IsFish(HtmlDocument document)
@@ -182,7 +182,7 @@ public partial class Fishley
 		}
 	}
 
-	public static async Task AddFishPage(HttpClient client, HtmlDocument document, string url, string commonName, int waitBetweenCalls = 1000)
+	public static async Task<int> AddFishPage(HttpClient client, HtmlDocument document, string url, string commonName, int waitBetweenCalls = 1000)
 	{
 		DebugSay($"Adding fish: {url}");
 		var documentNode = document.DocumentNode;
@@ -268,6 +268,41 @@ public partial class Fishley
 		Console.WriteLine($"ImageLink: {imageUrl}");
 
 		await UpdateOrCreateFish(newFish);
+		return pageId;
+	}
+
+	public static async Task<(bool, string, int)> AddFish(string url, string commonName)
+	{
+		var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = true });
+		var response = await client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+
+		if (!response.IsSuccessStatusCode)
+			return (false, $"Status code: {response.StatusCode}", 0);
+
+		var finalUrl = response.RequestMessage.RequestUri.AbsoluteUri;
+		if (finalUrl != url)
+		{
+			DebugSay($"{url} redirected to {finalUrl}"); // This never works lol
+			url = finalUrl;
+		}
+
+		var loadedPage = await response.Content.ReadAsStringAsync();
+		var htmlDocument = new HtmlDocument();
+		htmlDocument.LoadHtml(loadedPage);
+
+		if (!IsFish(htmlDocument))
+			return (false, $"Not a fish!", 0);
+
+		var fishId = await AddFishPage(client, htmlDocument, url, commonName);
+		var addedFish = await GetFish(fishId);
+
+		if (addedFish == null)
+			return (false, $"Couldn't add fish to the database", 0);
+
+		addedFish.Rarity = GetFishRarity(addedFish.MonthlyViews);
+		await UpdateOrCreateFish(addedFish);
+
+		return (true, $"Fish has been added", fishId);
 	}
 
 	public static async Task ScrapeWikipediaLol()

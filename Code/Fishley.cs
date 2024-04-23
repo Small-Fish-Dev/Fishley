@@ -109,8 +109,9 @@ public partial class Fishley
 	/// <param name="message"></param>
 	/// <param name="messageToReply"></param>
 	/// <param name="deleteAfterSeconds"></param>
+	/// <param name="embed"></param>
 	/// <returns></returns>
-	public static async Task<bool> SendMessage(SocketTextChannel channel, string message, SocketMessage messageToReply = null, float deleteAfterSeconds = 0)
+	public static async Task<bool> SendMessage(SocketTextChannel channel, string message, SocketMessage messageToReply = null, float deleteAfterSeconds = 0, Embed embed = null)
 	{
 		if (channel is null) return false;
 		if (string.IsNullOrWhiteSpace(message) || string.IsNullOrEmpty(message)) return false;
@@ -120,7 +121,7 @@ public partial class Fishley
 		if (messageToReply != null)
 			replyTo = new MessageReference(messageToReply.Id);
 
-		var sentMessage = await channel.SendMessageAsync(message, messageReference: replyTo);
+		var sentMessage = await channel.SendMessageAsync(message, messageReference: replyTo, embed: embed);
 
 		if (sentMessage != null)
 		{
