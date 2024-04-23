@@ -128,16 +128,45 @@ public partial class Fishley
 			{
 				case "edit":
 					{
-						var fishId = (long)commandType.Options.First().Value;
+						var fishId = (int)(long)commandType.Options.First().Value;
 						var commonName = (string)commandType.Options.FirstOrDefault(x => x.Name == "common_name")?.Value ?? null;
 						var pageName = (string)commandType.Options.FirstOrDefault(x => x.Name == "page_name")?.Value ?? null;
 						var wikiPage = (string)commandType.Options.FirstOrDefault(x => x.Name == "wiki_page")?.Value ?? null;
 						var wikiInfoPage = (string)commandType.Options.FirstOrDefault(x => x.Name == "wiki_info_page")?.Value ?? null;
-						var monthlyViews = (long)(commandType.Options.FirstOrDefault(x => x.Name == "monthly_views") != null ? commandType.Options.FirstOrDefault(x => x.Name == "monthly_views").Value : -1L);
+						var monthlyViews = (int)(long)(commandType.Options.FirstOrDefault(x => x.Name == "monthly_views") != null ? commandType.Options.FirstOrDefault(x => x.Name == "monthly_views").Value : -1L);
 						var imageLink = (string)commandType.Options.FirstOrDefault(x => x.Name == "image_link")?.Value ?? null;
 						var rarity = (string)commandType.Options.FirstOrDefault(x => x.Name == "rarity")?.Value ?? null;
 
-						// TODO IMPLEMENT
+						var fishData = await GetFish(fishId);
+
+						if (fishData == null)
+						{
+							await command.RespondAsync($"Could not find any fish with the id {fishId}.", ephemeral: true);
+							return;
+						}
+
+						if (commonName != null)
+							fishData.CommonName = commonName;
+						if (pageName != null)
+							fishData.PageName = pageName;
+						if (wikiPage != null)
+							fishData.WikiPage = wikiPage;
+						if (wikiInfoPage != null)
+							fishData.WikiInfoPage = wikiInfoPage;
+						if (monthlyViews >= 0)
+							fishData.MonthlyViews = monthlyViews;
+						if (imageLink != null)
+							fishData.ImageLink = imageLink;
+						if (rarity != null)
+							fishData.Rarity = rarity;
+
+						fishData.IssuesReported = 0; // Supposedly it's been fixed
+
+						await UpdateOrCreateFish(fishData);
+
+						var embed = new FishEmbedBuilder(fishData, "Fish has been updated").Build();
+						await command.RespondAsync(embed: embed);
+						DebugSay($"Updated fish: {fishData.WikiPage}");
 					}
 					break;
 				case "remove":
@@ -146,7 +175,7 @@ public partial class Fishley
 						var fishData = await GetFish(fishId);
 						var fishRemoved = await RemoveFish(fishId);
 
-						if (!fishRemoved)
+						if (fishData == null || !fishRemoved)
 						{
 							await command.RespondAsync($"Could not find any fish with the id {fishId}.", ephemeral: true);
 							return;
