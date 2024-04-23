@@ -44,12 +44,16 @@ public partial class Fishley
 		var _config = new DiscordSocketConfig
 		{
 			MessageCacheSize = ConfigGet<int>("MessageCacheSize"),
+			LogLevel = LogSeverity.Verbose,
 			GatewayIntents = GatewayIntents.AllUnprivileged |
 			GatewayIntents.MessageContent |
 			GatewayIntents.GuildMembers |
 			GatewayIntents.GuildMessages |
 			GatewayIntents.DirectMessages |
-			GatewayIntents.MessageContent
+			GatewayIntents.MessageContent |
+			GatewayIntents.Guilds |
+			GatewayIntents.DirectMessages |
+			GatewayIntents.GuildMessageReactions
 		};
 		Client = new DiscordSocketClient(_config);
 
@@ -59,6 +63,7 @@ public partial class Fishley
 		Client.ReactionAdded += ReactionAdded;
 		Client.Ready += OnReady;
 		Client.SlashCommandExecuted += SlashCommandHandler;
+		Client.ButtonExecuted += ButtonHandler;
 
 		var token = ConfigGet<string>("Token");
 
@@ -188,7 +193,7 @@ public partial class Fishley
 
 	private static Task Log(LogMessage msg)
 	{
-		Console.WriteLine(msg.ToString());
+		DebugSay(msg.ToString());
 		return Task.CompletedTask;
 	}
 

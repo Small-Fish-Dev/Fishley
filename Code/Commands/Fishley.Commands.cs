@@ -34,15 +34,19 @@ public partial class Fishley
 	private static async Task ButtonHandler(SocketMessageComponent component)
 	{
 		var componentId = component.Data.CustomId;
+		if (componentId == null) return; // Unpossible
 
 		foreach (var command in Commands)
 		{
-			if (command.Value.Components.ContainsKey(componentId))
-			{
-				await command.Value.Components[componentId].Invoke(component);
-				return;
-			}
+			var componentFound = command.Value.Components.FirstOrDefault(x => componentId.Contains(x.Key));
+
+			if (componentFound.Equals(default(KeyValuePair<string, Func<SocketMessageComponent, Task>>))) return; // Not found
+
+			await componentFound.Value.Invoke(component);
+			return;
 		}
+
+		await component.RespondAsync($"Nothing happened...", ephemeral: true);
 	}
 
 	public abstract class DiscordSlashCommand
