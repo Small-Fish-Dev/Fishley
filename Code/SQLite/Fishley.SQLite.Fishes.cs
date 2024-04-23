@@ -107,7 +107,6 @@ public partial class Fishley
 		}
 	}
 
-
 	/// <summary>
 	/// Get a fish by id
 	/// </summary>
