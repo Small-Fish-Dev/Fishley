@@ -349,6 +349,7 @@ public partial class Fishley
 		public bool Image = true;
 		public bool Rarity = true;
 		public bool FishId = true;
+		public bool IssuesReported = true;
 
 		public FishEmbedBuilder(FishData fishData, string title = null, SocketUser author = null)
 		{
@@ -378,6 +379,8 @@ public partial class Fishley
 				embedBuilder = embedBuilder.AddField("Monthly Views:", FishData.MonthlyViews);
 			if (SellAmount)
 				embedBuilder = embedBuilder.AddField("Sell Amount:", rarity.Item3);
+			if (IssuesReported)
+				embedBuilder = embedBuilder.AddField("Issues Reported:", FishData.IssuesReported);
 
 			if (LastSeen)
 			{

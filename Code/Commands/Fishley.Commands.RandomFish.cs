@@ -31,7 +31,8 @@ public partial class Fishley
 			{
 				WikiInfoPage = false,
 				CommonName = false,
-				MonthlyViews = false
+				MonthlyViews = false,
+				IssuesReported = false
 			}.Build();
 
 			var rarity = FishRarities[randomFish.Rarity];
@@ -43,8 +44,12 @@ public partial class Fishley
 			randomFish.LastSeen = DateTime.UtcNow;
 			await UpdateOrCreateFish(randomFish);
 
+			var button = new ComponentBuilder()
+				.WithButton("Report issue.", "report_issue")
+				.Build();
+
 			Console.WriteLine($"{command.User.GlobalName} caught: {randomFish.PageId} {randomFish.CommonName} - {randomFish.WikiPage} - {randomFish.PageName} - {randomFish.MonthlyViews} - {randomFish.ImageLink}");
-			await command.RespondAsync($"<@{command.User.Id}>", embed: embed);
+			await command.RespondAsync($"<@{command.User.Id}> If you see anything wrong or missing with this fish please report the issue with the button below!", embed: embed, components: button);
 		}
 	}
 }

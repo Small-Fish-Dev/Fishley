@@ -14,6 +14,7 @@ public partial class Fishley
 		public string ImageLink { get; set; }
 		public DateTime LastSeen { get; set; }
 		public string Rarity { get; set; }
+		public int IssuesReported { get; set; }
 
 		public Fish(int pageId)
 		{
@@ -31,6 +32,7 @@ public partial class Fishley
 			ImageLink = fish.ImageLink;
 			LastSeen = fish.LastSeen;
 			Rarity = fish.Rarity;
+			IssuesReported = fish.IssuesReported;
 		}
 
 		public void Copy(FishData fish)
@@ -43,6 +45,7 @@ public partial class Fishley
 			ImageLink = fish.ImageLink;
 			LastSeen = fish.LastSeen;
 			Rarity = fish.Rarity;
+			IssuesReported = fish.IssuesReported;
 		}
 	}
 
@@ -57,6 +60,7 @@ public partial class Fishley
 		public string ImageLink { get; set; }
 		public DateTime LastSeen { get; set; }
 		public string Rarity { get; set; }
+		public int IssuesReported { get; set; }
 
 		public FishData(int pageId)
 		{
@@ -74,6 +78,7 @@ public partial class Fishley
 			ImageLink = fish.ImageLink;
 			LastSeen = fish.LastSeen;
 			Rarity = fish.Rarity;
+			IssuesReported = fish.IssuesReported;
 		}
 	}
 
