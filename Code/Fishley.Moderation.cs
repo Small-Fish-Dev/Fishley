@@ -27,7 +27,7 @@ public partial class Fishley
 
 		if (socketMessage.Channel is not SocketTextChannel channel) return;
 		if (channel == null || message == null || socketMessage == null) return;
-		if (socketMessage.Reactions.Count(x => x.Key.Name == WarnEmoji.Name) >= (warnEmoteAlreadyThere ? 2 : 1)) return; // Don't warn if this message led to a warn already
+		if (socketMessage.Reactions.FirstOrDefault(x => x.Key.Equals(WarnEmoji)).Value.ReactionCount >= (warnEmoteAlreadyThere ? 2 : 1)) return; // Don't warn if this message led to a warn already
 
 		if (CanModerate(user))
 		{
