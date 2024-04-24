@@ -10,7 +10,7 @@ public partial class Fishley
 
 		public override Func<SocketSlashCommand, Task> Function => Balance;
 
-		public override bool SpamOnly => false;
+		public override bool SpamOnly => true;
 
 		public async Task Balance(SocketSlashCommand command)
 		{
@@ -38,7 +38,7 @@ public partial class Fishley
 
 		public override Func<SocketSlashCommand, Task> Function => Pay;
 
-		public override bool SpamOnly => false;
+		public override bool SpamOnly => true;
 
 		public async Task Pay(SocketSlashCommand command)
 		{
