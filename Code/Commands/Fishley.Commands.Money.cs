@@ -45,6 +45,11 @@ public partial class Fishley
 			var targetUser = (SocketUser)command.Data.Options.First().Value;
 			var amountString = (string)command.Data.Options.Last().Value;
 
+			if (targetUser.Id == command.User.Id)
+			{
+				await command.RespondAsync($"You can't send yourself money!", ephemeral: true);
+				return;
+			}
 			if (!ParseFloat(amountString, out var amount))
 			{
 				await command.RespondAsync($"Please input a real number!", ephemeral: true);
