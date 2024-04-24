@@ -16,7 +16,7 @@ public partial class Fishley
 		{
 			var user = await GetOrCreateUser(command.User.Id);
 
-			await command.RespondAsync($"You have ${user.Money}");
+			await command.RespondAsync($"You have {NiceMoney((float)user.Money)}");
 		}
 	}
 
@@ -55,12 +55,12 @@ public partial class Fishley
 				await command.RespondAsync($"Please input a real number!", ephemeral: true);
 				return;
 			}
-			if (amount < 0.001f)
+			if (amount < 0.01f)
 			{
-				await command.RespondAsync($"Minimum amount is 0.001!", ephemeral: true);
+				await command.RespondAsync($"Minimum amount is 0.01!", ephemeral: true);
 				return;
 			}
-			amount = MathF.Round(amount, 3, MidpointRounding.AwayFromZero); // Round to three digits
+			amount = MathF.Round(amount, 2, MidpointRounding.AwayFromZero); // Round to three digits
 			var toPay = (decimal)amount;
 
 			var payer = await GetOrCreateUser(command.User.Id);
@@ -78,7 +78,7 @@ public partial class Fishley
 			await UpdateUser(payer);
 			await UpdateUser(payee);
 
-			await command.RespondAsync($"<@{command.User.Id}> sent ${toPay} to <@{targetUser.Id}>");
+			await command.RespondAsync($"<@{command.User.Id}> sent {NiceMoney(amount)} to <@{targetUser.Id}>");
 		}
 	}
 }

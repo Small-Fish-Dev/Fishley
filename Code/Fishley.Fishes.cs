@@ -4,27 +4,27 @@ public partial class Fishley
 {
 	public static Dictionary<string, (string, Color, decimal)> FishRarities { get; set; } = new() // Will make it better
 	{
-		{ "F-", ("https://i.imgur.com/DueCNx8.png", new Color(6,84,228), 0.005m) },
-		{ "F", ("https://i.imgur.com/eaasV91.png", new Color(6,84,228), 0.007m) },
-		{ "F+", ("https://i.imgur.com/F6B8QQb.png", new Color(6,84,228), 0.01m) },
-		{ "E-", ("https://i.imgur.com/epUwAHr.png", new Color(36,228,212), 0.015m) },
-		{ "E", ("https://i.imgur.com/DhFsRcr.png", new Color(36,228,212), 0.02m) },
-		{ "E+", ("https://i.imgur.com/Y6plinP.png", new Color(36,228,212), 0.03m) },
-		{ "D-", ("https://i.imgur.com/JB0DNWj.png", new Color(42,228,127), 0.05m) },
-		{ "D", ("https://i.imgur.com/uKhojQo.png", new Color(42,228,127), 0.07m) },
-		{ "D+", ("https://i.imgur.com/zF8mXIt.png", new Color(42,228,127), 0.1m) },
-		{ "C-", ("https://i.imgur.com/uKiJt8V.png", new Color(50,229,43), 0.15m) },
-		{ "C", ("https://i.imgur.com/56qj9pX.png", new Color(50,229,43), 0.2m) },
-		{ "C+", ("https://i.imgur.com/KLsqazN.png", new Color(50,229,43), 0.3m) },
-		{ "B-", ("https://i.imgur.com/SwzHOrR.png", new Color(223,230,75), 0.5m) },
-		{ "B", ("https://i.imgur.com/EZKH8Fn.png", new Color(223,230,75), 0.7m) },
-		{ "B+", ("https://i.imgur.com/vV27igO.png", new Color(223,230,75), 1m) },
-		{ "A-", ("https://i.imgur.com/VkqngLL.png", new Color(226,146,54), 1.5m) },
-		{ "A", ("https://i.imgur.com/Cpnz0jC.png", new Color(226,146,54), 2m) },
-		{ "A+", ("https://i.imgur.com/mhhf5e9.png", new Color(226,146,54), 3m) },
-		{ "S-", ("https://i.imgur.com/UKMV4gu.png", new Color(228,58,43), 5m) },
-		{ "S", ("https://i.imgur.com/QWdejAx.png", new Color(228,58,43), 7m) },
-		{ "S+", ("https://i.imgur.com/Gb8dN1p.png", new Color(228,58,43), 10m) },
+		{ "F-", ("https://i.imgur.com/DueCNx8.png", new Color(6,84,228), 0.01m) },
+		{ "F", ("https://i.imgur.com/eaasV91.png", new Color(6,84,228), 0.02m) },
+		{ "F+", ("https://i.imgur.com/F6B8QQb.png", new Color(6,84,228), 0.03m) },
+		{ "E-", ("https://i.imgur.com/epUwAHr.png", new Color(36,228,212), 0.05m) },
+		{ "E", ("https://i.imgur.com/DhFsRcr.png", new Color(36,228,212), 0.07m) },
+		{ "E+", ("https://i.imgur.com/Y6plinP.png", new Color(36,228,212), 0.1m) },
+		{ "D-", ("https://i.imgur.com/JB0DNWj.png", new Color(42,228,127), 0.15m) },
+		{ "D", ("https://i.imgur.com/uKhojQo.png", new Color(42,228,127), 0.2m) },
+		{ "D+", ("https://i.imgur.com/zF8mXIt.png", new Color(42,228,127), 0.3m) },
+		{ "C-", ("https://i.imgur.com/uKiJt8V.png", new Color(50,229,43), 0.4m) },
+		{ "C", ("https://i.imgur.com/56qj9pX.png", new Color(50,229,43), 0.6m) },
+		{ "C+", ("https://i.imgur.com/KLsqazN.png", new Color(50,229,43), 0.8m) },
+		{ "B-", ("https://i.imgur.com/SwzHOrR.png", new Color(223,230,75), 1m) },
+		{ "B", ("https://i.imgur.com/EZKH8Fn.png", new Color(223,230,75), 1.5m) },
+		{ "B+", ("https://i.imgur.com/vV27igO.png", new Color(223,230,75), 2m) },
+		{ "A-", ("https://i.imgur.com/VkqngLL.png", new Color(226,146,54), 3m) },
+		{ "A", ("https://i.imgur.com/Cpnz0jC.png", new Color(226,146,54), 4.5m) },
+		{ "A+", ("https://i.imgur.com/mhhf5e9.png", new Color(226,146,54), 6m) },
+		{ "S-", ("https://i.imgur.com/UKMV4gu.png", new Color(228,58,43), 8m) },
+		{ "S", ("https://i.imgur.com/QWdejAx.png", new Color(228,58,43), 12m) },
+		{ "S+", ("https://i.imgur.com/Gb8dN1p.png", new Color(228,58,43), 16m) },
 	};
 
 	private static List<int> _fishPercentileGroups { get; set; } = new();
@@ -370,7 +370,7 @@ public partial class Fishley
 			if (CommonName)
 				embedBuilder = embedBuilder.AddField("Common Name:", FishData.CommonName);
 			if (PageName)
-				embedBuilder = embedBuilder.AddField("Page Name:", FishData.PageName);
+				embedBuilder = embedBuilder.AddField("Scientific Name:", FishData.PageName);
 			if (WikiPage)
 				embedBuilder = embedBuilder.WithDescription(FishData.WikiPage);
 			if (WikiInfoPage)
@@ -378,7 +378,7 @@ public partial class Fishley
 			if (MonthlyViews)
 				embedBuilder = embedBuilder.AddField("Monthly Views:", FishData.MonthlyViews);
 			if (SellAmount)
-				embedBuilder = embedBuilder.AddField("Sell Amount:", rarity.Item3);
+				embedBuilder = embedBuilder.AddField("Sell Amount:", NiceMoney((float)rarity.Item3));
 			if (IssuesReported)
 				embedBuilder = embedBuilder.AddField("Issues Reported:", FishData.IssuesReported);
 
