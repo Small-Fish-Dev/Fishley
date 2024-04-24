@@ -94,10 +94,18 @@ public partial class Fishley
 		SmallFishServer = Client.GetGuild(guildId);
 		await SmallFishServer.DownloadUsersAsync();
 
-		await SmallFishServer.DeleteApplicationCommandsAsync();
+		var existingCommands = await SmallFishServer.GetApplicationCommandsAsync();
 
 		foreach (var command in Commands.Values)
+		{
+			if (existingCommands.Any(x => x.Name == command.Builder.Name)) continue;
+
 			await SmallFishServer.CreateApplicationCommandAsync(command.Builder.Build());
+		} // Add any new commands
+
+		var allCommandsUpdated = Commands.Values.Select(x => x.Builder.Build())
+			.ToArray();
+		await SmallFishServer.BulkOverwriteApplicationCommandAsync(allCommandsUpdated); // Update commands if they were modified
 
 		Running = true;
 		await Task.CompletedTask;

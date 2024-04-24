@@ -60,7 +60,7 @@ public partial class Fishley
 				await command.RespondAsync($"Minimum amount is 0.01!", ephemeral: true);
 				return;
 			}
-			amount = MathF.Round(amount, 2, MidpointRounding.AwayFromZero); // Round to three digits
+			amount = MathF.Round(amount, 2, MidpointRounding.AwayFromZero); // Round to two digits
 			var toPay = (decimal)amount;
 
 			var payer = await GetOrCreateUser(command.User.Id);
@@ -79,6 +79,90 @@ public partial class Fishley
 			await UpdateUser(payee);
 
 			await command.RespondAsync($"<@{command.User.Id}> sent {NiceMoney(amount)} to <@{targetUser.Id}>");
+		}
+	}
+
+	public class InvoiceCommand : DiscordSlashCommand
+	{
+		public override SlashCommandBuilder Builder => new SlashCommandBuilder()
+		.WithName("invoice")
+		.WithDescription("Send someone an invoice")
+		.AddOption(new SlashCommandOptionBuilder()
+			.WithName("user")
+			.WithDescription("Who to send the invoice to")
+			.WithRequired(true)
+			.WithType(ApplicationCommandOptionType.User))
+		.AddOption(new SlashCommandOptionBuilder()
+			.WithName("amount")
+			.WithDescription("How much to ask for")
+			.WithRequired(true)
+			.WithType(ApplicationCommandOptionType.String))
+		.AddOption(new SlashCommandOptionBuilder()
+			.WithName("reason")
+			.WithDescription("The reason for the invoice")
+			.WithRequired(true)
+			.WithType(ApplicationCommandOptionType.String));
+
+		public override Dictionary<string, Func<SocketMessageComponent, Task>> Components => new()
+		{
+			{ "invoice_paid-", InvoicePaid }
+		};
+
+		public override Func<SocketSlashCommand, Task> Function => SendInvoice;
+
+		public override bool SpamOnly => false;
+
+		public async Task SendInvoice(SocketSlashCommand command)
+		{
+			var targetUser = (SocketUser)command.Data.Options.First().Value;
+			var amountString = (string)command.Data.Options.FirstOrDefault(x => x.Name == "amount")?.Value ?? null;
+			var reason = (string)command.Data.Options.Last().Value;
+
+			if (targetUser.Id == command.User.Id)
+			{
+				await command.RespondAsync($"You can't send yourself an invoide!", ephemeral: true);
+				return;
+			}
+			if (!ParseFloat(amountString, out var amount))
+			{
+				await command.RespondAsync($"Please input a real number!", ephemeral: true);
+				return;
+			}
+			if (amount < 0.01f)
+			{
+				await command.RespondAsync($"Minimum amount is 0.01!", ephemeral: true);
+				return;
+			}
+			amount = MathF.Round(amount, 2, MidpointRounding.AwayFromZero); // Round to two digits
+			var toPay = (decimal)amount;
+
+			var button = new ComponentBuilder()
+				.WithButton("Pay Invoice.", $"invoice_paid-{command.User.Id}-{toPay}", ButtonStyle.Success)
+				.Build();
+
+			var embed = new EmbedBuilder().WithTitle($"Invoice - Global Bank of Small Fish")
+				.WithAuthor(command.User)
+				.WithColor(Color.DarkGreen)
+				.AddField("From:", command.User.GlobalName, true)
+				.AddField("To:", targetUser.GlobalName, true)
+				.AddField("Amount to pay:", NiceMoney(amount))
+				.AddField("Reason:", $"\"{reason}\"")
+				.WithCurrentTimestamp()
+				.Build();
+
+			await command.RespondAsync($"<@{command.User.Id}> sent <@{targetUser.Id}> an invoice.", embed: embed, components: button);
+		}
+
+
+		public async Task InvoicePaid(SocketMessageComponent component)
+		{
+			var disabledButton = new ComponentBuilder()
+				.WithButton("Paid?", "im_nothing_bro", style: ButtonStyle.Success, disabled: true)
+				.Build();
+
+			await component.UpdateAsync(x => x.Components = disabledButton);
+
+			//await component.FollowupAsync($"Reported an issue with fish #{fishId}! Thank you!", ephemeral: true);
 		}
 	}
 }

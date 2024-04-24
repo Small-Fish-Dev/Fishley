@@ -8,7 +8,8 @@ public partial class Fishley
 		{ "speak", new SpeakCommand() },
 		{ "balance", new BalanceCommand() },
 		{ "fish_database", new EditFish() },
-		{ "pay", new PayCommand() }
+		{ "pay", new PayCommand() },
+		{ "invoice", new InvoiceCommand() }
 	};
 
 	private static async Task SlashCommandHandler(SocketSlashCommand command)
