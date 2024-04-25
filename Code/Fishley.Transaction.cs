@@ -194,6 +194,7 @@ public partial class Fishley
 				.AddField("To:", Target.GlobalName, true)
 				.AddField("Amount:", NiceMoney(Amount))
 				.AddField("Reason:", $"\"{Reason}\"")
+				.AddField("Status:", $"__{State.ToString()}__")
 				.WithCurrentTimestamp();
 
 			//if (Expires)
@@ -214,22 +215,24 @@ public partial class Fishley
 					.WithButton("Reject", $"transaction_rejected|{TransactionId}", ButtonStyle.Danger)
 					.WithButton("Cancel", $"transaction_cancelled|{TransactionId}", ButtonStyle.Secondary);
 					break;
-				case TransactionState.Accepted:
-					componentBuilder = componentBuilder
-					.WithButton("Accepted", "im_nothing_bro", style: ButtonStyle.Success, disabled: true);
-					break;
-				case TransactionState.Rejected:
-					componentBuilder = componentBuilder
-					.WithButton("Rejected", "im_nothing_bro", style: ButtonStyle.Danger, disabled: true);
-					break;
-				case TransactionState.Expired:
-					componentBuilder = componentBuilder
-					.WithButton("Expired", "im_nothing_bro", style: ButtonStyle.Secondary, disabled: true);
-					break;
-				case TransactionState.Cancelled:
-					componentBuilder = componentBuilder
-					.WithButton("Cancelled", "im_nothing_bro", style: ButtonStyle.Secondary, disabled: true);
-					break;
+					/* // Let's remove these for now, I think it looks better
+					case TransactionState.Accepted:
+						componentBuilder = componentBuilder
+						.WithButton("Accepted", "im_nothing_bro", style: ButtonStyle.Success, disabled: true);
+						break;
+					case TransactionState.Rejected:
+						componentBuilder = componentBuilder
+						.WithButton("Rejected", "im_nothing_bro", style: ButtonStyle.Danger, disabled: true);
+						break;
+					case TransactionState.Expired:
+						componentBuilder = componentBuilder
+						.WithButton("Expired", "im_nothing_bro", style: ButtonStyle.Secondary, disabled: true);
+						break;
+					case TransactionState.Cancelled:
+						componentBuilder = componentBuilder
+						.WithButton("Cancelled", "im_nothing_bro", style: ButtonStyle.Secondary, disabled: true);
+						break;
+					*/
 			}
 
 			return componentBuilder.Build();
