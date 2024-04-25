@@ -147,7 +147,7 @@ public partial class Fishley
 			var toPay = (decimal)amount;
 
 			var button = new ComponentBuilder()
-				.WithButton("Pay Invoice.", $"invoice_paid-{command.User.Id}-{toPay}", ButtonStyle.Success)
+				.WithButton("Accept", $"invoice_paid-{targetUser.Id}-{command.User.Id}-{toPay}", ButtonStyle.Success)
 				.Build();
 
 			DebugSay($"invoice_paid-{command.User.Id}-{toPay}");
@@ -167,14 +167,38 @@ public partial class Fishley
 
 		public async Task InvoicePaid(SocketMessageComponent component)
 		{
-			DebugSay("PAID");
+			var data = component.Data.CustomId.Replace("invoice_paid-", "").Split("-");
+			var targetId = ulong.Parse(data[0]);
+			var creatorId = ulong.Parse(data[1]);
+			var amountToPay = decimal.Parse(data[2]);
+
+			if (component.User.Id != targetId)
+			{
+				await component.RespondAsync("You're not the receipient of this invoice.", ephemeral: true);
+				return;
+			}
+
+			var target = await GetOrCreateUser(component.User.Id);
+
+			if (target.Money < amountToPay)
+			{
+				await component.RespondAsync("You don't have enough money to pay this invoice.", ephemeral: true);
+				return;
+			}
+
+			var creator = await GetOrCreateUser(component.User.Id);
+			target.Money -= amountToPay;
+			creator.Money += amountToPay;
+
+			await UpdateUser(target);
+			await UpdateUser(creator);
+
 			var disabledButton = new ComponentBuilder()
-				.WithButton("Paid?", "im_nothing_bro", style: ButtonStyle.Success, disabled: true)
+				.WithButton("Paid", "im_nothing_bro", style: ButtonStyle.Success, disabled: true)
 				.Build();
 
 			await component.UpdateAsync(x => x.Components = disabledButton);
-
-			//await component.FollowupAsync($"Reported an issue with fish #{fishId}! Thank you!", ephemeral: true);
+			await component.FollowupAsync($"<@{targetId}> paid an invoice of {NiceMoney((float)amountToPay)} to <@{creatorId}>!");
 		}
 	}
 }
