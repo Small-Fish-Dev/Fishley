@@ -110,7 +110,8 @@ public partial class Fishley
 
 		public override Dictionary<string, Func<SocketMessageComponent, Task>> Components => new()
 		{
-			{ "invoice_paid-", InvoicePaid }
+			{ "invoice_paid-", InvoicePaid },
+			{ "invoice_unpaid-", InvoiceUnpaid }
 		};
 
 		public override Func<SocketSlashCommand, Task> Function => SendInvoice;
@@ -130,7 +131,7 @@ public partial class Fishley
 			}
 			if (targetUser.Id == command.User.Id)
 			{
-				await command.RespondAsync($"You can't send yourself an invoide!", ephemeral: true);
+				await command.RespondAsync($"You can't send yourself an invoice!", ephemeral: true);
 				return;
 			}
 			if (!ParseFloat(amountString, out var amount))
@@ -146,11 +147,11 @@ public partial class Fishley
 			amount = MathF.Round(amount, 2, MidpointRounding.AwayFromZero); // Round to two digits
 			var toPay = (decimal)amount;
 
-			var button = new ComponentBuilder()
+			var components = new ComponentBuilder()
 				.WithButton("Accept", $"invoice_paid-{targetUser.Id}-{command.User.Id}-{toPay}", ButtonStyle.Success)
+				.WithButton("Reject", $"invoice_unpaid-{targetUser.Id}-{command.User.Id}-{toPay}", ButtonStyle.Danger)
 				.Build();
 
-			DebugSay($"invoice_paid-{command.User.Id}-{toPay}");
 			var embed = new EmbedBuilder().WithTitle($"Invoice - Global Bank of Small Fish")
 				.WithAuthor(command.User)
 				.WithColor(Color.DarkGreen)
@@ -161,7 +162,7 @@ public partial class Fishley
 				.WithCurrentTimestamp()
 				.Build();
 
-			await command.RespondAsync($"<@{command.User.Id}> sent <@{targetUser.Id}> an invoice.", embed: embed, components: button);
+			await command.RespondAsync($"<@{command.User.Id}> sent <@{targetUser.Id}> an invoice.", embed: embed, components: components);
 		}
 
 
@@ -194,11 +195,32 @@ public partial class Fishley
 			await UpdateUser(creator);
 
 			var disabledButton = new ComponentBuilder()
-				.WithButton("Paid", "im_nothing_bro", style: ButtonStyle.Success, disabled: true)
+				.WithButton("Accepted", "im_nothing_bro", style: ButtonStyle.Success, disabled: true)
 				.Build();
 
 			await component.UpdateAsync(x => x.Components = disabledButton);
-			await component.FollowupAsync($"<@{targetId}> paid an invoice of {NiceMoney((float)amountToPay)} to <@{creatorId}>!");
+			await component.FollowupAsync($"<@{targetId}> accepted an invoice of {NiceMoney((float)amountToPay)} from <@{creatorId}>!");
+		}
+
+		public async Task InvoiceUnpaid(SocketMessageComponent component)
+		{
+			var data = component.Data.CustomId.Replace("invoice_unpaid-", "").Split("-");
+			var targetId = ulong.Parse(data[0]);
+			var creatorId = ulong.Parse(data[1]);
+			var amountToPay = decimal.Parse(data[2]);
+
+			if (component.User.Id != targetId)
+			{
+				await component.RespondAsync("You're not the receipient of this invoice.", ephemeral: true);
+				return;
+			}
+
+			var disabledButton = new ComponentBuilder()
+				.WithButton("Rejected", "im_nothing_bro", style: ButtonStyle.Danger, disabled: true)
+				.Build();
+
+			await component.UpdateAsync(x => x.Components = disabledButton);
+			await component.FollowupAsync($"<@{targetId}> rejected an invoice of {NiceMoney((float)amountToPay)} from <@{creatorId}>!");
 		}
 	}
 }
