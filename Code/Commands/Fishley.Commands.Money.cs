@@ -50,9 +50,9 @@ public partial class Fishley
 
 		public override Dictionary<string, Func<SocketMessageComponent, Task>> Components => new()
 		{
-			{ "transaction_accepted-", HandleTransactionResponse },
-			{ "transaction_rejected-", HandleTransactionResponse },
-			{ "transaction_cancelled-", HandleTransactionResponse }
+			{ "transaction_accepted|", HandleTransactionResponse },
+			{ "transaction_rejected|", HandleTransactionResponse },
+			{ "transaction_cancelled|", HandleTransactionResponse }
 		};
 
 		public override bool SpamOnly => true;
@@ -150,9 +150,9 @@ public partial class Fishley
 
 		public override Dictionary<string, Func<SocketMessageComponent, Task>> Components => new()
 		{
-			{ "transaction_accepted-", HandleTransactionResponse },
-			{ "transaction_rejected-", HandleTransactionResponse },
-			{ "transaction_cancelled-", HandleTransactionResponse }
+			{ "transaction_accepted|", HandleTransactionResponse },
+			{ "transaction_rejected|", HandleTransactionResponse },
+			{ "transaction_cancelled|", HandleTransactionResponse }
 		};
 
 		public override Func<SocketSlashCommand, Task> Function => SendInvoice;

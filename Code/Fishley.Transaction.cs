@@ -11,6 +11,11 @@ public partial class Fishley
 	/// <returns></returns>
 	public static Transaction GetActiveTransaction(int transactionId)
 	{
+		DebugSay($"Lookin for {transactionId}");
+		foreach (var trans in ActiveTransactions)
+		{
+			DebugSay($"We have {trans.Key}");
+		}
 		if (ActiveTransactions.ContainsKey(transactionId))
 			return ActiveTransactions[transactionId];
 		else
@@ -44,7 +49,7 @@ public partial class Fishley
 
 	public static async Task HandleTransactionResponse(SocketMessageComponent component)
 	{
-		var data = component.Data.CustomId.Split("-");
+		var data = component.Data.CustomId.Split("|"); // I'm doing | instead of - this time because we're looking for hashcodes and they can be negative oops
 		var transactionId = int.Parse(data.Last());
 		var transaction = GetActiveTransaction(transactionId);
 
@@ -191,8 +196,8 @@ public partial class Fishley
 				.AddField("Reason:", $"\"{Reason}\"")
 				.WithCurrentTimestamp();
 
-			if (Expires)
-				embedBuilder = embedBuilder.AddField("Expiration:", ExpirationEmbed);
+			//if (Expires)
+			//	embedBuilder = embedBuilder.AddField("Expiration:", ExpirationEmbed);
 
 			return embedBuilder.Build();
 		}
@@ -205,9 +210,9 @@ public partial class Fishley
 			{
 				case TransactionState.Pending:
 					componentBuilder = componentBuilder
-					.WithButton("Accept", $"transaction_accepted-{TransactionId}", ButtonStyle.Success)
-					.WithButton("Reject", $"transaction_rejected-{TransactionId}", ButtonStyle.Danger)
-					.WithButton("Cancel", $"transaction_cancelled-{TransactionId}", ButtonStyle.Secondary);
+					.WithButton("Accept", $"transaction_accepted|{TransactionId}", ButtonStyle.Success)
+					.WithButton("Reject", $"transaction_rejected|{TransactionId}", ButtonStyle.Danger)
+					.WithButton("Cancel", $"transaction_cancelled|{TransactionId}", ButtonStyle.Secondary);
 					break;
 				case TransactionState.Accepted:
 					componentBuilder = componentBuilder
@@ -249,8 +254,8 @@ public partial class Fishley
 		public override int GetHashCode()
 		{
 			HashCode hash = new HashCode();
-			hash.Add(Creator);
-			hash.Add(Target);
+			hash.Add(CreatorId);
+			hash.Add(TargetId);
 			hash.Add(Amount);
 			hash.Add(Reason);
 			hash.Add(Type);
