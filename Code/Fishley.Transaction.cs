@@ -149,8 +149,8 @@ public partial class Fishley
 		public int TransactionId => GetHashCode();
 		public ulong CreatorId { get; set; }
 		public ulong TargetId { get; set; }
-		public SocketUser Creator => SmallFishServer.GetUser(CreatorId);
-		public SocketUser Target => SmallFishServer.GetUser(TargetId);
+		public SocketGuildUser Creator => SmallFishServer.GetUser(CreatorId);
+		public SocketGuildUser Target => SmallFishServer.GetUser(TargetId);
 		public SocketSlashCommand OriginalCommand { get; set; }
 		public float Amount { get; set; }
 		public string Reason { get; set; }
@@ -185,8 +185,8 @@ public partial class Fishley
 			var embedBuilder = new EmbedBuilder().WithTitle($"{Type.ToString()} - Global Bank of Small Fish")
 				.WithAuthor(Creator)
 				.WithColor(TransactionColor)
-				.AddField("From:", Creator.GlobalName, true)
-				.AddField("To:", Target.GlobalName, true)
+				.AddField("From:", Creator.DisplayName, true)
+				.AddField("To:", Target.DisplayName, true)
 				.AddField("Amount:", NiceMoney(Amount))
 				.AddField("Reason:", $"\"{Reason}\"")
 				.WithCurrentTimestamp()

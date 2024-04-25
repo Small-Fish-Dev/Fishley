@@ -94,7 +94,7 @@ public partial class Fishley
 			{ "transaction_cancelled|", HandleTransactionResponse }
 		};
 
-		public override bool SpamOnly => true;
+		public override bool SpamOnly => false;
 
 		public async Task Pay(SocketSlashCommand command)
 		{
