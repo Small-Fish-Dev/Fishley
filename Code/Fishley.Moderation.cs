@@ -95,23 +95,28 @@ public partial class Fishley
 
 	private static async Task WarnsDecayCheck()
 	{
-		using (var context = new FishleyDbContext())
+		if (WarnDecaySecondsPassed >= WarnDecayCheckTimer)
 		{
-			var allWarnedUsers = await context.Users.AsAsyncEnumerable()
-			.Where(x => x.Warnings > 0)
-			.ToListAsync();
+			LastWarnDecayCheck = DateTime.UtcNow;
 
-			foreach (var warnedUser in allWarnedUsers)
+			using (var context = new FishleyDbContext())
 			{
-				var secondsPassed = (DateTime.UtcNow - warnedUser.LastWarn).TotalSeconds;
-				var secondsToPass = warnedUser.Warnings == 1 ? WarnRole1DecaySeconds : (warnedUser.Warnings == 2 ? WarnRole2DecaySeconds : WarnRole3DecaySeconds);
+				var allWarnedUsers = await context.Users.AsAsyncEnumerable()
+				.Where(x => x.Warnings > 0)
+				.ToListAsync();
 
-				if (secondsPassed >= secondsToPass)
+				foreach (var warnedUser in allWarnedUsers)
 				{
-					var user = SmallFishServer.GetUser(warnedUser.UserId);
+					var secondsPassed = (DateTime.UtcNow - warnedUser.LastWarn).TotalSeconds;
+					var secondsToPass = warnedUser.Warnings == 1 ? WarnRole1DecaySeconds : (warnedUser.Warnings == 2 ? WarnRole2DecaySeconds : WarnRole3DecaySeconds);
 
-					if (user != null)
-						await RemoveWarn(user);
+					if (secondsPassed >= secondsToPass)
+					{
+						var user = SmallFishServer.GetUser(warnedUser.UserId);
+
+						if (user != null)
+							await RemoveWarn(user);
+					}
 				}
 			}
 		}

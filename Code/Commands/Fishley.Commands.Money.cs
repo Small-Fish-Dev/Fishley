@@ -20,6 +20,45 @@ public partial class Fishley
 		}
 	}
 
+	public class LeaderboardsCommand : DiscordSlashCommand
+	{
+		public override SlashCommandBuilder Builder => new SlashCommandBuilder()
+		.WithName("leaderboards")
+		.WithDescription("Top 10 users with most money");
+
+		public override Func<SocketSlashCommand, Task> Function => GetLeaderboards;
+
+		public override bool SpamOnly => false;
+
+		public async Task GetLeaderboards(SocketSlashCommand command)
+		{
+
+			using (var db = new FishleyDbContext())
+			{
+				var users = db.Users;
+				var foundUsers = users.AsAsyncEnumerable();
+				var mostMoney = foundUsers.OrderByDescending(x => x.Money);
+				var top10 = await mostMoney.Take(10).ToListAsync();
+
+				var embedBuilder = new EmbedBuilder().WithTitle("Users with most money")
+					.WithColor(Color.DarkGreen);
+
+				var fieldString = "";
+				var spot = 1;
+				foreach (var user in top10)
+				{
+					if (user.Money <= 0) break;
+					fieldString = $"{fieldString}#{spot} <@{user.UserId}>: {NiceMoney((float)user.Money)}\n";
+					spot++;
+				}
+
+				embedBuilder = embedBuilder.AddField("Leaderboard", fieldString);
+
+				await command.RespondAsync(embed: embedBuilder.Build());
+			}
+		}
+	}
+
 	public class TransferCommand : DiscordSlashCommand
 	{
 		public override SlashCommandBuilder Builder => new SlashCommandBuilder()

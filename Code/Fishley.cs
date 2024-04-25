@@ -117,12 +117,7 @@ public partial class Fishley
 
 	private static async Task OnUpdate()
 	{
-		if (WarnDecaySecondsPassed >= WarnDecayCheckTimer)
-		{
-			await WarnsDecayCheck();
-			LastWarnDecayCheck = DateTime.UtcNow;
-		}
-
+		await WarnsDecayCheck();
 		await ComputeScrapers();
 		await HandleTransactionExpiration();
 	}
