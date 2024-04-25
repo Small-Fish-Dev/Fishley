@@ -25,6 +25,6 @@ public partial class Fishley
 	public static string NiceMoney(float number)
 	{
 		CultureInfo usCulture = CultureInfo.GetCultureInfo("en-US");
-		return number.ToString("C2", usCulture);
+		return $"**{number.ToString("C2", usCulture).Replace("$", SDollarEmoji.ToString())}**";
 	}
 }
