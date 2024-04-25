@@ -164,7 +164,7 @@ public partial class Fishley
 		public DateTime Expiration { get; set; }
 		public DateTime CreationDate { get; set; }
 		public bool Expires => Expiration != DateTime.MinValue;
-		public bool Expired => Expired && Expiration <= DateTime.UtcNow;
+		public bool Expired => Expires && Expiration <= DateTime.UtcNow;
 		public string ExpirationEmbed => Expired ? "Expired!" : $"<t:{((DateTimeOffset)Expiration).ToUnixTimeSeconds()}:R>";
 		public Color TransactionColor => State switch
 		{
@@ -194,11 +194,13 @@ public partial class Fishley
 				.AddField("To:", Target.GlobalName, true)
 				.AddField("Amount:", NiceMoney(Amount))
 				.AddField("Reason:", $"\"{Reason}\"")
-				.AddField("Status:", $"__{State.ToString()}__")
-				.WithCurrentTimestamp();
+				.WithCurrentTimestamp()
+				.WithFooter(x => x.WithText($"Transaction Id: {TransactionId}"));
 
-			//if (Expires)
-			//	embedBuilder = embedBuilder.AddField("Expiration:", ExpirationEmbed);
+			if (Expires && !Expired && State == TransactionState.Pending)
+				embedBuilder = embedBuilder.AddField("Status:", $"__{State.ToString()}__ (Expires {ExpirationEmbed})");
+			else
+				embedBuilder = embedBuilder.AddField("Status:", $"__{State.ToString()}__");
 
 			return embedBuilder.Build();
 		}

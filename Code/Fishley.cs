@@ -124,6 +124,7 @@ public partial class Fishley
 		}
 
 		await ComputeScrapers();
+		await HandleTransactionExpiration();
 	}
 
 	/// <summary>
