@@ -40,9 +40,10 @@ public partial class Fishley
 
 		foreach (var command in Commands)
 		{
+			if (command.Value.Components == null || command.Value.Components.Count() == 0) continue;
 			var componentFound = command.Value.Components.FirstOrDefault(x => componentId.Contains(x.Key));
 
-			if (componentFound.Equals(default(KeyValuePair<string, Func<SocketMessageComponent, Task>>))) return; // Not found
+			if (componentFound.Equals(default(KeyValuePair<string, Func<SocketMessageComponent, Task>>))) continue; // Not found
 
 			await componentFound.Value.Invoke(component);
 			return;

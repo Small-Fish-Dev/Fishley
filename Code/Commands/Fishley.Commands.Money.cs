@@ -45,6 +45,11 @@ public partial class Fishley
 			var targetUser = (SocketUser)command.Data.Options.First().Value;
 			var amountString = (string)command.Data.Options.Last().Value;
 
+			if (targetUser.IsBot)
+			{
+				await command.RespondAsync($"Bots don't have a wallet.", ephemeral: true);
+				return;
+			}
 			if (targetUser.Id == command.User.Id)
 			{
 				await command.RespondAsync($"You can't send yourself money!", ephemeral: true);
@@ -118,6 +123,11 @@ public partial class Fishley
 			var amountString = (string)command.Data.Options.FirstOrDefault(x => x.Name == "amount")?.Value ?? null;
 			var reason = (string)command.Data.Options.Last().Value;
 
+			if (targetUser.IsBot)
+			{
+				await command.RespondAsync($"Bots don't have a wallet.", ephemeral: true);
+				return;
+			}
 			if (targetUser.Id == command.User.Id)
 			{
 				await command.RespondAsync($"You can't send yourself an invoide!", ephemeral: true);
@@ -140,6 +150,7 @@ public partial class Fishley
 				.WithButton("Pay Invoice.", $"invoice_paid-{command.User.Id}-{toPay}", ButtonStyle.Success)
 				.Build();
 
+			DebugSay($"invoice_paid-{command.User.Id}-{toPay}");
 			var embed = new EmbedBuilder().WithTitle($"Invoice - Global Bank of Small Fish")
 				.WithAuthor(command.User)
 				.WithColor(Color.DarkGreen)
@@ -156,6 +167,7 @@ public partial class Fishley
 
 		public async Task InvoicePaid(SocketMessageComponent component)
 		{
+			DebugSay("PAID");
 			var disabledButton = new ComponentBuilder()
 				.WithButton("Paid?", "im_nothing_bro", style: ButtonStyle.Success, disabled: true)
 				.Build();
