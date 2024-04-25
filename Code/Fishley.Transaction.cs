@@ -42,7 +42,7 @@ public partial class Fishley
 		}
 	}
 
-	public static async Task HandleTransferResponse(SocketMessageComponent component)
+	public static async Task HandleTransactionResponse(SocketMessageComponent component)
 	{
 		var data = component.Data.CustomId.Split("-");
 		var transactionId = int.Parse(data.Last());
@@ -70,7 +70,7 @@ public partial class Fishley
 
 			transaction.State = TransactionState.Cancelled;
 			await transaction.Update();
-			await component.FollowupAsync("Transaction has been cancelled.", ephemeral: true);
+			await component.RespondAsync("Transaction has been cancelled.", ephemeral: true);
 			return;
 		}
 
@@ -84,7 +84,7 @@ public partial class Fishley
 		{
 			transaction.State = TransactionState.Rejected;
 			await transaction.Update();
-			await component.FollowupAsync("Transaction has been rejected.", ephemeral: true);
+			await component.RespondAsync("Transaction has been rejected.", ephemeral: true);
 			return;
 		}
 
@@ -123,9 +123,9 @@ public partial class Fishley
 			await transaction.Update();
 
 			if (transaction.Type == TransactionType.Invoice)
-				await component.FollowupAsync($"<@{transaction.TargetId}> paid an invoice of {NiceMoney(transaction.Amount)} from <@{transaction.CreatorId}>!");
+				await component.RespondAsync($"<@{transaction.TargetId}> paid an invoice of {NiceMoney(transaction.Amount)} from <@{transaction.CreatorId}>!");
 			if (transaction.Type == TransactionType.Transfer)
-				await component.FollowupAsync($"<@{transaction.TargetId}> accepted a transfer of {NiceMoney(transaction.Amount)} from <@{transaction.CreatorId}>!");
+				await component.RespondAsync($"<@{transaction.TargetId}> accepted a transfer of {NiceMoney(transaction.Amount)} from <@{transaction.CreatorId}>!");
 		}
 	}
 
@@ -211,19 +211,19 @@ public partial class Fishley
 					break;
 				case TransactionState.Accepted:
 					componentBuilder = componentBuilder
-					.WithButton("Accepted", style: ButtonStyle.Success, disabled: true);
+					.WithButton("Accepted", "im_nothing_bro", style: ButtonStyle.Success, disabled: true);
 					break;
 				case TransactionState.Rejected:
 					componentBuilder = componentBuilder
-					.WithButton("Rejected", style: ButtonStyle.Danger, disabled: true);
+					.WithButton("Rejected", "im_nothing_bro", style: ButtonStyle.Danger, disabled: true);
 					break;
 				case TransactionState.Expired:
 					componentBuilder = componentBuilder
-					.WithButton("Expired", style: ButtonStyle.Secondary, disabled: true);
+					.WithButton("Expired", "im_nothing_bro", style: ButtonStyle.Secondary, disabled: true);
 					break;
 				case TransactionState.Cancelled:
 					componentBuilder = componentBuilder
-					.WithButton("Cancelled", style: ButtonStyle.Secondary, disabled: true);
+					.WithButton("Cancelled", "im_nothing_bro", style: ButtonStyle.Secondary, disabled: true);
 					break;
 			}
 
