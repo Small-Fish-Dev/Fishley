@@ -151,7 +151,7 @@ public partial class Fishley
 
 			if (component.User.Id != targetId)
 			{
-				await component.RespondAsync("You're not the receipient of this transfer.", ephemeral: true);
+				await component.RespondAsync("You're not the recipient of this transfer.", ephemeral: true);
 				return;
 			}
 
@@ -251,7 +251,7 @@ public partial class Fishley
 
 			if (component.User.Id != targetId)
 			{
-				await component.RespondAsync("You're not the receipient of this invoice.", ephemeral: true);
+				await component.RespondAsync("You're not the recipient of this invoice.", ephemeral: true);
 				return;
 			}
 
