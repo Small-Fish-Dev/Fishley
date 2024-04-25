@@ -20,6 +20,115 @@ public partial class Fishley
 		}
 	}
 
+	public List<Transaction> OpenTransactions { get; set; } = new();
+
+	public enum TransactionState
+	{
+		Pending,
+		Accepted,
+		Rejected,
+		Cancelled,
+		Expired
+	}
+
+	public enum TransactionType
+	{
+		Transfer,
+		Invoice
+	}
+
+	public class Transaction
+	{
+		public int TransactionId => GetHashCode();
+		public SocketUser Creator { get; set; }
+		public SocketUser Target { get; set; }
+		public float Amount { get; set; }
+		public string Reason { get; set; }
+		public TransactionType Type { get; set; }
+		public TransactionState State { get; set; }
+		public DateTime Expiration { get; set; }
+		public DateTime CreationDate { get; set; }
+		public bool Expires => Expiration != DateTime.MinValue;
+		public bool Expired => Expired && Expiration <= DateTime.UtcNow;
+		public string ExpirationEmbed => Expired ? "Expired!" : $"<t:{((DateTimeOffset)Expiration).ToUnixTimeSeconds()}:R>";
+
+		public Color TransactionColor => State switch
+		{
+			TransactionState.Pending => Color.DarkGrey,
+			TransactionState.Accepted => Color.DarkGreen,
+			TransactionState.Rejected => Color.Red,
+			TransactionState.Cancelled => Color.Red,
+			TransactionState.Expired => Color.Red,
+			_ => Color.DarkGrey
+		};
+
+		public Embed BuildEmbed()
+		{
+			var embedBuilder = new EmbedBuilder().WithTitle($"{Type.ToString()} - Global Bank of Small Fish")
+				.WithAuthor(Creator)
+				.WithColor(TransactionColor)
+				.AddField("From:", Creator.GlobalName, true)
+				.AddField("To:", Target.GlobalName, true)
+				.AddField("Amount:", NiceMoney(Amount))
+				.AddField("Reason:", $"\"{Reason}\"")
+				.WithCurrentTimestamp();
+
+			if (Expires)
+				embedBuilder = embedBuilder.AddField("Expiration:", ExpirationEmbed);
+
+			return embedBuilder.Build();
+		}
+
+		public MessageComponent BuildButtons()
+		{
+			var components = new ComponentBuilder()
+				.WithButton("Accept", $"transaction_accepted-{Target.Id}-{Creator.Id}-{Amount}", ButtonStyle.Success)
+				.WithButton("Reject", $"transaction_rejected-{Target.Id}-{Creator.Id}-{Amount}", ButtonStyle.Danger)
+				.WithButton("Cancel", $"transaction_cancelled-{Target.Id}-{Creator.Id}-{Amount}", ButtonStyle.Secondary)
+				.Build();
+		}
+
+		public override bool Equals(object obj)
+		{
+			if (obj is Transaction transaction)
+			{
+				return Creator == transaction.Creator &&
+					   Target == transaction.Target &&
+					   Amount == transaction.Amount &&
+					   Reason == transaction.Reason &&
+					   Type == transaction.Type &&
+					   State == transaction.State &&
+					   Expiration == transaction.Expiration &&
+					   CreationDate == transaction.CreationDate;
+			}
+			return false;
+		}
+
+		public override int GetHashCode()
+		{
+			HashCode hash = new HashCode();
+			hash.Add(Creator);
+			hash.Add(Target);
+			hash.Add(Amount);
+			hash.Add(Reason);
+			hash.Add(Type);
+			hash.Add(State);
+			hash.Add(Expiration);
+			hash.Add(CreationDate);
+			return hash.ToHashCode();
+		}
+
+		public static bool operator ==(Transaction left, Transaction right)
+		{
+			return Equals(left, right);
+		}
+
+		public static bool operator !=(Transaction left, Transaction right)
+		{
+			return !Equals(left, right);
+		}
+	}
+
 	public class TransferCommand : DiscordSlashCommand
 	{
 		public override SlashCommandBuilder Builder => new SlashCommandBuilder()
@@ -39,7 +148,12 @@ public partial class Fishley
 			.WithName("reason")
 			.WithDescription("The reason for the transfer")
 			.WithRequired(true)
-			.WithType(ApplicationCommandOptionType.String));
+			.WithType(ApplicationCommandOptionType.String))
+		.AddOption(new SlashCommandOptionBuilder()
+			.WithName("expiration")
+			.WithDescription("How many seconds before this transfer expires")
+			.WithRequired(false)
+			.WithType(ApplicationCommandOptionType.Integer));
 
 		public override Func<SocketSlashCommand, Task> Function => Pay;
 
@@ -53,9 +167,10 @@ public partial class Fishley
 
 		public async Task Pay(SocketSlashCommand command)
 		{
-			var targetUser = (SocketUser)command.Data.Options.First().Value;
+			var targetUser = (SocketUser)command.Data.Options.FirstOrDefault(x => x.Name == "user")?.Value ?? null;
 			var amountString = (string)command.Data.Options.FirstOrDefault(x => x.Name == "amount")?.Value ?? null;
-			var reason = (string)command.Data.Options.Last().Value;
+			var reason = (string)command.Data.Options.FirstOrDefault(x => x.Name == "reason")?.Value ?? null;
+			var expiration = (int)(long)(command.Data.Options.FirstOrDefault(x => x.Name == "expiration")?.Value ?? 0);
 
 			if (targetUser.IsBot)
 			{
@@ -183,7 +298,12 @@ public partial class Fishley
 			.WithName("reason")
 			.WithDescription("The reason for the invoice")
 			.WithRequired(true)
-			.WithType(ApplicationCommandOptionType.String));
+			.WithType(ApplicationCommandOptionType.String))
+		.AddOption(new SlashCommandOptionBuilder()
+			.WithName("expiration")
+			.WithDescription("How many seconds before this invoice expires")
+			.WithRequired(false)
+			.WithType(ApplicationCommandOptionType.Integer));
 
 		public override Dictionary<string, Func<SocketMessageComponent, Task>> Components => new()
 		{
@@ -197,9 +317,10 @@ public partial class Fishley
 
 		public async Task SendInvoice(SocketSlashCommand command)
 		{
-			var targetUser = (SocketUser)command.Data.Options.First().Value;
+			var targetUser = (SocketUser)command.Data.Options.FirstOrDefault(x => x.Name == "user")?.Value ?? null;
 			var amountString = (string)command.Data.Options.FirstOrDefault(x => x.Name == "amount")?.Value ?? null;
-			var reason = (string)command.Data.Options.Last().Value;
+			var reason = (string)command.Data.Options.FirstOrDefault(x => x.Name == "reason")?.Value ?? null;
+			var expiration = (int)(long)(command.Data.Options.FirstOrDefault(x => x.Name == "expiration")?.Value ?? 0L);
 
 			if (targetUser.IsBot)
 			{
@@ -221,6 +342,12 @@ public partial class Fishley
 				await command.RespondAsync($"Minimum amount is 0.01!", ephemeral: true);
 				return;
 			}
+			if (expiration < 0)
+			{
+				await command.RespondAsync($"Can't have negative expiration time.", ephemeral: true);
+				return;
+			}
+
 			amount = MathF.Round(amount, 2, MidpointRounding.AwayFromZero); // Round to two digits
 			var toPay = (decimal)amount;
 
@@ -229,17 +356,23 @@ public partial class Fishley
 				.WithButton("Reject", $"invoice_unpaid-{targetUser.Id}-{command.User.Id}-{toPay}", ButtonStyle.Danger)
 				.Build();
 
-			var embed = new EmbedBuilder().WithTitle($"Invoice - Global Bank of Small Fish")
+			var embedBuilder = new EmbedBuilder().WithTitle($"Invoice - Global Bank of Small Fish")
 				.WithAuthor(command.User)
 				.WithColor(Color.DarkGreen)
 				.AddField("From:", command.User.GlobalName, true)
 				.AddField("To:", targetUser.GlobalName, true)
 				.AddField("Amount to pay:", NiceMoney(amount))
 				.AddField("Reason:", $"\"{reason}\"")
-				.WithCurrentTimestamp()
-				.Build();
+				.WithCurrentTimestamp();
 
-			await command.RespondAsync($"<@{command.User.Id}> sent <@{targetUser.Id}> an invoice.", embed: embed, components: components);
+			if (expiration > 0)
+			{
+				var futureTime = DateTime.UtcNow.AddSeconds((double)expiration);
+				var unixTimestamp = ((DateTimeOffset)futureTime).ToUnixTimeSeconds();
+				embedBuilder = embedBuilder.AddField("Expiration:", $"<t:{unixTimestamp}:R>");
+			}
+
+			await command.RespondAsync($"<@{command.User.Id}> sent <@{targetUser.Id}> an invoice.", embed: embedBuilder.Build(), components: components);
 		}
 
 		public async Task InvoicePaid(SocketMessageComponent component)
