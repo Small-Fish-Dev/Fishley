@@ -11,11 +11,6 @@ public partial class Fishley
 	/// <returns></returns>
 	public static Transaction GetActiveTransaction(int transactionId)
 	{
-		DebugSay($"Lookin for {transactionId}");
-		foreach (var trans in ActiveTransactions)
-		{
-			DebugSay($"We have {trans.Key}");
-		}
 		if (ActiveTransactions.ContainsKey(transactionId))
 			return ActiveTransactions[transactionId];
 		else
