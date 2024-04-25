@@ -18,6 +18,7 @@ global using System.ComponentModel.DataAnnotations;
 global using System.ServiceModel.Syndication;
 global using System.Xml;
 global using System.Globalization;
+global using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Fishley;
 
