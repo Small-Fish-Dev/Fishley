@@ -20,10 +20,10 @@ public partial class Fishley
 		}
 	}
 
-	public class PayCommand : DiscordSlashCommand
+	public class TransferCommand : DiscordSlashCommand
 	{
 		public override SlashCommandBuilder Builder => new SlashCommandBuilder()
-		.WithName("pay")
+		.WithName("transfer")
 		.WithDescription("Pay someone")
 		.AddOption(new SlashCommandOptionBuilder()
 			.WithName("user")
@@ -34,16 +34,28 @@ public partial class Fishley
 			.WithName("amount")
 			.WithDescription("How much to send over")
 			.WithRequired(true)
+			.WithType(ApplicationCommandOptionType.String))
+		.AddOption(new SlashCommandOptionBuilder()
+			.WithName("reason")
+			.WithDescription("The reason for the transfer")
+			.WithRequired(true)
 			.WithType(ApplicationCommandOptionType.String));
 
 		public override Func<SocketSlashCommand, Task> Function => Pay;
+
+		public override Dictionary<string, Func<SocketMessageComponent, Task>> Components => new()
+		{
+			{ "transfer_paid-", TransferPaid },
+			{ "transfer_unpaid-", TransferUnpaid }
+		};
 
 		public override bool SpamOnly => true;
 
 		public async Task Pay(SocketSlashCommand command)
 		{
 			var targetUser = (SocketUser)command.Data.Options.First().Value;
-			var amountString = (string)command.Data.Options.Last().Value;
+			var amountString = (string)command.Data.Options.FirstOrDefault(x => x.Name == "amount")?.Value ?? null;
+			var reason = (string)command.Data.Options.Last().Value;
 
 			if (targetUser.IsBot)
 			{
@@ -69,7 +81,6 @@ public partial class Fishley
 			var toPay = (decimal)amount;
 
 			var payer = await GetOrCreateUser(command.User.Id);
-			var payee = await GetOrCreateUser(targetUser.Id);
 
 			if (payer.Money < toPay)
 			{
@@ -77,13 +88,79 @@ public partial class Fishley
 				return;
 			}
 
-			payer.Money -= toPay;
-			payee.Money += toPay;
+			var components = new ComponentBuilder()
+				.WithButton("Accept", $"transfer_paid-{targetUser.Id}-{command.User.Id}-{toPay}", ButtonStyle.Success)
+				.WithButton("Reject", $"transfer_unpaid-{targetUser.Id}-{command.User.Id}-{toPay}", ButtonStyle.Danger)
+				.Build();
 
-			await UpdateUser(payer);
-			await UpdateUser(payee);
+			var embed = new EmbedBuilder().WithTitle($"Transfer - Global Bank of Small Fish")
+				.WithAuthor(command.User)
+				.WithColor(Color.DarkGreen)
+				.AddField("From:", command.User.GlobalName, true)
+				.AddField("To:", targetUser.GlobalName, true)
+				.AddField("Amount to receive:", NiceMoney(amount))
+				.AddField("Reason:", $"\"{reason}\"")
+				.WithCurrentTimestamp()
+				.Build();
 
-			await command.RespondAsync($"<@{command.User.Id}> sent {NiceMoney(amount)} to <@{targetUser.Id}>");
+			await command.RespondAsync($"<@{command.User.Id}> sent <@{targetUser.Id}> a transfer.", embed: embed, components: components);
+		}
+
+		public async Task TransferPaid(SocketMessageComponent component)
+		{
+			var data = component.Data.CustomId.Replace("transfer_paid-", "").Split("-");
+			var targetId = ulong.Parse(data[0]);
+			var creatorId = ulong.Parse(data[1]);
+			var amountToPay = decimal.Parse(data[2]);
+
+			if (component.User.Id != targetId)
+			{
+				await component.RespondAsync("You're not the receipient of this transfer.", ephemeral: true);
+				return;
+			}
+
+			var creator = await GetOrCreateUser(creatorId);
+
+			if (creator.Money < amountToPay)
+			{
+				await component.RespondAsync("The sender doesn't have enough money to pay for this transfer.", ephemeral: true);
+				return;
+			}
+
+			var target = await GetOrCreateUser(targetId);
+			target.Money += amountToPay;
+			creator.Money -= amountToPay;
+
+			await UpdateUser(target);
+			await UpdateUser(creator);
+
+			var disabledButton = new ComponentBuilder()
+				.WithButton("Accepted", "im_nothing_bro", style: ButtonStyle.Success, disabled: true)
+				.Build();
+
+			await component.UpdateAsync(x => x.Components = disabledButton);
+			await component.FollowupAsync($"<@{targetId}> accepted a transfer of {NiceMoney((float)amountToPay)} from <@{creatorId}>!");
+		}
+
+		public async Task TransferUnpaid(SocketMessageComponent component)
+		{
+			var data = component.Data.CustomId.Replace("transfer_unpaid-", "").Split("-");
+			var targetId = ulong.Parse(data[0]);
+			var creatorId = ulong.Parse(data[1]);
+			var amountToPay = decimal.Parse(data[2]);
+
+			if (component.User.Id != targetId)
+			{
+				await component.RespondAsync("You're not the receipient of this transfer.", ephemeral: true);
+				return;
+			}
+
+			var disabledButton = new ComponentBuilder()
+				.WithButton("Rejected", "im_nothing_bro", style: ButtonStyle.Danger, disabled: true)
+				.Build();
+
+			await component.UpdateAsync(x => x.Components = disabledButton);
+			await component.FollowupAsync($"<@{targetId}> rejected a transfer of {NiceMoney((float)amountToPay)} from <@{creatorId}>!");
 		}
 	}
 
@@ -165,7 +242,6 @@ public partial class Fishley
 			await command.RespondAsync($"<@{command.User.Id}> sent <@{targetUser.Id}> an invoice.", embed: embed, components: components);
 		}
 
-
 		public async Task InvoicePaid(SocketMessageComponent component)
 		{
 			var data = component.Data.CustomId.Replace("invoice_paid-", "").Split("-");
@@ -179,7 +255,7 @@ public partial class Fishley
 				return;
 			}
 
-			var target = await GetOrCreateUser(component.User.Id);
+			var target = await GetOrCreateUser(targetId);
 
 			if (target.Money < amountToPay)
 			{
@@ -187,7 +263,7 @@ public partial class Fishley
 				return;
 			}
 
-			var creator = await GetOrCreateUser(component.User.Id);
+			var creator = await GetOrCreateUser(creatorId);
 			target.Money -= amountToPay;
 			creator.Money += amountToPay;
 
