@@ -29,7 +29,8 @@ public partial class Fishley
 				return;
 			}
 
-			var randomFish = await GetRandomFishFromRarity(new ListSelector().SelectItem(FishRarities, 5, 5).Key);
+			var luck = (int)(Math.Min((float)passed, 5f) / 5f); // 3 hours = 0.5 luck, 6 hours = 1.0 luck - 21600 = 6 hours
+			var randomFish = await GetRandomFishFromRarity(new ListSelector().SelectItem(FishRarities, 5 + luck * 15, 5).Key);
 			var embedTitle = $"{command.User.GlobalName} caught: {randomFish.CommonName}!";
 
 			var embed = new FishEmbedBuilder(randomFish, embedTitle, command.User)
