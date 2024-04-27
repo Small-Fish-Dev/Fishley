@@ -7,7 +7,8 @@ public partial class Fishley
 	public static Dictionary<string, WebsiteScraper> WebsitesToCheck = new()
 	{
 		{ "r_sandbox", new SubredditScraper() },
-		{ "youtube", new YoutubeScraper() }
+		{ "youtube", new YoutubeScraper() },
+		{ "garry", new GarryScraper() }
 	};
 
 	public static async Task ComputeScrapers()
