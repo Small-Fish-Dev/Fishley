@@ -6,7 +6,8 @@ public partial class Fishley
 
 	public static Dictionary<string, WebsiteScraper> WebsitesToCheck = new()
 	{
-		{ "r_sandbox", new SubredditScraper() }
+		{ "r_sandbox", new SubredditScraper() },
+		{ "youtube", new YoutubeScraper() }
 	};
 
 	public static async Task ComputeScrapers()
@@ -31,7 +32,7 @@ public partial class Fishley
 				if (currentUrl == null || currentUrl != fetched)
 				{
 					scrapedWebsites[scraper.Key] = fetched;
-					await SendMessage((SocketTextChannel)scraper.Value.ChannelToPost, $"New r/sandbox post!\n{fetched}");
+					await SendMessage((SocketTextChannel)scraper.Value.ChannelToPost, $"{fetched}");
 				}
 			}
 		}
