@@ -110,6 +110,7 @@ public partial class Fishley
 
 		public async Task StartMine(SocketSlashCommand command)
 		{
+			// TODO Disarm only if creator
 			await Task.Delay(10000);
 
 			var response = await command.GetOriginalResponseAsync();
