@@ -42,7 +42,7 @@ public partial class Fishley
 					.WithButton("Say HI to Killer Fish", $"hi_killerfish", ButtonStyle.Danger)
 					.Build();
 
-				await command.RespondAsync($"<@{command.User.Id}> CAUGHT KILLER FISH! NOT GOOD, HE'S UPSET! DO SOMETHING", embed: embed, components: button);
+				await command.RespondAsync($"<@{command.User.Id}> CAUGHT KILLER FISH! SAY HI NOW AND HE MIGHT SPARE YOUR WALLET", embed: embed, components: button);
 
 				_ = KillerFishEncounter(command);
 			}
@@ -176,7 +176,7 @@ public partial class Fishley
 				var user = await GetOrCreateUser(component.User.Id);
 				var moneyLost = user.Money / 15M;
 
-				_ = await component.FollowupAsync($"Oh no! **{component.User.GlobalName}** greeted Killer Fish, but Killer Fish is MERCILESS this time. @<{component.User.Id}> lost {NiceMoney((float)moneyLost)}...", ephemeral: false);
+				_ = await component.FollowupAsync($"Oh no! **{component.User.GlobalName}** greeted Killer Fish, but Killer Fish is MERCILESS this time. <@{component.User.Id}> lost {NiceMoney((float)moneyLost)}...", ephemeral: false);
 
 				user.Money = user.Money - moneyLost;
 				await UpdateUser(user);
