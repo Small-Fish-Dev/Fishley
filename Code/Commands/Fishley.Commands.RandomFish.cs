@@ -155,7 +155,7 @@ public partial class Fishley
 				.WithButton("Killer Fish was greeted.", "fishy_business", style: ButtonStyle.Danger, disabled: true)
 				.Build();
 
-			if (Random.Shared.NextDouble() >= 0.6) // I'm not sure if it works, but if it does, this should make Killer Fish be more often merciful than be mean.
+			if (Random.Shared.NextDouble() >= 0.25) // I'm not sure if it works, but if it does, this should make Killer Fish be more often merciful than be mean.
 			{
 				await component.UpdateAsync(x =>
 				{
@@ -163,7 +163,7 @@ public partial class Fishley
 					x.Components = disabledButton;
 				});
 
-				_ = await component.FollowupAsync($"Killer Fish has been greeted by **{component.User.GlobalName}** and he seems to be happy. {component.User.GlobalName} is now safe.", ephemeral: false);
+				_ = await component.FollowupAsync($"Killer Fish has been greeted by **{component.User.GlobalName}**. {component.User.GlobalName} has been blessed, and they are now safe.", ephemeral: false);
 			}
 			else // You might not get spared by Killer Fish even if you say Hi, but in this case he takes away less money.
 			{
