@@ -19,4 +19,4 @@ jobs:
 
     - name: Deploy to Raspberry Pi
       run: |
-        ssh -o StrictHostKeyChecking=no ubre@192.168.178.112 "cd /home/ubre/Desktop/Fishley/ && git pull && sudo systemctl restart fishley.service"
+        ssh -o StrictHostKeyChecking=no ubre@192.168.178.124 "cd /home/ubre/Desktop/Fishley/ && git pull && sudo systemctl restart fishley.service"
