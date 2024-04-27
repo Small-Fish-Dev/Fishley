@@ -13,7 +13,8 @@ public partial class Fishley
 		public override Dictionary<string, Func<SocketMessageComponent, Task>> Components => new()
 		{
 			{ "report_fish_issue-", ReportIssue },
-			{ "disarm_mine", DisarmMine }
+			{ "disarm_mine", DisarmMine },
+			{ "hi_killerfish", HelloKillerfish }
 		};
 
 		public override bool SpamOnly => true;
@@ -31,8 +32,21 @@ public partial class Fishley
 			}
 
 			var isSeaMine = passed <= 15 && new Random((int)DateTime.UtcNow.Ticks).Next(100) <= 10; // 10% chance of sea mine
+			var isKillerFish = passed <= 20 && new Random( (int)DateTime.UtcNow.Ticks ).Next(100) <= 5;
 
-			if (isSeaMine)
+			if (isKillerFish)
+			{
+				var embed = KillerfishEmbed(command.User, false);
+
+				var button = new ComponentBuilder()
+					.WithButton("Say HI to Killer Fish", $"hi_killerfish", ButtonStyle.Danger)
+					.Build();
+
+				await command.RespondAsync($"<@{command.User.Id}> CAUGHT KILLER FISH! NOT GOOD, HE'S UPSET! DO SOMETHING", embed: embed, components: button);
+
+				_ = KillerFishEncounter(command);
+			}
+			else if (isSeaMine)
 			{
 				var embed = SeaMineEmbed(command.User, false, false);
 
@@ -108,7 +122,67 @@ public partial class Fishley
 			_ = await component.FollowupAsync($"Sea mine disarmed.", ephemeral: true);
 		}
 
-		public async Task StartMine(SocketSlashCommand command)
+        public async Task KillerFishEncounter(SocketSlashCommand command)
+        {
+            await Task.Delay(5000); 
+
+            var response = await command.GetOriginalResponseAsync();
+
+            if (!response.Embeds.First().Fields.Any(x => x.Value.Contains("You are spared.")) && !response.Embeds.First().Fields.Any(x => x.Value.Contains("FURIOUS."))) // I have came up with this solution myself, I'm so good at this.
+            {
+                var disabledButton = new ComponentBuilder()
+                    .WithButton("It's too late...", "errm_what_the_scallop", style: ButtonStyle.Danger, disabled: true)
+                    .Build();
+
+                await command.ModifyOriginalResponseAsync(x =>
+                {
+                    x.Embed = KillerfishEmbed(command.User, false);
+                    x.Components = disabledButton;
+                });
+
+                var user = await GetOrCreateUser(command.User.Id);
+                var moneyLost = user.Money / 8M;
+
+                await command.FollowupAsync($"Too bad! <@{command.User.Id}> ignored Killer Fish and he is VERY ANGRY now! User has been ROBBED, they lost {NiceMoney((float)moneyLost)}! Better say Hi next time...");
+
+                user.Money = user.Money - moneyLost;
+                await UpdateUser(user);
+            }
+        }
+        public async Task HelloKillerfish(SocketMessageComponent component)
+        {
+            var disabledButton = new ComponentBuilder()
+                .WithButton("Killer Fish was greeted.", "fishy_business", style: ButtonStyle.Danger, disabled: true)
+                .Build();
+
+			if ( Random.Shared.NextDouble() >= 0.6 ) // I'm not sure if it works, but if it does, this should make Killer Fish be more often merciful than be mean.
+			{
+                await component.UpdateAsync(x =>
+                {
+                    x.Embed = KillerfishEmbed(component.User, true);
+                    x.Components = disabledButton;
+                });
+
+                _ = await component.FollowupAsync($"Killer Fish has been greeted by **{component.User.GlobalName}** and he seems to be happy. {component.User.GlobalName} is now safe.", ephemeral: false);
+            } else // You might not get spared by Killer Fish even if you say Hi, but in this case he takes away less money.
+			{
+				await component.UpdateAsync(x =>
+                {
+					x.Embed = KillerfishEmbed(component.User, false, true);
+                    x.Components = disabledButton;
+				});
+
+                var user = await GetOrCreateUser(component.User.Id);
+                var moneyLost = user.Money / 15M;
+
+                _ = await component.FollowupAsync($"Oh no! **{component.User.GlobalName}** greeted Killer Fish, but Killer Fish is MERCILESS this time. @<{component.User.Id}> lost {NiceMoney((float)moneyLost)}...", ephemeral: false);
+
+                user.Money = user.Money - moneyLost;
+                await UpdateUser(user);
+            }
+        }
+
+        public async Task StartMine(SocketSlashCommand command)
 		{
 			// TODO Disarm only if creator
 			await Task.Delay(10000);
@@ -149,6 +223,22 @@ public partial class Fishley
 				.AddField("What now?", "Disarm this within 10 second or else it will explode!")
 				.AddField("Explodes:", exploded ? "Exploded." : (disarmed ? "Disarmed." : $"<t:{((DateTimeOffset)DateTime.UtcNow.AddSeconds(10)).ToUnixTimeSeconds()}:R>"))
 				.WithImageUrl(exploded ? "https://upload.wikimedia.org/wikipedia/commons/0/09/Operation_Crossroads_Baker_Edit.jpg" : "https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Mine_%28AWM_304925%29.jpg/220px-Mine_%28AWM_304925%29.jpg");
+
+			return embedBuilder.Build();
+		}
+
+		public Embed KillerfishEmbed( SocketUser user, bool isUserSpared, bool isRejected = false )
+		{
+			var embedBuilder = new EmbedBuilder()
+				.WithTitle("KILLER FISH APPEARS")
+				.WithAuthor(user)
+				.WithDescription("https://www.youtube.com/watch?v=MesY1X9iYks")
+				.AddField("Common Name:", "Killer Fish from San Diego")
+				.AddField("Scientific Name:", "Interfectorem Pisces a San Diego")
+				.WithColor(Color.Red)
+				.AddField("What now?", "Killer Fish is serious, and nobody knows what's in his mind! Say Hi to Killer Fish, maybe he's in a good mood today.")
+				.AddField("Killer Fish verdict:", isUserSpared ? "Killer Fish is feeling kind today. You are spared." : isRejected ? "Killer Fish is FURIOUS. No FORGIVENESS." : $"You have <t:{((DateTimeOffset)DateTime.UtcNow.AddSeconds(5)).ToUnixTimeSeconds()}:R> before catastrophic consequences.")
+				.WithImageUrl("https://wheatleymf.net/killerfish1.jpg");
 
 			return embedBuilder.Build();
 		}
