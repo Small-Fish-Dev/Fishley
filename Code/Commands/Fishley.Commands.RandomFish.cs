@@ -147,7 +147,7 @@ public partial class Fishley
 				.WithColor(Color.Red)
 				.AddField("What now?", "Disarm this within 10 second or else it will explode!")
 				.AddField("Explodes:", exploded ? "Exploded." : (disarmed ? "Disarmed." : $"<t:{((DateTimeOffset)DateTime.UtcNow.AddSeconds(10)).ToUnixTimeSeconds()}:R>"))
-				.WithImageUrl("https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Mine_%28AWM_304925%29.jpg/220px-Mine_%28AWM_304925%29.jpg");
+				.WithImageUrl(exploded ? "https://upload.wikimedia.org/wikipedia/commons/0/09/Operation_Crossroads_Baker_Edit.jpg" : "https://upload.wikimedia.org/wikipedia/commons/thumb/0/03/Mine_%28AWM_304925%29.jpg/220px-Mine_%28AWM_304925%29.jpg");
 
 			return embedBuilder.Build();
 		}
