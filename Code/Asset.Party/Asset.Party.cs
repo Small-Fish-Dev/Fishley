@@ -21,11 +21,44 @@ namespace AssetParty;
 
 public partial class AssetParty
 {
-	public static string ServicesUrl => "https://services.facepunch.com/sbox/package/";
+	public static string ServicesUrl => "https://services.facepunch.com/sbox/package/find?q=";
 	public static string AssetPartyUrl => "https://asset.party/";
 
-	public static async Query QueryAsync(PackageType packageType = PackageType.All, QuerySort sortType = QuerySort.All)
+	public static async Task<Query> QueryAsync(PackageType packageType = PackageType.All, QuerySort sortType = QuerySort.All) // TODO: Add tags, orders, and facets (They must all be strings unfortunately)
 	{
+		var finalUrl = ServicesUrl;
 
+		if (packageType != PackageType.All)
+			finalUrl = $@"{finalUrl}type:{packageType.ToString().ToLower()}%20";
+
+		if (sortType != QuerySort.All)
+			finalUrl = $@"{finalUrl}sort:{sortType.ToString().ToLower()}%20";
+
+		using (HttpClient client = new HttpClient())
+		{
+			HttpResponseMessage response = await client.GetAsync(finalUrl);
+
+			if (!response.IsSuccessStatusCode)
+			{
+				Console.WriteLine($"Response unsuccesful. Status code: {response.StatusCode}");
+				return null;
+			}
+
+			string jsonContent = await response.Content.ReadAsStringAsync();
+
+			if (string.IsNullOrEmpty(jsonContent))
+			{
+				Console.WriteLine("Asset.Party query was empty.");
+				return null;
+			}
+
+			var deserializerSettings = new JsonSerializerSettings
+			{
+				MissingMemberHandling = MissingMemberHandling.Ignore,
+				NullValueHandling = NullValueHandling.Ignore
+			};
+
+			return JsonConvert.DeserializeObject<Query>(jsonContent, deserializerSettings);
+		}
 	}
 }

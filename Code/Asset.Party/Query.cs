@@ -1,6 +1,6 @@
 namespace AssetParty;
 
-public struct Query
+public class Query
 {
 	public int TotalCount { get; set; }
 	public string QueryString { get; set; }
