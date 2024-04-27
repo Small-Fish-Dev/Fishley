@@ -1,5 +1,20 @@
 namespace AssetParty;
 
+public enum PackageType
+{
+	All,
+	Map,        // "map" - Type 1
+	Game,       // "game" - Type 2
+	Model,      // "model" - Type 5
+	Material,   // "material" - Type 6
+	Sound,      // "sound" - Type 7
+	SoundScape, // "soundscape" - Type 8
+	Shader,     // "shader" - Type 9
+	Texture,    // "texture" - Type 12
+	Library,    // "library" - Type 20
+	Particle,   // "particle" - Type 1
+}
+
 public struct Package
 {
 	public Organization Org { get; set; }
@@ -11,8 +26,12 @@ public struct Package
 	public string Description { get; set; }
 	public string Thumb { get; set; }
 	public string VideoThumb { get; set; }
-	public int PackageType { get; set; } // 2 = Game, 5 = Model, 20 = Library
-	public string Type { get; set; }
+	[JsonProperty("PackageType")]
+	public int PackageTypeId { get; set; }
+	[JsonProperty("Type")]
+	private string _type { get; }
+	[JsonIgnore]
+	public PackageType Type => _type == null ? PackageType.All : (PackageType)Enum.Parse(typeof(PackageType), _type, true);
 	public DateTime Updated { get; set; } // ISO 8601 Format
 	public DateTime Created { get; set; } // ISO 8601 Format
 	public UsageStats UsageStats { get; set; }
