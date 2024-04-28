@@ -28,12 +28,13 @@ public partial class Fishley
 			var now = DateTime.UtcNow;
 			var passed = (now - user.LastFish).TotalSeconds;
 
-			if (passed <= 5)
+			if (passed <= 3)
 			{
-				await command.RespondAsync("You're fishing too much, wait 5 seconds.", ephemeral: true);
+				await command.RespondAsync("You're fishing too much, wait 3 seconds.", ephemeral: true);
 				return;
 			}
 
+			var badLuck = passed <= 5;
 			var isSeaMine = passed <= 15 && new Random((int)DateTime.UtcNow.Ticks).Next(100) <= 10; // 10% chance of sea mine
 			var isKillerFish = passed <= 20 && new Random((int)DateTime.UtcNow.Ticks).Next(100) <= 5;
 
@@ -65,7 +66,7 @@ public partial class Fishley
 			else
 			{
 
-				var luck = (int)(Math.Min((float)passed, 21600f) / 21600f); // 3 hours = 0.5 luck, 6 hours = 1.0 luck - 21600 = 6 hours
+				var luck = (int)(Math.Min((float)passed, 21600f) / 21600f) - (badLuck ? 1 : 0); // 3 hours = 0.5 luck, 6 hours = 1.0 luck - 21600 = 6 hours
 				var randomFish = await GetRandomFishFromRarity(new ListSelector().SelectItem(FishRarities, 3 + luck * 17, 6).Key);
 				var embedTitle = $"{command.User.GlobalName} caught: {randomFish.CommonName}!";
 
@@ -160,7 +161,7 @@ public partial class Fishley
 				.Build();
 
 			// Should review the chance value later, depending on how often people will get blessed/robbed by Killer Fish.
-			if (Random.Shared.NextDouble() >= 0.5) 
+			if (Random.Shared.NextDouble() >= 0.5)
 			{
 				await component.UpdateAsync(x =>
 				{
@@ -173,7 +174,7 @@ public partial class Fishley
 				var MoneyToAdd = Random.Shared.Next(3, 80);
 
 				_ = await component.FollowupAsync($"Killer Fish has been greeted by **{component.User.GlobalName}**, and he is feeling **kind** today! <@{component.User.Id}> receives {NiceMoney((float)MoneyToAdd)} as a blessing gift.", ephemeral: false);
-				
+
 				user.Money = user.Money + MoneyToAdd;
 				await UpdateUser(user);
 			}
@@ -184,10 +185,10 @@ public partial class Fishley
 					x.Embed = KillerfishEmbed(component.User, false, false, false);
 					x.Components = disabledButton;
 				});
-				
+
 				// Make amount of money robbed randomized as well.
 				var user = await GetOrCreateUser(component.User.Id);
-				var moneyLost = user.Money / Random.Shared.Next( 10, 17 );
+				var moneyLost = user.Money / Random.Shared.Next(10, 17);
 
 				_ = await component.FollowupAsync($"Oh no! **{component.User.GlobalName}** greeted Killer Fish, but Killer Fish shows **NO FORGIVENESS**. <@{component.User.Id}> was robbed by Killer Fish and lost {NiceMoney((float)moneyLost)}...", ephemeral: false);
 
@@ -196,20 +197,20 @@ public partial class Fishley
 			}
 		}
 
-		public async Task ReleaseKillerfish( SocketMessageComponent component )
+		public async Task ReleaseKillerfish(SocketMessageComponent component)
 		{
-            var disabledButton = new ComponentBuilder()
+			var disabledButton = new ComponentBuilder()
 				.WithButton("Killer Fish has been released", "fishy_business", style: ButtonStyle.Secondary, disabled: true)
 				.Build();
 
-            await component.UpdateAsync(x =>
-            {
-                x.Embed = KillerfishEmbed(component.User, false, true, false);
-                x.Components = disabledButton;
-            });
+			await component.UpdateAsync(x =>
+			{
+				x.Embed = KillerfishEmbed(component.User, false, true, false);
+				x.Components = disabledButton;
+			});
 
 			_ = await component.FollowupAsync($"<@{component.User.Id}> released Killer Fish back into the ocean.", ephemeral: false);
-        }
+		}
 
 		public async Task StartMine(SocketSlashCommand command)
 		{
