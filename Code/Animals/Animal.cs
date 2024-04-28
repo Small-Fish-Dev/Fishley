@@ -21,8 +21,11 @@ global using System.Globalization;
 global using System.ComponentModel.DataAnnotations.Schema;
 global using System.Net;
 
-namespace Fishes;
+namespace Animals;
 
+/// <summary>
+/// IUCN Red List
+/// </summary>
 public enum ConservationStatus
 {
 	Data_Deficient,
@@ -31,11 +34,18 @@ public enum ConservationStatus
 	Vulnerable,
 	Endangered,
 	Critically_Endangered,
-	Recently_Extinct,
 	Extinct
 }
-public struct Taxonomy
+
+public class AnimalEntry
 {
+	[Key]
+	public int Id { get; set; }
+	public string CommonName { get; set; }
+	public string BinomialName { get; set; }
+	public string TrinomialName { get; set; }
+	[NotMapped]
+	public string ScientificName => TrinomialName == null ? BinomialName : TrinomialName;
 	public string Domain { get; set; }
 	public string Kingdom { get; set; }
 	public string Phylum { get; set; }
@@ -44,18 +54,19 @@ public struct Taxonomy
 	public string Family { get; set; }
 	public string Genus { get; set; }
 	public string Species { get; set; }
-}
-
-public class AnimalEntry
-{
-
-	private string Domain { get; set; }
-	public string Kingdom { get; set; }
-	public string Phylum { get; set; }
-	public string Class { get; set; }
-	public string Order { get; set; }
-	public string Family { get; set; }
-	public string Genus { get; set; }
-	public string Species { get; set; }
+	public string Subspecies { get; set; }
 	public ConservationStatus ConservationStatus { get; set; }
+	public int TimesCaught { get; set; }
+	public DateTime LastCaught { get; set; }
+	public string WikiIdentifier { get; set; }
+	[NotMapped]
+	public string WikiPage => $"https://en.wikipedia.org{WikiIdentifier}";
+	[NotMapped]
+	public string WikiInfoPage => $"https://en.wikipedia.org/w/index.php?title={WikiIdentifier}&action=info";
+	public int MonthlyViews { get; set; }
+
+	public AnimalEntry(int id)
+	{
+		Id = id;
+	}
 }
