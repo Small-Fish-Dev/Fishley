@@ -35,6 +35,7 @@ public partial class Fishley
 	public static DateTime LastMessage { get; set; } = DateTime.UtcNow;
 	public static int SecondsSinceLastMessage => (int)(DateTime.UtcNow - LastMessage).TotalSeconds;
 	public static HttpClient HttpClient { get; set; } = new HttpClient();
+	public static Random Random { get; set; } = new Random((int)DateTime.UtcNow.Ticks);
 
 	public static async Task Main()
 	{
@@ -278,8 +279,7 @@ public partial class Fishley
 				"For what porpoise you call me?"
 			};
 
-			Random random = new Random((int)DateTime.UtcNow.Ticks);
-			int randomIndex = random.Next(phrases.Count);
+			int randomIndex = Random.Next(phrases.Count);
 			string randomPhrase = phrases[randomIndex];
 
 			var reference = new MessageReference(message.Id);

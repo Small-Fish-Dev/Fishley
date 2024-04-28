@@ -264,7 +264,7 @@ public partial class Fishley
 		int.TryParse(pageIdData, out var pageId);
 
 		if (pageId == 0)
-			pageId = new Random((int)DateTime.UtcNow.Ticks).Next(); // Avoid multiple pages with the same Id at all costs
+			pageId = Random.Next(); // Avoid multiple pages with the same Id at all costs
 
 		var monthlyViewsNode = infoDocumentNode.SelectSingleNode("//tr[@id='mw-pvi-month-count']/td/div/a");
 		var monthlyViewsData = monthlyViewsNode?.InnerText.Trim().Replace(",", "").Replace(".", "") ?? "0"; // Clean string to parse

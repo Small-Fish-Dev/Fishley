@@ -35,8 +35,8 @@ public partial class Fishley
 			}
 
 			var badLuck = passed <= 5;
-			var isSeaMine = passed <= 15 && new Random((int)DateTime.UtcNow.Ticks).Next(100) <= 10; // 10% chance of sea mine
-			var isKillerFish = passed <= 20 && new Random((int)DateTime.UtcNow.Ticks).Next(100) <= 7;
+			var isSeaMine = passed <= 15 && Random.Next(100) <= 10; // 10% chance of sea mine
+			var isKillerFish = passed <= 20 && Random.Next(100) <= 3; // 3% chance of killer fish
 
 
 			if (isSeaMine)
@@ -51,20 +51,20 @@ public partial class Fishley
 
 				_ = StartMine(command);
 			}
-            else if (isKillerFish)
-            {
-                var embed = KillerfishEmbed(command.User, false);
+			else if (isKillerFish)
+			{
+				var embed = KillerfishEmbed(command.User, false);
 
-                var button = new ComponentBuilder()
-                    .WithButton("Hello, Killer Fish", $"hi_killerfish", ButtonStyle.Danger)
-                    .WithButton("Release him", $"release_killerfish", ButtonStyle.Secondary)
-                    .Build();
+				var button = new ComponentBuilder()
+					.WithButton("Hello, Killer Fish", $"hi_killerfish", ButtonStyle.Danger)
+					.WithButton("Release him", $"release_killerfish", ButtonStyle.Secondary)
+					.Build();
 
-                await command.RespondAsync($"<@{command.User.Id}> caught **KILLER FISH**! Quick, do something, you've got only 5 seconds to think!", embed: embed, components: button);
+				await command.RespondAsync($"<@{command.User.Id}> caught **KILLER FISH**! Quick, do something, you've got only 5 seconds to think!", embed: embed, components: button);
 
-                _ = KillerFishEncounter(command);
-            }
-            else
+				_ = KillerFishEncounter(command);
+			}
+			else
 			{
 
 				var luck = (int)(Math.Min((float)passed, 21600f) / 21600f) - (badLuck ? 1 : 0); // 3 hours = 0.5 luck, 6 hours = 1.0 luck - 21600 = 6 hours
