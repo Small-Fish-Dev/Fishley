@@ -160,7 +160,7 @@ public partial class Fishley
 				.Build();
 
 			// Should review the chance value later, depending on how often people will get blessed/robbed by Killer Fish.
-			if (Random.Shared.NextDouble() >= 0.32) 
+			if (Random.Shared.NextDouble() >= 0.42) 
 			{
 				await component.UpdateAsync(x =>
 				{
@@ -170,7 +170,7 @@ public partial class Fishley
 
 				// If blessed, reward used with a random amount of money, ranging from 3 to 50 coins.
 				var user = await GetOrCreateUser(component.User.Id);
-				var MoneyToAdd = user.Money + (decimal)Random.Shared.NextDouble() * (50 - 3) + 3;
+				var MoneyToAdd = user.Money + Random.Shared.Next(5, 75);
 
 				_ = await component.FollowupAsync($"Killer Fish has been greeted by **{component.User.GlobalName}**, and he is feeling **kind** today! <@{component.User.Id}> receives {NiceMoney((float)MoneyToAdd)} as a blessing gift.", ephemeral: false);
 			}
