@@ -160,7 +160,7 @@ public partial class Fishley
 				.Build();
 
 			// Should review the chance value later, depending on how often people will get blessed/robbed by Killer Fish.
-			if (Random.Shared.NextDouble() >= 0.42) 
+			if (Random.Shared.NextDouble() >= 0.5) 
 			{
 				await component.UpdateAsync(x =>
 				{
@@ -170,9 +170,12 @@ public partial class Fishley
 
 				// If blessed, reward used with a random amount of money, ranging from 3 to 50 coins.
 				var user = await GetOrCreateUser(component.User.Id);
-				var MoneyToAdd = user.Money + Random.Shared.Next(5, 75);
+				var MoneyToAdd = Random.Shared.Next(3, 80);
 
 				_ = await component.FollowupAsync($"Killer Fish has been greeted by **{component.User.GlobalName}**, and he is feeling **kind** today! <@{component.User.Id}> receives {NiceMoney((float)MoneyToAdd)} as a blessing gift.", ephemeral: false);
+				
+				user.Money = user.Money + MoneyToAdd;
+				await UpdateUser(user);
 			}
 			else
 			{
@@ -184,7 +187,7 @@ public partial class Fishley
 				
 				// Make amount of money robbed randomized as well.
 				var user = await GetOrCreateUser(component.User.Id);
-				var moneyLost = user.Money / Random.Shared.Next( 12, 17 );
+				var moneyLost = user.Money / Random.Shared.Next( 10, 17 );
 
 				_ = await component.FollowupAsync($"Oh no! **{component.User.GlobalName}** greeted Killer Fish, but Killer Fish shows **NO FORGIVENESS**. <@{component.User.Id}> was robbed by Killer Fish and lost {NiceMoney((float)moneyLost)}...", ephemeral: false);
 
