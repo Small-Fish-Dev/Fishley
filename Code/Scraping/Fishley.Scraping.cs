@@ -8,7 +8,8 @@ public partial class Fishley
 	{
 		{ "r_sandbox", new SubredditScraper() },
 		{ "youtube", new YoutubeScraper() },
-		{ "garry", new GarryScraper() }
+		{ "garry", new GarryScraper() },
+		{ "asset.party", new AssetPartyScraper() }
 	};
 
 	public static async Task ComputeScrapers()
@@ -28,12 +29,12 @@ public partial class Fishley
 
 				var fetched = await scraper.Value.Fetch();
 
-				if (fetched == null) continue;
+				if (fetched.Item1 == null) continue;
 
-				if (currentUrl == null || currentUrl != fetched)
+				if (currentUrl == null || currentUrl != fetched.Item1)
 				{
-					scrapedWebsites[scraper.Key] = fetched;
-					await SendMessage((SocketTextChannel)scraper.Value.ChannelToPost, $"{fetched}");
+					scrapedWebsites[scraper.Key] = fetched.Item1;
+					await SendMessage((SocketTextChannel)scraper.Value.ChannelToPost, $"{fetched.Item1}", embed: fetched.Item2);
 				}
 			}
 		}
@@ -47,10 +48,10 @@ public partial class Fishley
 		public virtual SocketGuildChannel ChannelToPost { get; private set; }
 		public DateTime LastFetched { get; set; }
 
-		public virtual async Task<string> Fetch()
+		public virtual async Task<(string, Embed)> Fetch()
 		{
 			await Task.CompletedTask;
-			return string.Empty;
+			return (null, null);
 		}
 	}
 }

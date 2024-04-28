@@ -1,3 +1,7 @@
+using Discord.WebSocket;
+using Discord.Commands;
+using Discord;
+
 namespace AssetParty;
 
 public enum PackageType
@@ -28,10 +32,7 @@ public struct Package
 	public string VideoThumb { get; set; }
 	[JsonProperty("PackageType")]
 	public int PackageTypeId { get; set; }
-	[JsonProperty("Type")]
-	private string _type { get; }
-	[JsonIgnore]
-	public PackageType Type => _type == null ? PackageType.All : (PackageType)Enum.Parse(typeof(PackageType), _type, true);
+	public string Type { get; set; }
 	public DateTime Updated { get; set; } // ISO 8601 Format
 	public DateTime Created { get; set; } // ISO 8601 Format
 	public UsageStats UsageStats { get; set; }
@@ -52,6 +53,29 @@ public struct Package
 	public List<string> PackageReferences { get; set; }
 	public List<string> EditorReferences { get; set; }
 	public Interaction Interaction { get; set; } // This doesn't seem to be filled out
+	[JsonIgnore]
+	public string FullUrl => $"{AssetParty.AssetPartyUrl}{Org.Ident}/{Ident}";
 
 	public Package() { }
+
+	public Embed ToEmbed()
+	{
+		var embedBuilder = new EmbedBuilder()
+		.WithTitle($"{Type.ToUpper()} - {Title}")
+		.WithDescription(string.IsNullOrEmpty(Summary) ? "No summary" : Summary)
+		.WithUrl(FullUrl)
+		.WithThumbnailUrl(Thumb)
+		.WithAuthor(new EmbedAuthorBuilder()
+			.WithIconUrl(Org.Thumb)
+			.WithName(Org.Title)
+			.WithUrl(Org.Url))
+		.AddField("Description:", string.IsNullOrEmpty(Description) ? "No description" : Description)
+		.AddField("Created:", $"<t:{((DateTimeOffset)Created).ToUnixTimeSeconds()}:R>", true)
+		.AddField("Updated:", $"<t:{((DateTimeOffset)Updated).ToUnixTimeSeconds()}:R>", true);
+
+		if (Screenshots != null && Screenshots.Count() >= 1)
+			embedBuilder = embedBuilder.WithImageUrl(Screenshots.First().Url);
+
+		return embedBuilder.Build();
+	}
 }

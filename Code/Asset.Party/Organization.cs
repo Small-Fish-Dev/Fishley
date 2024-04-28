@@ -8,6 +8,7 @@ public struct Organization
 	public string Thumb { get; set; }
 	public string Twitter { get; set; }
 	public string WebUrl { get; set; }
+	public string Url => $"{AssetParty.AssetPartyUrl}{Ident}";
 
 	public Organization() { }
 }

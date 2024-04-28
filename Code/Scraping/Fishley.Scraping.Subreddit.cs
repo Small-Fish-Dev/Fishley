@@ -8,7 +8,7 @@ public partial class Fishley
 		public override int SecondsCooldown => 60; // Every minute
 		public override SocketGuildChannel ChannelToPost => SboxFeedChannel;
 
-		public override async Task<string> Fetch()
+		public override async Task<(string, Embed)> Fetch()
 		{
 			using (HttpClient client = new HttpClient())
 			{
@@ -25,7 +25,7 @@ public partial class Fishley
 					if (string.IsNullOrEmpty(rssContent))
 					{
 						Console.WriteLine("RSS content is empty.");
-						return null;
+						return (null, null);
 					}
 
 					// Load the RSS content into an XmlReader
@@ -37,14 +37,14 @@ public partial class Fishley
 						if (feed == null)
 						{
 							Console.WriteLine("Failed to load SyndicationFeed from content.");
-							return null;
+							return (null, null);
 						}
 
 						// Check if the feed has any items
 						if (feed.Items == null)
 						{
 							Console.WriteLine("No items found in the feed.");
-							return null;
+							return (null, null);
 						}
 
 						// Iterate through the posts in the feed
@@ -55,16 +55,16 @@ public partial class Fishley
 							Uri link = item.Links[0]?.Uri;
 							DateTimeOffset publishDate = item.PublishDate;
 
-							return link.ToString(); // Return the linkie
+							return (link.ToString(), null); // Return the linkie
 						}
 
-						return null;
+						return (null, null);
 					}
 				}
 				catch (Exception ex)
 				{
 					Console.WriteLine("Error fetching or parsing feed: " + ex.Message);
-					return null;
+					return (null, null);
 				}
 			}
 		}
