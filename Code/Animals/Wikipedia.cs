@@ -68,7 +68,8 @@ public class Wikipedia
 			Subspecies = biota.Subspecies?.Name ?? "None",
 			ConservationStatus = biota.ConservationStatus,
 			WikiIdentifier = wikiPageIdentifier,
-			MonthlyViews = wikiMonthlyViews
+			MonthlyViews = wikiMonthlyViews,
+			ImageUrl = biota.ImageUrl
 		};
 	}
 
@@ -183,13 +184,6 @@ public class Wikipedia
 
 		var subspeciesTaxonomy = IsolateTaxonomicGroup(infoboxBiota, "Subspecies");
 		var speciesTaxonomy = IsolateTaxonomicGroup(infoboxBiota, "Species");
-
-		if (subspeciesTaxonomy == null && speciesTaxonomy == null)
-		{
-			Console.WriteLine("Too generalized");
-			return null;
-		}
-
 		var genusTaxonomy = IsolateTaxonomicGroup(infoboxBiota, "Genus");
 		var familyTaxonomy = IsolateTaxonomicGroup(infoboxBiota, "Family");
 		var orderTaxonomy = IsolateTaxonomicGroup(infoboxBiota, "Order");
@@ -197,6 +191,12 @@ public class Wikipedia
 		var phylumTaxonomy = IsolateTaxonomicGroup(infoboxBiota, "Phylum");
 		var kingdomTaxonomy = IsolateTaxonomicGroup(infoboxBiota, "Kingdom");
 		var domainTaxonomy = IsolateTaxonomicGroup(infoboxBiota, "Domain");
+
+		if (subspeciesTaxonomy == null && speciesTaxonomy == null)
+		{
+			Console.WriteLine("Too generalized");
+			return null;
+		}
 
 		var commonName = IsolateName(infoboxBiota);
 		var imageUrl = IsolateImage(infoboxBiota);
@@ -255,7 +255,11 @@ public class Wikipedia
 	private static TaxonomicGroup IsolateTaxonomicGroup(HtmlNode biota, string group)
 	{
 		var groupNode = biota.SelectSingleNode($".//tr[td[contains(text(),'{group}')]]/td[2]/a");
-		if (groupNode == null) return null;
+
+		if (groupNode == null)
+			groupNode = biota.SelectSingleNode($".//div[contains(@class, '{group.ToLower()}')]/i/a"); // Sometimes they have their own class
+
+		if (groupNode == null) return null; // Give up if that's not found as well
 
 		var groupName = groupNode.InnerText.Trim();
 		var groupUrl = groupNode.GetAttributeValue("href", null);

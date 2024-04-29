@@ -115,6 +115,29 @@ public partial class Fishley
 			.ToArray();
 		await SmallFishServer.BulkOverwriteApplicationCommandAsync(allCommandsUpdated); // Update commands if they were modified
 
+		var httpClient = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
+		var animal = await Wikipedia.CataloguePage(httpClient, "https://en.wikipedia.org/wiki/Atlantic_sturgeon");
+
+		Console.WriteLine(animal.Id);
+		Console.WriteLine(animal.CommonName);
+		Console.WriteLine(animal.BinomialName);
+		Console.WriteLine(animal.TrinomialName);
+		Console.WriteLine(animal.ScientificName);
+		Console.WriteLine(animal.ConservationStatus);
+		Console.WriteLine(animal.MonthlyViews);
+		Console.WriteLine(animal.WikiPage);
+		Console.WriteLine(animal.WikiInfoPage);
+		Console.WriteLine(animal.Domain);
+		Console.WriteLine(animal.Kingdom);
+		Console.WriteLine(animal.Phylum);
+		Console.WriteLine(animal.Class);
+		Console.WriteLine(animal.Order);
+		Console.WriteLine(animal.Family);
+		Console.WriteLine(animal.Genus);
+		Console.WriteLine(animal.Species);
+		Console.WriteLine(animal.Subspecies);
+		Console.WriteLine(animal.ImageUrl);
+
 		Running = true;
 		await Task.CompletedTask;
 	}

@@ -89,14 +89,15 @@ public class AnimalEntry
 	public string Species { get; set; }
 	public string Subspecies { get; set; }
 	public ConservationStatus ConservationStatus { get; set; }
-	public int TimesCaught { get; set; }
-	public DateTime LastCaught { get; set; }
+	public int TimesCaught { get; set; } = 0;
+	public DateTime LastCaught { get; set; } = DateTime.MinValue;
 	public string WikiIdentifier { get; set; }
 	[NotMapped]
-	public string WikiPage => Wikipedia.GetWikiInfoPage(WikiIdentifier);
+	public string WikiPage => Wikipedia.GetWikiPage(WikiIdentifier);
 	[NotMapped]
 	public string WikiInfoPage => Wikipedia.GetWikiInfoPage(WikiIdentifier);
 	public int MonthlyViews { get; set; }
+	public string ImageUrl { get; set; }
 
 	public AnimalEntry(int id)
 	{
