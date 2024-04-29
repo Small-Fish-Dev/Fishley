@@ -37,6 +37,36 @@ public enum ConservationStatus
 	Extinct
 }
 
+public class TaxonomyGroup
+{
+	public string Name { get; set; }
+	public string Url { get; set; }
+
+	public TaxonomyGroup(string name, string url)
+	{
+		Name = name;
+		Url = url;
+	}
+}
+
+public class Biota
+{
+	public string CommonName { get; set; }
+	public ConservationStatus ConservationStatus { get; set; }
+	public string BinomialName { get; set; }
+	public string TrinomialName { get; set; }
+	public TaxonomyGroup Domain { get; set; }
+	public TaxonomyGroup Kingdom { get; set; }
+	public TaxonomyGroup Phylum { get; set; }
+	public TaxonomyGroup Class { get; set; }
+	public TaxonomyGroup Order { get; set; }
+	public TaxonomyGroup Family { get; set; }
+	public TaxonomyGroup Genus { get; set; }
+	public TaxonomyGroup Species { get; set; }
+	public TaxonomyGroup Subspecies { get; set; }
+	public string ImageUrl { get; set; }
+}
+
 public class AnimalEntry
 {
 	[Key]
@@ -60,9 +90,9 @@ public class AnimalEntry
 	public DateTime LastCaught { get; set; }
 	public string WikiIdentifier { get; set; }
 	[NotMapped]
-	public string WikiPage => $"https://en.wikipedia.org{WikiIdentifier}";
+	public string WikiPage => Wikipedia.GetWikiInfoPage(WikiIdentifier);
 	[NotMapped]
-	public string WikiInfoPage => $"https://en.wikipedia.org/w/index.php?title={WikiIdentifier}&action=info";
+	public string WikiInfoPage => Wikipedia.GetWikiInfoPage(WikiIdentifier);
 	public int MonthlyViews { get; set; }
 
 	public AnimalEntry(int id)

@@ -2,31 +2,52 @@ namespace Animals;
 
 public class Wikipedia
 {
+	/// <summary>
+	/// Try to load a page and catalogue it
+	/// </summary>
+	/// <param name="client"></param>
+	/// <param name="pageUrl"></param>
+	/// <param name="waitBetweenCalls"></param>
+	/// <returns></returns>
 	public static async Task<AnimalEntry> CataloguePage(HttpClient client, string pageUrl, int waitBetweenCalls = 1000)
 	{
-		if (!pageUrl.Contains("wikipedia.org/wiki/"))
+		if (!IsWikiPage(pageUrl))
 		{
 			Console.WriteLine($"{pageUrl} is not a wikipedia page.");
 			return null;
 		}
 
-		if (pageUrl.Contains("#"))
-		{
-			Console.WriteLine($"{pageUrl} contains a reference, removing...");
-			pageUrl = pageUrl.Split("#").First();
-		}
+		pageUrl = GetCleanWikiPage(pageUrl); // Clean any references etc...
 
 		var htmlDocument = await LoadPage(client, pageUrl, waitBetweenCalls);
-
 		if (htmlDocument == null)
 		{
 			Console.WriteLine($"Found nothing in {pageUrl}.");
 			return null;
 		}
 
-		var wikiIdentifier = pageUrl.Split("/wiki/").Last();
+		var infoboxBiota = LoadBiota(htmlDocument);
+		if (infoboxBiota == null)
+		{
+			Console.WriteLine($"{pageUrl} infobox biota not found.");
+			return null;
+		}
+
+		var wikiPageIdentifier = GetPageIdentifier(pageUrl);
+		var wikiPageUrl = GetWikiPage(wikiPageIdentifier);
+		var wikiInfoPageUrl = GetWikiInfoPage(wikiPageIdentifier);
+
+
+
 	}
 
+	/// <summary>
+	/// Try to load a page, following redirects and all
+	/// </summary>
+	/// <param name="client"></param>
+	/// <param name="pageUrl"></param>
+	/// <param name="waitBetweenCalls"></param>
+	/// <returns></returns>
 	public static async Task<HtmlDocument> LoadPage(HttpClient client, string pageUrl, int waitBetweenCalls = 1000)
 	{
 		Console.WriteLine($"Loading {pageUrl}.");
@@ -57,5 +78,119 @@ public class Wikipedia
 		htmlDocument.LoadHtml(pageContent);
 
 		return htmlDocument;
+	}
+
+	/// <summary>
+	/// Is the url provided that of a wikipedia page
+	/// </summary>
+	/// <param name="pageUrl"></param>
+	/// <returns></returns>
+	public static bool IsWikiPage(string pageUrl) => pageUrl.Contains("wikipedia.org/wiki/");
+
+	/// <summary>
+	/// Remove annoying references
+	/// </summary>
+	/// <param name="pageUrl"></param>
+	/// <returns></returns>
+	private static string GetCleanWikiPage(string pageUrl)
+	{
+		if (pageUrl.Contains("#"))
+			return pageUrl.Split("#").First();
+		else
+			return pageUrl;
+	}
+
+	/// <summary>
+	/// Return the page identifier of the
+	/// </summary>
+	/// <param name="pageUrl"></param>
+	/// <returns></returns>
+	private static string GetPageIdentifier(string pageUrl) => pageUrl.Split("/wiki/").Last();
+
+	/// <summary>
+	/// Returns the absolute wikipedia path from an href (Example: "/wiki/Fish" -> "https://en.wikipedia.org/wiki/Fish")
+	/// </summary>
+	/// <param name="href"></param>
+	/// <returns></returns>
+	public static string WikipediaAbsolutePath(string href) => $"https://en.wikipedia.org{href}";
+
+	/// <summary>
+	/// Get the full wikipedia page from an identifier
+	/// </summary>
+	/// <param name="pageIdentifier"></param>
+	/// <returns></returns>
+	public static string GetWikiPage(string pageIdentifier) => WikipediaAbsolutePath($"/wiki/{pageIdentifier}");
+
+	/// <summary>
+	/// Get the wiki informations page from the identifier
+	/// </summary>
+	/// <param name="pageUrl"></param>
+	/// <returns></returns>
+	public static string GetWikiInfoPage(string pageIdentifier) => WikipediaAbsolutePath($"/w/index.php?title={pageIdentifier}&action=info");
+
+	/// <summary>
+	/// Isolate and return the infobox biota as an HtmlNode
+	/// </summary>
+	/// <param name="htmlDocument"></param>
+	/// <returns></returns>
+	private static HtmlNode IsolateBiota(HtmlDocument htmlDocument) => htmlDocument.DocumentNode.SelectSingleNode("//table[contains(@class, 'infobox biota')]");
+
+	/// <summary>
+	/// Load all available information from the html document onto a Biota class
+	/// </summary>
+	/// <param name="biotaNode"></param>
+	/// <returns></returns>
+	private static Biota LoadBiota(HtmlDocument htmlDocument)
+	{
+		var infoboxBiota = IsolateBiota(htmlDocument);
+
+		if (infoboxBiota == null) return null;
+
+
+		var statusNode = infoboxBiota.SelectSingleNode(".//tr[td[contains(text(),'Conservation status')]]/following-sibling::tr[1]/td");
+		var conservationStatus = statusNode?.InnerText.Trim() ?? "Data Deficient";
+
+		var domainTaxonomy = IsolateTaxonomyGroup(infoboxBiota, "Domain");
+		var kingdomTaxonomy = IsolateTaxonomyGroup(infoboxBiota, "Kingdom");
+		var phylumTaxonomy = IsolateTaxonomyGroup(infoboxBiota, "Phylum");
+		var classTaxonomy = IsolateTaxonomyGroup(infoboxBiota, "Class");
+		var orderTaxonomy = IsolateTaxonomyGroup(infoboxBiota, "Order");
+		var familyTaxonomy = IsolateTaxonomyGroup(infoboxBiota, "Family");
+		var genusTaxonomy = IsolateTaxonomyGroup(infoboxBiota, "Genus");
+		var speciesTaxonomy = IsolateTaxonomyGroup(infoboxBiota, "Species");
+		var subspeciesTaxonomy = IsolateTaxonomyGroup(infoboxBiota, "Subspecies");
+
+		var imageNode = infoboxBiota.SelectSingleNode(".//img");
+		var imageUrl = imageNode?.GetAttributeValue("src", "No image found");
+		// TODO Go up the taxonomy groups and use that
+
+		// Fetch Trinomial name if present
+		var trinomialNode = infobox.SelectSingleNode(".//span[@class='trinomial']");
+		string trinomialName = trinomialNode != null ? trinomialNode.InnerText.Trim() : "No trinomial name found";
+
+		Console.WriteLine($"Image URL: {imageUrl}");
+		Console.WriteLine($"Conservation Status: {conservationStatus}");
+		Console.WriteLine($"Trinomial Name: {trinomialName}");
+	}
+
+	/// <summary>
+	/// Find and return a specific taxonomy group inside of an infobox biota node
+	/// </summary>
+	/// <param name="biota"></param>
+	/// <param name="group"></param>
+	/// <returns></returns>
+	private static TaxonomyGroup IsolateTaxonomyGroup(HtmlNode biota, string group)
+	{
+		var groupNode = biota.SelectSingleNode($".//tr[td[contains(text(),'{group}')]]/td[2]/a");
+
+		if (groupNode != null)
+		{
+			var groupName = groupNode.InnerText.Trim();
+			var groupUrl = groupNode.GetAttributeValue("href", "Invalid");
+
+			return new TaxonomyGroup(groupName, groupUrl == "Invalid" ? groupUrl : WikipediaAbsolutePath(groupUrl));
+		}
+
+		return null;
 	}
 }
