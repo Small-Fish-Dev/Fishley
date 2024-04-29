@@ -295,6 +295,8 @@ public class Wikipedia
 			if (fileName.Contains("range.png", StringComparison.OrdinalIgnoreCase)) continue;
 			// Ignore conservation status images
 			if (fileName.Contains("status_", StringComparison.OrdinalIgnoreCase)) continue;
+			// Ignore the edit icon
+			if (fileName.Contains("icon_edit", StringComparison.OrdinalIgnoreCase)) continue;
 
 			return fileName.Replace("//", ""); // Return the first valid animal image found
 		}

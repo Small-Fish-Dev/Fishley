@@ -116,7 +116,7 @@ public partial class Fishley
 		await SmallFishServer.BulkOverwriteApplicationCommandAsync(allCommandsUpdated); // Update commands if they were modified
 
 		var httpClient = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
-		var animal = await Wikipedia.CataloguePage(httpClient, "https://en.wikipedia.org/wiki/Atlantic_sturgeon");
+		var animal = await Wikipedia.CataloguePage(httpClient, "https://en.wikipedia.org/wiki/African_glass_catfish");
 
 		Console.WriteLine(animal.Id);
 		Console.WriteLine(animal.CommonName);
