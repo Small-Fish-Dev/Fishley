@@ -150,15 +150,15 @@ public class Wikipedia
 		var statusNode = infoboxBiota.SelectSingleNode(".//tr[td[contains(text(),'Conservation status')]]/following-sibling::tr[1]/td");
 		var conservationStatus = statusNode?.InnerText.Trim() ?? "Data Deficient";
 
-		var domainTaxonomy = IsolateTaxonomyGroup(infoboxBiota, "Domain");
-		var kingdomTaxonomy = IsolateTaxonomyGroup(infoboxBiota, "Kingdom");
-		var phylumTaxonomy = IsolateTaxonomyGroup(infoboxBiota, "Phylum");
-		var classTaxonomy = IsolateTaxonomyGroup(infoboxBiota, "Class");
-		var orderTaxonomy = IsolateTaxonomyGroup(infoboxBiota, "Order");
-		var familyTaxonomy = IsolateTaxonomyGroup(infoboxBiota, "Family");
-		var genusTaxonomy = IsolateTaxonomyGroup(infoboxBiota, "Genus");
-		var speciesTaxonomy = IsolateTaxonomyGroup(infoboxBiota, "Species");
-		var subspeciesTaxonomy = IsolateTaxonomyGroup(infoboxBiota, "Subspecies");
+		var domainTaxonomy = IsolateTaxonomicGroup(infoboxBiota, "Domain");
+		var kingdomTaxonomy = IsolateTaxonomicGroup(infoboxBiota, "Kingdom");
+		var phylumTaxonomy = IsolateTaxonomicGroup(infoboxBiota, "Phylum");
+		var classTaxonomy = IsolateTaxonomicGroup(infoboxBiota, "Class");
+		var orderTaxonomy = IsolateTaxonomicGroup(infoboxBiota, "Order");
+		var familyTaxonomy = IsolateTaxonomicGroup(infoboxBiota, "Family");
+		var genusTaxonomy = IsolateTaxonomicGroup(infoboxBiota, "Genus");
+		var speciesTaxonomy = IsolateTaxonomicGroup(infoboxBiota, "Species");
+		var subspeciesTaxonomy = IsolateTaxonomicGroup(infoboxBiota, "Subspecies");
 
 		var imageNode = infoboxBiota.SelectSingleNode(".//img");
 		var imageUrl = imageNode?.GetAttributeValue("src", "No image found");
@@ -174,23 +174,39 @@ public class Wikipedia
 	}
 
 	/// <summary>
-	/// Find and return a specific taxonomy group inside of an infobox biota node
+	/// Find and return a specific taxonomic group inside of an infobox biota node
 	/// </summary>
 	/// <param name="biota"></param>
 	/// <param name="group"></param>
 	/// <returns></returns>
-	private static TaxonomyGroup IsolateTaxonomyGroup(HtmlNode biota, string group)
+	private static TaxonomicGroup IsolateTaxonomicGroup(HtmlNode biota, string group)
 	{
 		var groupNode = biota.SelectSingleNode($".//tr[td[contains(text(),'{group}')]]/td[2]/a");
 
 		if (groupNode != null)
 		{
 			var groupName = groupNode.InnerText.Trim();
-			var groupUrl = groupNode.GetAttributeValue("href", "Invalid");
+			var groupUrl = groupNode.GetAttributeValue("href", null);
 
-			return new TaxonomyGroup(groupName, groupUrl == "Invalid" ? groupUrl : WikipediaAbsolutePath(groupUrl));
+			// Ignore Incertae Sedis taxonomic group
+			if (groupName.Contains("incertae", StringComparison.OrdinalIgnoreCase)) return null;
+
+			return new TaxonomicGroup(groupName, groupUrl is null ? "No URL found" : WikipediaAbsolutePath(groupUrl));
 		}
 
 		return null;
+	}
+
+	/// <summary>
+	/// Find and return the first image displayed in the infobox biota node
+	/// </summary>
+	/// <param name="biota"></param>
+	/// <returns></returns>
+	private static string IsolateImage(HtmlNode biota)
+	{
+		var imageNode = biota.SelectSingleNode(".//img");
+		return imageNode?.GetAttributeValue("src", null);
+		// TODO Go up the taxonomy groups and use that
+		// TODO Ignore images that are not the animal
 	}
 }

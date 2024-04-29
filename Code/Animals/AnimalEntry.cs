@@ -37,12 +37,12 @@ public enum ConservationStatus
 	Extinct
 }
 
-public class TaxonomyGroup
+public class TaxonomicGroup
 {
 	public string Name { get; set; }
 	public string Url { get; set; }
 
-	public TaxonomyGroup(string name, string url)
+	public TaxonomicGroup(string name, string url)
 	{
 		Name = name;
 		Url = url;
@@ -55,15 +55,15 @@ public class Biota
 	public ConservationStatus ConservationStatus { get; set; }
 	public string BinomialName { get; set; }
 	public string TrinomialName { get; set; }
-	public TaxonomyGroup Domain { get; set; }
-	public TaxonomyGroup Kingdom { get; set; }
-	public TaxonomyGroup Phylum { get; set; }
-	public TaxonomyGroup Class { get; set; }
-	public TaxonomyGroup Order { get; set; }
-	public TaxonomyGroup Family { get; set; }
-	public TaxonomyGroup Genus { get; set; }
-	public TaxonomyGroup Species { get; set; }
-	public TaxonomyGroup Subspecies { get; set; }
+	public TaxonomicGroup Domain { get; set; }
+	public TaxonomicGroup Kingdom { get; set; }
+	public TaxonomicGroup Phylum { get; set; }
+	public TaxonomicGroup Class { get; set; }
+	public TaxonomicGroup Order { get; set; }
+	public TaxonomicGroup Family { get; set; }
+	public TaxonomicGroup Genus { get; set; }
+	public TaxonomicGroup Species { get; set; }
+	public TaxonomicGroup Subspecies { get; set; }
 	public string ImageUrl { get; set; }
 }
 
