@@ -259,9 +259,13 @@ public class Wikipedia
 		if (groupNode == null)
 			groupNode = biota.SelectSingleNode($".//div[contains(@class, '{group.ToLower()}')]/i/a"); // Sometimes they have their own class
 
+		if (groupNode == null)
+			groupNode = biota.SelectSingleNode($".//div[contains(@class, '{group.ToLower()}')]/i"); // Other times they have no link as well
+
 		if (groupNode == null) return null; // Give up if that's not found as well
 
-		var groupName = groupNode.InnerText.Trim();
+		var groupName = groupNode.InnerText.Trim()
+			.Replace("&#160;", " ");
 		var groupUrl = groupNode.GetAttributeValue("href", null);
 
 		// Ignore Incertae Sedis taxonomic group
