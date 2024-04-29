@@ -355,8 +355,18 @@ public class Wikipedia
 	/// <returns></returns>
 	private static string IsolateConservationStatus(HtmlNode biota)
 	{
-		var statusNode = biota.SelectSingleNode(".//tr[td[contains(text(),'Conservation status')]]/following-sibling::tr[1]/td");
-		if (statusNode == null) return "Not Evaluated";
+		var statusLabelNode = biota.SelectSingleNode(".//th[contains(., 'Conservation status')]");
+		if (statusLabelNode == null) return "Not Evaluated";
+
+		var statusNode = statusLabelNode.SelectSingleNode("following-sibling::td");
+		if (statusNode == null)
+		{
+			var nextTrNode = statusLabelNode.ParentNode.SelectSingleNode("following-sibling::tr/td");
+			if (nextTrNode != null)
+				return nextTrNode.InnerText.Trim();
+			else
+				return "Not Evaluated";
+		}
 
 		return statusNode.InnerText.Trim();
 	}
