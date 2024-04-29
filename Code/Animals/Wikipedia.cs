@@ -26,10 +26,10 @@ public class Wikipedia
 			return null;
 		}
 
-		var infoboxBiota = await LoadBiota(htmlDocument, client, waitBetweenCalls);
-		if (infoboxBiota == null)
+		var biota = await LoadBiota(htmlDocument, client, waitBetweenCalls);
+		if (biota == null)
 		{
-			Console.WriteLine($"{pageUrl} infobox biota not found.");
+			Console.WriteLine($"{pageUrl} biota not found.");
 			return null;
 		}
 
@@ -167,6 +167,7 @@ public class Wikipedia
 		var kingdomTaxonomy = IsolateTaxonomicGroup(infoboxBiota, "Kingdom");
 		var domainTaxonomy = IsolateTaxonomicGroup(infoboxBiota, "Domain");
 
+		var commonName = IsolateName(infoboxBiota);
 		var imageUrl = IsolateImage(infoboxBiota);
 
 		if (imageUrl == null)
@@ -195,6 +196,23 @@ public class Wikipedia
 		var binomialName = IsolateClass(infoboxBiota, "binomial");
 		var trinomialName = IsolateClass(infoboxBiota, "trinomial");
 
+		return new Biota()
+		{
+			CommonName = commonName,
+			ConservationStatus = conservationStatus,
+			BinomialName = binomialName,
+			TrinomialName = trinomialName,
+			Domain = domainTaxonomy,
+			Kingdom = kingdomTaxonomy,
+			Phylum = phylumTaxonomy,
+			Class = classTaxonomy,
+			Order = orderTaxonomy,
+			Family = familyTaxonomy,
+			Genus = genusTaxonomy,
+			Species = speciesTaxonomy,
+			Subspecies = subspeciesTaxonomy,
+			ImageUrl = imageUrl
+		};
 	}
 
 	/// <summary>
@@ -276,6 +294,19 @@ public class Wikipedia
 		if (classNode == null) return null;
 
 		return classNode.InnerText.Trim();
+	}
+
+	/// <summary>
+	/// Isolate the name at the top of the biota
+	/// </summary>
+	/// <param name="biota"></param>
+	/// <returns></returns>
+	private static string IsolateName(HtmlNode biota)
+	{
+		var nameNode = biota.SelectSingleNode(".//th[@colspan]");
+		if (nameNode == null) return null;
+
+		return nameNode.InnerText.Trim();
 	}
 
 	/// <summary>
