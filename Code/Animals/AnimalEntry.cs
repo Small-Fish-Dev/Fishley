@@ -28,12 +28,15 @@ namespace Animals;
 /// </summary>
 public enum ConservationStatus
 {
+	Not_Evaluated,
 	Data_Deficient,
 	Least_Concern,
+	Conservation_Dependent,
 	Near_Threatened,
 	Vulnerable,
 	Endangered,
 	Critically_Endangered,
+	Extinct_In_The_Wild,
 	Extinct
 }
 
@@ -98,5 +101,28 @@ public class AnimalEntry
 	public AnimalEntry(int id)
 	{
 		Id = id;
+	}
+
+	public static ConservationStatus ParseStatus(string name)
+	{
+		var cleanName = name.ToLower() // To be extra sure
+			.Replace("_", "")
+			.Replace(" ", "")
+			.Replace(".", "")
+			.Replace("-", "")
+			.Trim();
+
+		if (cleanName.Contains("evaluated")) return ConservationStatus.Not_Evaluated;
+		if (cleanName.Contains("data")) return ConservationStatus.Data_Deficient;
+		if (cleanName.Contains("concern")) return ConservationStatus.Least_Concern;
+		if (cleanName.Contains("dependent")) return ConservationStatus.Conservation_Dependent;
+		if (cleanName.Contains("threat")) return ConservationStatus.Near_Threatened;
+		if (cleanName.Contains("vulnerable")) return ConservationStatus.Vulnerable;
+		if (cleanName.Contains("critically")) return ConservationStatus.Critically_Endangered;
+		if (cleanName.Contains("endangered")) return ConservationStatus.Endangered;
+		if (cleanName.Contains("wild")) return ConservationStatus.Extinct_In_The_Wild;
+		if (cleanName.Contains("extinct")) return ConservationStatus.Extinct;
+
+		return ConservationStatus.Not_Evaluated;
 	}
 }
