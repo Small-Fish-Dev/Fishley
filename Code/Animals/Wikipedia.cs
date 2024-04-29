@@ -38,10 +38,38 @@ public class Wikipedia
 		var wikiInfoPageUrl = GetWikiInfoPage(wikiPageIdentifier);
 
 		var wikiInfoPage = await LoadPage(client, wikiInfoPageUrl, waitBetweenCalls);
+		if (wikiInfoPage == null)
+		{
+			Console.WriteLine($"{wikiInfoPageUrl} couldn't load info page.");
+			return null;
+		}
+		var wikiPageId = IsolatePageId(wikiInfoPage);
+		var wikiMonthlyViews = IsolateMonthlyViews(wikiInfoPage);
 
+		if (wikiPageId <= -1 || wikiMonthlyViews <= -1)
+		{
+			Console.WriteLine($"{wikiInfoPageUrl} invalid id or views! PageId: {wikiPageId} - Monthly Views: {wikiMonthlyViews}");
+			return null;
+		}
 
-
-		return new AnimalEntry();
+		return new AnimalEntry(wikiPageId)
+		{
+			CommonName = biota.CommonName,
+			BinomialName = biota.BinomialName,
+			TrinomialName = biota.TrinomialName,
+			Domain = biota.Domain?.Name ?? "None",
+			Kingdom = biota.Kingdom?.Name ?? "None",
+			Phylum = biota.Domain?.Name ?? "None",
+			Class = biota.Class?.Name ?? "None",
+			Order = biota.Order?.Name ?? "None",
+			Family = biota.Family?.Name ?? "None",
+			Genus = biota.Genus?.Name ?? "None",
+			Species = biota.Species?.Name ?? "None",
+			Subspecies = biota.Subspecies?.Name ?? "None",
+			ConservationStatus = biota.ConservationStatus,
+			WikiIdentifier = wikiPageIdentifier,
+			MonthlyViews = wikiMonthlyViews
+		};
 	}
 
 	/// <summary>
@@ -330,9 +358,9 @@ public class Wikipedia
 	/// </summary>
 	/// <param name="infoPage"></param>
 	/// <returns></returns>
-	private static int IsolatePageId(HtmlNode infoPage)
+	private static int IsolatePageId(HtmlDocument infoPage)
 	{
-		var pageIdNode = infoPage.SelectSingleNode("//tr[@id='mw-pageinfo-article-id']/td[2]");
+		var pageIdNode = infoPage.DocumentNode.SelectSingleNode("//tr[@id='mw-pageinfo-article-id']/td[2]");
 		if (pageIdNode == null) return -1;
 
 		var pageIdData = pageIdNode.InnerText.Trim()
@@ -349,10 +377,9 @@ public class Wikipedia
 	/// </summary>
 	/// <param name="infoPage"></param>
 	/// <returns></returns>
-	private static int IsolatePageMonthlyViews(HtmlNode infoPage)
+	private static int IsolateMonthlyViews(HtmlDocument infoPage)
 	{
-		var monthlyViewsNode = infoPage.SelectSingleNode("//tr[@id='mw-pvi-month-count']/td/div/a");
-
+		var monthlyViewsNode = infoPage.DocumentNode.SelectSingleNode("//tr[@id='mw-pvi-month-count']/td/div/a");
 		if (monthlyViewsNode == null) return -1;
 
 		var monthlyViewsData = monthlyViewsNode.InnerText.Trim()
