@@ -37,8 +37,11 @@ public class Wikipedia
 		var wikiPageUrl = GetWikiPage(wikiPageIdentifier);
 		var wikiInfoPageUrl = GetWikiInfoPage(wikiPageIdentifier);
 
+		var wikiInfoPage = await LoadPage(client, wikiInfoPageUrl, waitBetweenCalls);
 
 
+
+		return new AnimalEntry();
 	}
 
 	/// <summary>
@@ -314,11 +317,50 @@ public class Wikipedia
 	/// </summary>
 	/// <param name="biota"></param>
 	/// <returns></returns>
-	public static string IsolateConservationStatus(HtmlNode biota)
+	private static string IsolateConservationStatus(HtmlNode biota)
 	{
 		var statusNode = biota.SelectSingleNode(".//tr[td[contains(text(),'Conservation status')]]/following-sibling::tr[1]/td");
-		if (statusNode == null) return "Data Deficient";
+		if (statusNode == null) return "Not Evaluated";
 
 		return statusNode.InnerText.Trim();
+	}
+
+	/// <summary>
+	///  Isolate the page id from a wiki informations page
+	/// </summary>
+	/// <param name="infoPage"></param>
+	/// <returns></returns>
+	private static int IsolatePageId(HtmlNode infoPage)
+	{
+		var pageIdNode = infoPage.SelectSingleNode("//tr[@id='mw-pageinfo-article-id']/td[2]");
+		if (pageIdNode == null) return -1;
+
+		var pageIdData = pageIdNode.InnerText.Trim()
+			.Replace(",", "")
+			.Replace(".", ""); // Clean string to parse
+
+		if (int.TryParse(pageIdData, out var pageId)) return pageId;
+
+		return -1;
+	}
+
+	/// <summary>
+	/// Isolate the monthly views from a wiki informations page
+	/// </summary>
+	/// <param name="infoPage"></param>
+	/// <returns></returns>
+	private static int IsolatePageMonthlyViews(HtmlNode infoPage)
+	{
+		var monthlyViewsNode = infoPage.SelectSingleNode("//tr[@id='mw-pvi-month-count']/td/div/a");
+
+		if (monthlyViewsNode == null) return -1;
+
+		var monthlyViewsData = monthlyViewsNode.InnerText.Trim()
+			.Replace(",", "")
+			.Replace(".", ""); // Clean string to parse
+
+		if (int.TryParse(monthlyViewsData, out var monthlyViews)) return monthlyViews;
+
+		return -1;
 	}
 }
