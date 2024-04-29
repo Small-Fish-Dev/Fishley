@@ -26,7 +26,7 @@ public class Wikipedia
 			return null;
 		}
 
-		var infoboxBiota = LoadBiota(htmlDocument);
+		var infoboxBiota = await LoadBiota(htmlDocument, client, waitBetweenCalls);
 		if (infoboxBiota == null)
 		{
 			Console.WriteLine($"{pageUrl} infobox biota not found.");
@@ -140,37 +140,61 @@ public class Wikipedia
 	/// </summary>
 	/// <param name="biotaNode"></param>
 	/// <returns></returns>
-	private static Biota LoadBiota(HtmlDocument htmlDocument)
+	private static async Task<Biota> LoadBiota(HtmlDocument htmlDocument, HttpClient client, int waitBetweenCalls = 1000)
 	{
 		var infoboxBiota = IsolateBiota(htmlDocument);
 
-		if (infoboxBiota == null) return null;
+		if (infoboxBiota == null)
+		{
+			Console.WriteLine("No infobox biota found.");
+			return null;
+		}
 
-
-		var statusNode = infoboxBiota.SelectSingleNode(".//tr[td[contains(text(),'Conservation status')]]/following-sibling::tr[1]/td");
-		var conservationStatus = statusNode?.InnerText.Trim() ?? "Data Deficient";
-
-		var domainTaxonomy = IsolateTaxonomicGroup(infoboxBiota, "Domain");
-		var kingdomTaxonomy = IsolateTaxonomicGroup(infoboxBiota, "Kingdom");
-		var phylumTaxonomy = IsolateTaxonomicGroup(infoboxBiota, "Phylum");
-		var classTaxonomy = IsolateTaxonomicGroup(infoboxBiota, "Class");
-		var orderTaxonomy = IsolateTaxonomicGroup(infoboxBiota, "Order");
-		var familyTaxonomy = IsolateTaxonomicGroup(infoboxBiota, "Family");
-		var genusTaxonomy = IsolateTaxonomicGroup(infoboxBiota, "Genus");
-		var speciesTaxonomy = IsolateTaxonomicGroup(infoboxBiota, "Species");
 		var subspeciesTaxonomy = IsolateTaxonomicGroup(infoboxBiota, "Subspecies");
+		var speciesTaxonomy = IsolateTaxonomicGroup(infoboxBiota, "Species");
 
-		var imageNode = infoboxBiota.SelectSingleNode(".//img");
-		var imageUrl = imageNode?.GetAttributeValue("src", "No image found");
-		// TODO Go up the taxonomy groups and use that
+		if (subspeciesTaxonomy == null && speciesTaxonomy == null)
+		{
+			Console.WriteLine("Too generalized");
+			return null;
+		}
 
-		// Fetch Trinomial name if present
-		var trinomialNode = infobox.SelectSingleNode(".//span[@class='trinomial']");
-		string trinomialName = trinomialNode != null ? trinomialNode.InnerText.Trim() : "No trinomial name found";
+		var genusTaxonomy = IsolateTaxonomicGroup(infoboxBiota, "Genus");
+		var familyTaxonomy = IsolateTaxonomicGroup(infoboxBiota, "Family");
+		var orderTaxonomy = IsolateTaxonomicGroup(infoboxBiota, "Order");
+		var classTaxonomy = IsolateTaxonomicGroup(infoboxBiota, "Class");
+		var phylumTaxonomy = IsolateTaxonomicGroup(infoboxBiota, "Phylum");
+		var kingdomTaxonomy = IsolateTaxonomicGroup(infoboxBiota, "Kingdom");
+		var domainTaxonomy = IsolateTaxonomicGroup(infoboxBiota, "Domain");
 
-		Console.WriteLine($"Image URL: {imageUrl}");
-		Console.WriteLine($"Conservation Status: {conservationStatus}");
-		Console.WriteLine($"Trinomial Name: {trinomialName}");
+		var imageUrl = IsolateImage(infoboxBiota);
+
+		if (imageUrl == null)
+		{
+			Console.WriteLine("No image found, searching for the parent taxonomic group.");
+
+			if (subspeciesTaxonomy != null) // This is a subspecies
+				imageUrl = await TryFetchImage(client, speciesTaxonomy.Url, waitBetweenCalls); // So we try getting the species image
+			else
+				imageUrl = await TryFetchImage(client, genusTaxonomy?.Url ?? null, waitBetweenCalls); // If it's a species we try getting the genus image
+
+			// Well then, let's try getting the family image
+			if (imageUrl == null)
+				imageUrl = await TryFetchImage(client, familyTaxonomy?.Url ?? null, waitBetweenCalls);
+
+			// Wikipedia is really lacking these days, let's try the order image
+			if (imageUrl == null)
+				imageUrl = await TryFetchImage(client, orderTaxonomy?.Url ?? null, waitBetweenCalls);
+
+			// No point in trying with the class since it's too generalized
+			if (imageUrl == null)
+				imageUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/6/65/No-Image-Placeholder.svg/832px-No-Image-Placeholder.svg.png";
+		}
+
+		var conservationStatus = IsolateConservationStatus(infoboxBiota);
+		var binomialName = IsolateClass(infoboxBiota, "binomial");
+		var trinomialName = IsolateClass(infoboxBiota, "trinomial");
+
 	}
 
 	/// <summary>
@@ -182,19 +206,15 @@ public class Wikipedia
 	private static TaxonomicGroup IsolateTaxonomicGroup(HtmlNode biota, string group)
 	{
 		var groupNode = biota.SelectSingleNode($".//tr[td[contains(text(),'{group}')]]/td[2]/a");
+		if (groupNode == null) return null;
 
-		if (groupNode != null)
-		{
-			var groupName = groupNode.InnerText.Trim();
-			var groupUrl = groupNode.GetAttributeValue("href", null);
+		var groupName = groupNode.InnerText.Trim();
+		var groupUrl = groupNode.GetAttributeValue("href", null);
 
-			// Ignore Incertae Sedis taxonomic group
-			if (groupName.Contains("incertae", StringComparison.OrdinalIgnoreCase)) return null;
+		// Ignore Incertae Sedis taxonomic group
+		if (groupName.Contains("incertae", StringComparison.OrdinalIgnoreCase)) return null;
 
-			return new TaxonomicGroup(groupName, groupUrl is null ? "No URL found" : WikipediaAbsolutePath(groupUrl));
-		}
-
-		return null;
+		return new TaxonomicGroup(groupName, groupUrl is null ? null : WikipediaAbsolutePath(groupUrl));
 	}
 
 	/// <summary>
@@ -204,9 +224,70 @@ public class Wikipedia
 	/// <returns></returns>
 	private static string IsolateImage(HtmlNode biota)
 	{
-		var imageNode = biota.SelectSingleNode(".//img");
-		return imageNode?.GetAttributeValue("src", null);
-		// TODO Go up the taxonomy groups and use that
-		// TODO Ignore images that are not the animal
+		var imageNodes = biota.SelectNodes(".//img");
+		if (imageNodes == null || imageNodes.Count() == 0) return null;
+
+		foreach (var imageNode in imageNodes)
+		{
+			var fileName = imageNode.GetAttributeValue("src", null);
+			if (fileName == null) continue;
+
+			// Ignore any map images
+			if (fileName.Contains("map.png", StringComparison.OrdinalIgnoreCase)) continue;
+			// Ignore range images
+			if (fileName.Contains("range.png", StringComparison.OrdinalIgnoreCase)) continue;
+			// Ignore conservation status images
+			if (fileName.Contains("status_", StringComparison.OrdinalIgnoreCase)) continue;
+
+			return fileName; // Return the first valid animal image found
+		}
+
+		return null;
+	}
+
+	/// <summary>
+	/// Try and fetch the biota image from a page
+	/// </summary>
+	/// <param name="url"></param>
+	/// <param name="client"></param>
+	/// <param name="waitBetweenCalls"></param>
+	/// <returns></returns>
+	private static async Task<string> TryFetchImage(HttpClient client, string url, int waitBetweenCalls)
+	{
+		if (url == null) return null;
+
+		await Task.Delay(waitBetweenCalls);
+		var loadedPage = await LoadPage(client, url, waitBetweenCalls);
+		if (loadedPage == null) return null;
+
+		var biota = IsolateBiota(loadedPage);
+		return IsolateImage(biota);
+	}
+
+	/// <summary>
+	/// Isolate a single class node from the biota
+	/// </summary>
+	/// <param name="biota"></param>
+	/// <param name="className"></param>
+	/// <returns></returns>
+	private static string IsolateClass(HtmlNode biota, string className)
+	{
+		var classNode = biota.SelectSingleNode($".//span[@class='{className}']");
+		if (classNode == null) return null;
+
+		return classNode.InnerText.Trim();
+	}
+
+	/// <summary>
+	/// Isolate the conservation status inside of the biota
+	/// </summary>
+	/// <param name="biota"></param>
+	/// <returns></returns>
+	public static string IsolateConservationStatus(HtmlNode biota)
+	{
+		var statusNode = biota.SelectSingleNode(".//tr[td[contains(text(),'Conservation status')]]/following-sibling::tr[1]/td");
+		if (statusNode == null) return "Data Deficient";
+
+		return statusNode.InnerText.Trim();
 	}
 }
