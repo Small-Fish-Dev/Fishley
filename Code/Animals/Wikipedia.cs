@@ -296,7 +296,7 @@ public class Wikipedia
 			// Ignore conservation status images
 			if (fileName.Contains("status_", StringComparison.OrdinalIgnoreCase)) continue;
 
-			return fileName; // Return the first valid animal image found
+			return fileName.Replace("//", ""); // Return the first valid animal image found
 		}
 
 		return null;
