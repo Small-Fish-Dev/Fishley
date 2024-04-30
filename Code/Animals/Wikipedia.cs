@@ -2,6 +2,61 @@ namespace Animals;
 
 public class Wikipedia
 {
+	public class AnimalsDatabase : DbContext
+	{
+		public DbSet<AnimalEntry> Animals { get; set; }
+
+		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+		{
+			optionsBuilder.UseSqlite("Data Source=animals.db");
+		}
+	}
+	/// <summary>
+	/// Go through every list item in this page and catalogue them into AnimalEntries if valid
+	/// </summary>
+	/// <param name="pageUrl"></param>
+	/// <param name="waitBetweelCalls"></param>
+	/// <param name="startingUrl"></param>
+	/// <param name="endingUrl"></param>
+	public static async Task CatalogueListedPage(string pageUrl, int waitBetweenCalls = 1000, string startingUrl = null, string endingUrl = null)
+	{
+		var httpClient = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false });
+		var loadedPage = await LoadPage(httpClient, pageUrl, waitBetweenCalls);
+
+		// Get every valid hyperlink that is inside of a list
+		var outgoingLinks = loadedPage.DocumentNode.SelectNodes("//ul/li/a[contains(@href, '/wiki/') and not(contains(@href, ':'))]");
+
+		if (outgoingLinks != null)
+		{
+			foreach (var linkNode in outgoingLinks)
+			{
+				var reference = linkNode.Attributes["href"]?.Value ?? null;
+				var innerText = linkNode.InnerText;
+
+				if (reference == null) continue;
+
+				reference = WikipediaAbsolutePath(reference);
+				await Task.Delay(waitBetweenCalls);
+				var animal = await CataloguePage(httpClient, reference, waitBetweenCalls);
+
+				if (animal != null)
+				{
+					var animalFound = await AnimalEntry.GetEntry(animal.Id);
+					if (animalFound == null)
+					{
+						Console.WriteLine($"Added {animal.Id} {animal.WikiPage} {animal.ScientificName}");
+						await AnimalEntry.UpdateOrCreateEntry(animal);
+					}
+					else
+					{
+						Console.WriteLine($"{animal.Id} already exists, updating");
+						await AnimalEntry.UpdateOrCreateEntry(animal);
+					}
+				}
+			}
+		}
+	}
+
 	/// <summary>
 	/// Try to load a page and catalogue it
 	/// </summary>
@@ -347,7 +402,9 @@ public class Wikipedia
 		var nameNode = biota.SelectSingleNode(".//th[@colspan]");
 		if (nameNode == null) return null;
 
-		return nameNode.InnerText.Trim();
+		return nameNode.InnerText.Trim()
+			.Split("Temporal range") // Oops haha :)
+			.First();
 	}
 
 	/// <summary>
