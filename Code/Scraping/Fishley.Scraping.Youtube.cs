@@ -5,7 +5,7 @@ public partial class Fishley
 	public class YoutubeScraper : WebsiteScraper
 	{
 		public override string Url => "https://www.youtube.com/results?search_query=s%26box+-ragdoll&sp=CAI%253D";
-		public override int SecondsCooldown => 60; // Every minute
+		public override int SecondsCooldown => 60 + 7;
 		public override SocketGuildChannel ChannelToPost => SboxFeedChannel;
 
 		public override async Task<(string, Embed)> Fetch()

@@ -115,8 +115,6 @@ public partial class Fishley
 			.ToArray();
 		await SmallFishServer.BulkOverwriteApplicationCommandAsync(allCommandsUpdated); // Update commands if they were modified
 
-		await Wikipedia.CatalogueListedPage("https://en.wikipedia.org/wiki/List_of_recently_extinct_fishes", 100);
-
 		Running = true;
 		await Task.CompletedTask;
 	}

@@ -4,7 +4,7 @@ public partial class Fishley
 {
 	public class AssetPartyScraper : WebsiteScraper
 	{
-		public override int SecondsCooldown => 60 * 1; // Every minute
+		public override int SecondsCooldown => 60 * 1 + 5;
 		public override SocketGuildChannel ChannelToPost => SboxFeedChannel;
 
 		public override async Task<(string, Embed)> Fetch()

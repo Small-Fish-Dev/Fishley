@@ -14,7 +14,7 @@ public partial class Fishley
 
 	public static async Task ComputeScrapers()
 	{
-		var scrapedWebsites = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(await File.ReadAllTextAsync(_scrapedSites));
+		var scrapedWebsites = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, List<string>>>(await File.ReadAllTextAsync(_scrapedSites));
 		foreach (var scraper in WebsitesToCheck)
 		{
 			var secondsPassed = (DateTime.UtcNow - scraper.Value.LastFetched).TotalSeconds;
@@ -24,20 +24,31 @@ public partial class Fishley
 				DebugSay($"Scraping {scraper.Key}");
 				scraper.Value.LastFetched = DateTime.UtcNow;
 
-				string currentUrl;
-				scrapedWebsites.TryGetValue(scraper.Key, out currentUrl);
+				List<string> currentUrls;
+				scrapedWebsites.TryGetValue(scraper.Key, out currentUrls);
 
 				var fetched = await scraper.Value.Fetch();
 
 				if (fetched.Item1 == null) continue;
 
-				if (currentUrl == null || currentUrl != fetched.Item1)
+				if (currentUrls == null || !currentUrls.Contains(fetched.Item1))
 				{
-					scrapedWebsites[scraper.Key] = fetched.Item1;
+					scrapedWebsites[scraper.Key].Add(fetched.Item1);
 					await SendMessage((SocketTextChannel)scraper.Value.ChannelToPost, $"{fetched.Item1}", embed: fetched.Item2);
 				}
 			}
 		}
+
+		var maxCount = 20;
+
+		foreach (var links in scrapedWebsites.Values)
+		{
+			if (links.Count() >= maxCount)
+			{
+				links.RemoveAt(maxCount);
+			}
+		}
+
 		await File.WriteAllTextAsync(_scrapedSites, System.Text.Json.JsonSerializer.Serialize(scrapedWebsites));
 	}
 

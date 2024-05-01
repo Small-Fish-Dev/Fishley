@@ -5,7 +5,7 @@ public partial class Fishley
 	public class GarryScraper : WebsiteScraper
 	{
 		public override string Url => "https://garry.net/posts/rss";
-		public override int SecondsCooldown => 60 * 5; // Every 5 minutes
+		public override int SecondsCooldown => 60 * 5 + 7;
 		public override SocketGuildChannel ChannelToPost => SboxFeedChannel;
 
 		public override async Task<(string, Embed)> Fetch()

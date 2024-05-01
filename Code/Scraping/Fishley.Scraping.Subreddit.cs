@@ -5,7 +5,7 @@ public partial class Fishley
 	public class SubredditScraper : WebsiteScraper
 	{
 		public override string Url => "https://www.reddit.com/r/sandbox/new/.rss";
-		public override int SecondsCooldown => 60; // Every minute
+		public override int SecondsCooldown => 60 + 3; // Every minute
 		public override SocketGuildChannel ChannelToPost => SboxFeedChannel;
 
 		public override async Task<(string, Embed)> Fetch()
