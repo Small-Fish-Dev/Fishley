@@ -14,7 +14,6 @@ public partial class Fishley
 		public override Func<SocketSlashCommand, Task> Function => GetRandomFish;
 		public override Dictionary<string, Func<SocketMessageComponent, Task>> Components => new()
 		{
-			{ "report_fish_issue-", ReportIssue },
 			{ "disarm_mine", DisarmMine },
 			{ "hi_killerfish", HelloKillerfish },
 			{ "release_killerfish", ReleaseKillerfish }
@@ -67,50 +66,28 @@ public partial class Fishley
 			else
 			{
 
-				var luck = (int)(Math.Min((float)passed, 21600f) / 21600f) - (badLuck ? 1 : 0); // 3 hours = 0.5 luck, 6 hours = 1.0 luck - 21600 = 6 hours
-				var randomFish = await GetRandomFishFromRarity(new ListSelector().SelectItem(FishRarities, 3 + luck * 17, 6).Key);
-				var embedTitle = $"{command.User.GlobalName} caught: {randomFish.CommonName}!";
+				//var luck = (int)(Math.Min((float)passed, 21600f) / 21600f) - (badLuck ? 1 : 0); // 3 hours = 0.5 luck, 6 hours = 1.0 luck - 21600 = 6 hours
+				var randomAnimal = await GetRandomAnimal();
+				var embedTitle = $"{command.User.GlobalName} caught: {randomAnimal.CommonName}!";
 
-				var embed = new FishEmbedBuilder(randomFish, embedTitle, command.User)
+				var embed = new AnimalEmbedBuilder(randomAnimal, embedTitle, command.User)
 				{
 					WikiInfoPage = false,
 					CommonName = false,
-					MonthlyViews = false,
-					IssuesReported = false
+					MonthlyViews = false
 				}.Build();
 
-				var rarity = FishRarities[randomFish.Rarity];
+				var rarity = GetRarity(randomAnimal.MonthlyViews);
 				user.LastFish = DateTime.UtcNow;
-				user.Money += rarity.Item3;
+				user.Money += rarity.Value;
 
-				await UpdateUser(user);
+				await UpdateOrCreateUser(user);
 
-				randomFish.LastSeen = DateTime.UtcNow;
-				await UpdateOrCreateFish(randomFish);
+				randomAnimal.LastCaught = DateTime.UtcNow;
+				await UpdateOrCreateEntry(randomAnimal);
 
-				var button = new ComponentBuilder()
-					.WithButton("Report issue.", $"report_fish_issue-{randomFish.PageId}", ButtonStyle.Secondary)
-					.Build();
-
-				Console.WriteLine($"{command.User.GlobalName} caught: {randomFish.PageId} {randomFish.CommonName} - {randomFish.WikiPage} - {randomFish.PageName} - {randomFish.MonthlyViews} - {randomFish.ImageLink}");
-				await command.RespondAsync($"<@{command.User.Id}> If you see anything wrong or missing with this fish please report the issue with the button below!", embed: embed, components: button);
+				await command.RespondAsync($"<@{command.User.Id}>", embed: embed);
 			}
-		}
-
-		public async Task ReportIssue(SocketMessageComponent component)
-		{
-			var disabledButton = new ComponentBuilder()
-				.WithButton("Issue reported.", "im_nothing_bro", style: ButtonStyle.Secondary, disabled: true)
-				.Build();
-
-			await component.UpdateAsync(x => x.Components = disabledButton);
-
-			var fishId = int.Parse(component.Data.CustomId.Split("-").Last());
-			_ = await component.FollowupAsync($"Reported an issue with fish #{fishId}! Thank you!", ephemeral: true); // Gotta respond within 3 seconds so I'll handle the logic later
-
-			var fishFound = await GetFish(fishId);
-			fishFound.IssuesReported++;
-			await UpdateOrCreateFish(fishFound);
 		}
 
 		public async Task DisarmMine(SocketMessageComponent component)
@@ -152,7 +129,7 @@ public partial class Fishley
 				await command.FollowupAsync($"Too bad! <@{command.User.Id}> ignored Killer Fish and now he's angry, user lost {NiceMoney((float)moneyLost)}! Ignoring will result in losing higher amount of money than by any other interaction, be careful next time!");
 
 				user.Money = user.Money - moneyLost;
-				await UpdateUser(user);
+				await UpdateOrCreateUser(user);
 			}
 		}
 		public async Task HelloKillerfish(SocketMessageComponent component)
@@ -177,7 +154,7 @@ public partial class Fishley
 				_ = await component.FollowupAsync($"Killer Fish has been greeted by **{component.User.GlobalName}**, and he is feeling **kind** today! <@{component.User.Id}> receives {NiceMoney((float)MoneyToAdd)} as a blessing gift.", ephemeral: false);
 
 				user.Money = user.Money + MoneyToAdd;
-				await UpdateUser(user);
+				await UpdateOrCreateUser(user);
 			}
 			else
 			{
@@ -194,7 +171,7 @@ public partial class Fishley
 				_ = await component.FollowupAsync($"Oh no! **{component.User.GlobalName}** greeted Killer Fish, but Killer Fish shows **NO FORGIVENESS**. <@{component.User.Id}> was robbed by Killer Fish and lost {NiceMoney((float)moneyLost)}...", ephemeral: false);
 
 				user.Money = user.Money - moneyLost;
-				await UpdateUser(user);
+				await UpdateOrCreateUser(user);
 			}
 		}
 
@@ -238,7 +215,7 @@ public partial class Fishley
 				await command.FollowupAsync($"<@{command.User.Id}> didn't disarm the Naval Mine and lost {NiceMoney((float)moneyLost)}!");
 
 				user.Money = user.Money - moneyLost;
-				await UpdateUser(user);
+				await UpdateOrCreateUser(user);
 			}
 		}
 

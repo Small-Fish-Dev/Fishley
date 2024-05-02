@@ -83,6 +83,19 @@ public partial class Fishley
 		return AnimalRarities.Last();
 	}
 
+	public static async Task<AnimalEntry> GetRandomAnimal()
+	{
+		using (var db = new AnimalsDatabase())
+		{
+			int count = await db.Animals.CountAsync();
+			if (count == 0) return null;
+
+			int index = new Random().Next(count);
+			var randomAnimal = await db.Animals.OrderBy(a => Guid.NewGuid()).Skip(index).FirstOrDefaultAsync();
+			return randomAnimal;
+		}
+	}
+
 	public struct AnimalEmbedBuilder
 	{
 		public AnimalEntry AnimalEntry;

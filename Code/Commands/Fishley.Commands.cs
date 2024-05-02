@@ -7,7 +7,6 @@ public partial class Fishley
 		{ "fish", new RandomFishCommand() },
 		{ "speak", new SpeakCommand() },
 		{ "balance", new BalanceCommand() },
-		{ "fish_database", new EditFish() },
 		{ "transfer", new TransferCommand() },
 		{ "invoice", new InvoiceCommand() },
 		{ "leaderboards", new LeaderboardsCommand() }

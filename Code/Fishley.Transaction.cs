@@ -116,8 +116,8 @@ public partial class Fishley
 				creator.Money -= (decimal)transaction.Amount;
 			}
 
-			await UpdateUser(target);
-			await UpdateUser(creator);
+			await UpdateOrCreateUser(target);
+			await UpdateOrCreateUser(creator);
 
 			transaction.State = TransactionState.Accepted;
 			await transaction.Update();

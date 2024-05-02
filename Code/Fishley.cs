@@ -78,7 +78,7 @@ public partial class Fishley
 		if (token == null)
 			DebugSay("Token not found!");
 
-		await InitializeFishRarityGroups(100f / FishRarities.Count());
+		await InitializeRarityGroups();
 
 		await Client.LoginAsync(TokenType.Bot, token);
 		await Client.StartAsync();

@@ -57,7 +57,7 @@ public partial class Fishley
 
 		storedUser.Warnings = Math.Min(storedUser.Warnings + 1, 3);
 		storedUser.LastWarn = DateTime.UtcNow;
-		await UpdateUser(storedUser);
+		await UpdateOrCreateUser(storedUser);
 
 		DebugSay($"Given warning to {user.GlobalName}({user.Id})");
 		await SendMessage(channel, $"{message}{(includeWarnCount ? $" ({(timedOut ? "Timed Out" : $"Warning {storedUser.Warnings}/3")})" : "")}", reply ? socketMessage : null);
@@ -90,7 +90,7 @@ public partial class Fishley
 		DebugSay($"Removed warning from {user.GlobalName}({user.Id})");
 
 		storedUser.Warnings = Math.Max(storedUser.Warnings - 1, 0);
-		await UpdateUser(storedUser);
+		await UpdateOrCreateUser(storedUser);
 	}
 
 	private static async Task WarnsDecayCheck()
