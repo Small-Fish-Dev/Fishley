@@ -34,8 +34,8 @@ public partial class Fishley
 			}
 
 			var badLuck = passed <= 5;
-			var isSeaMine = passed <= 15 && Random.Next(100) <= 10; // 10% chance of sea mine
-			var isKillerFish = passed <= 20 && Random.Next(100) <= 3; // 3% chance of killer fish
+			var isSeaMine = passed <= 5 && Random.Next(100) <= 6; // 6% chance of sea mine
+			var isKillerFish = passed <= 10 && Random.Next(100) <= 2; // 2% chance of killer fish
 
 
 			if (isSeaMine)

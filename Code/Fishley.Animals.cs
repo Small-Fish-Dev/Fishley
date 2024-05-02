@@ -87,11 +87,11 @@ public partial class Fishley
 	{
 		using (var db = new AnimalsDatabase())
 		{
-			int count = await db.Animals.CountAsync();
-			if (count == 0) return null;
+			var animals = await db.Animals.ToListAsync();
+			if (animals == null || animals.Count() == 0) return null;
 
-			int index = new Random().Next(count);
-			var randomAnimal = await db.Animals.OrderBy(a => Guid.NewGuid()).Skip(index).FirstOrDefaultAsync();
+			int index = Random.Next(animals.Count());
+			var randomAnimal = animals[index];
 			return randomAnimal;
 		}
 	}
@@ -157,7 +157,7 @@ public partial class Fishley
 			}
 
 			if (Image)
-				embedBuilder = embedBuilder.WithImageUrl(AnimalEntry.ImageUrl);
+				embedBuilder = embedBuilder.WithImageUrl($"https://{AnimalEntry.ImageUrl}"); // Annoying ass
 
 			if (Rarity)
 			{
