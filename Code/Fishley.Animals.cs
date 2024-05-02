@@ -96,6 +96,29 @@ public partial class Fishley
 		}
 	}
 
+	public static async Task<AnimalEntry> GetRandomAnimalFromRarity(Rarity rarity)
+	{
+		using (var db = new AnimalsDatabase())
+		{
+			var animals = await db.Animals.ToListAsync();
+			if (animals == null || animals.Count() == 0) return null;
+
+			AnimalEntry randomAnimal = null;
+
+			// This is faster than sorting the database lol :-)
+			while (randomAnimal == null)
+			{
+				int index = Random.Next(animals.Count());
+				var currentAnimal = animals[index];
+
+				if (GetRarity(currentAnimal.MonthlyViews) == rarity)
+					randomAnimal = currentAnimal;
+			}
+
+			return randomAnimal;
+		}
+	}
+
 	public struct AnimalEmbedBuilder
 	{
 		public AnimalEntry AnimalEntry;

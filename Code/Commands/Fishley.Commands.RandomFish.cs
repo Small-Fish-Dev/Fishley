@@ -37,7 +37,6 @@ public partial class Fishley
 			var isSeaMine = passed <= 5 && Random.Next(100) <= 6; // 6% chance of sea mine
 			var isKillerFish = passed <= 10 && Random.Next(100) <= 2; // 2% chance of killer fish
 
-
 			if (isSeaMine)
 			{
 				var embed = SeaMineEmbed(command.User, false, false);
@@ -66,8 +65,9 @@ public partial class Fishley
 			else
 			{
 
-				//var luck = (int)(Math.Min((float)passed, 21600f) / 21600f) - (badLuck ? 1 : 0); // 3 hours = 0.5 luck, 6 hours = 1.0 luck - 21600 = 6 hours
-				var randomAnimal = await GetRandomAnimal();
+				var maxLuckTime = 60f * 60f * 48f; // 2 days
+				var luck = (int)(Math.Min((float)passed, maxLuckTime) / maxLuckTime) * 15 - (badLuck ? 1 : 0);
+				var randomAnimal = await GetRandomAnimalFromRarity(new ListSelector().SelectItem(AnimalRarities, 3 + luck, 7));
 				var embedTitle = $"{command.User.GlobalName} caught: {randomAnimal.CommonName}!";
 
 				var embed = new AnimalEmbedBuilder(randomAnimal, embedTitle, command.User)
