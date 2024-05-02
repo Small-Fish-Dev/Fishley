@@ -2,6 +2,16 @@ namespace Fishley;
 
 public partial class Fishley
 {
+	public class AnimalsDatabase : DbContext
+	{
+		public DbSet<AnimalEntry> Animals { get; set; }
+
+		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+		{
+			optionsBuilder.UseSqlite("Data Source=animals.db");
+		}
+	}
+
 	/// <summary>
 	/// Get an animal entry by id
 	/// </summary>
@@ -51,16 +61,6 @@ public partial class Fishley
 				db.Entry(foundAnimal).CurrentValues.SetValues(entry);
 
 			await db.SaveChangesAsync();
-		}
-	}
-
-	public class AnimalsDatabase : DbContext
-	{
-		public DbSet<AnimalEntry> Animals { get; set; }
-
-		protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-		{
-			optionsBuilder.UseSqlite("Data Source=animals.db");
 		}
 	}
 
