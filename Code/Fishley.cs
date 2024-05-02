@@ -221,6 +221,7 @@ public partial class Fishley
 
 		var giver = guildChannel.GetUser(reaction.UserId);
 		if (giver is null || !CanModerate(giver)) return;
+		if (giver.IsBot) return;
 
 		var message = await cacheableMessage.GetOrDownloadAsync();
 		if (message is null) return;
