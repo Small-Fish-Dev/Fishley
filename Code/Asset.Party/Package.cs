@@ -58,7 +58,7 @@ public struct Package
 
 	public Package() { }
 
-	public Embed ToEmbed()
+	public async Task<(Embed, string)> ToEmbed()
 	{
 		var embedBuilder = new EmbedBuilder()
 		.WithTitle($"{Type.ToUpper()} - {Title}")
@@ -73,9 +73,33 @@ public struct Package
 		.AddField("Created:", $"<t:{((DateTimeOffset)Created).ToUnixTimeSeconds()}:R>", true)
 		.AddField("Updated:", $"<t:{((DateTimeOffset)Updated).ToUnixTimeSeconds()}:R>", true);
 
-		if (Screenshots != null && Screenshots.Count() >= 1)
-			embedBuilder = embedBuilder.WithImageUrl(Screenshots.First().Url);
+		string path = null;
 
-		return embedBuilder.Build();
+		if (Thumb.Contains(".mp4"))
+		{
+			path = await VideoToGif.FromUrl(VideoThumb);
+			embedBuilder = embedBuilder.WithImageUrl($"attachment://{path}");
+			Console.WriteLine("1");
+		}
+		else
+		{
+			if (Screenshots != null && Screenshots.First().Url.Contains(".mp4"))
+			{
+				path = await VideoToGif.FromUrl(Screenshots.First().Url);
+				embedBuilder = embedBuilder.WithImageUrl($"attachment://{path}");
+				Console.WriteLine("2");
+			}
+			else
+			{
+				embedBuilder = embedBuilder.WithImageUrl(Thumb);
+				Console.WriteLine("3");
+			}
+		}
+
+		Console.WriteLine(Thumb);
+		Console.WriteLine(VideoThumb);
+		Console.WriteLine(Screenshots.First());
+
+		return (embedBuilder.Build(), path);
 	}
 }

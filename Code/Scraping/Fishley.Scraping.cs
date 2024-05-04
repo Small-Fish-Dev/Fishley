@@ -34,7 +34,8 @@ public partial class Fishley
 				if (currentUrls == null || !currentUrls.Contains(fetched.Item1))
 				{
 					scrapedWebsites[scraper.Key].Add(fetched.Item1);
-					await SendMessage((SocketTextChannel)scraper.Value.ChannelToPost, $"{fetched.Item1}", embed: fetched.Item2);
+
+					await SendMessage((SocketTextChannel)scraper.Value.ChannelToPost, $"{fetched.Item1}", embed: fetched.Item2, pathToUpload: fetched.Item3);
 				}
 			}
 		}
@@ -59,10 +60,10 @@ public partial class Fishley
 		public virtual SocketGuildChannel ChannelToPost { get; private set; }
 		public DateTime LastFetched { get; set; }
 
-		public virtual async Task<(string, Embed)> Fetch()
+		public virtual async Task<(string, Embed, string)> Fetch()
 		{
 			await Task.CompletedTask;
-			return (null, null);
+			return (null, null, null);
 		}
 	}
 }
