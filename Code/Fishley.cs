@@ -121,6 +121,8 @@ public partial class Fishley
 
 	private static async Task OnUpdate()
 	{
+		if (!Running) return;
+
 		await WarnsDecayCheck();
 		await ComputeScrapers();
 		await HandleTransactionExpiration();
@@ -222,6 +224,7 @@ public partial class Fishley
 
 	private static async Task ReactionAdded(Cacheable<IUserMessage, ulong> cacheableMessage, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
 	{
+		if (!Running) return;
 		if (!reaction.Emote.Equals(WarnEmoji)) return;
 		if (reaction.Channel is not SocketGuildChannel guildChannel) return;
 
@@ -265,12 +268,19 @@ public partial class Fishley
 			{
 				if (userMessage.Content.Contains("emergency", StringComparison.OrdinalIgnoreCase))
 				{
-					// emergancy detected
 					await message.Channel.SendMessageAsync("Emergency protocol initiated. Shutting down.");
-					//Environment.Exit(127);
+					Running = false;
+				}
+				if (userMessage.Content.Contains("restart", StringComparison.OrdinalIgnoreCase))
+				{
+					await message.Channel.SendMessageAsync("Restarting protocol initiated. Restarting.");
+					Environment.Exit(127);
 				}
 			}
 		}
+
+
+		if (!Running) return;
 
 		if (await HandleFilters(userMessage))
 			return;
@@ -297,6 +307,7 @@ public partial class Fishley
 
 	private static async Task MessageUpdated(Cacheable<IMessage, ulong> before, SocketMessage after, ISocketMessageChannel channel)
 	{
+		if (!Running) return;
 		if (after is not SocketUserMessage userMessage)
 			return;
 		if (userMessage.Author.IsBot)
