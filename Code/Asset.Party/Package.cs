@@ -79,26 +79,26 @@ public struct Package
 		{
 			path = await VideoToGif.FromUrl(VideoThumb);
 			embedBuilder = embedBuilder.WithImageUrl($"attachment://{path}");
-			Console.WriteLine("1");
 		}
 		else
 		{
-			if (Screenshots != null && Screenshots.First().Url.Contains(".mp4"))
+			if (Screenshots != null && Screenshots.Count() > 0)
 			{
-				path = await VideoToGif.FromUrl(Screenshots.First().Url);
-				embedBuilder = embedBuilder.WithImageUrl($"attachment://{path}");
-				Console.WriteLine("2");
+				if (Screenshots.First().Url.Contains(".mp4"))
+				{
+					path = await VideoToGif.FromUrl(Screenshots.First().Url);
+					embedBuilder = embedBuilder.WithImageUrl($"attachment://{path}");
+				}
+				else
+				{
+					embedBuilder = embedBuilder.WithImageUrl(Screenshots.First().Url);
+				}
 			}
 			else
 			{
 				embedBuilder = embedBuilder.WithImageUrl(Thumb);
-				Console.WriteLine("3");
 			}
 		}
-
-		Console.WriteLine(Thumb);
-		Console.WriteLine(VideoThumb);
-		Console.WriteLine(Screenshots.First());
 
 		return (embedBuilder.Build(), path);
 	}

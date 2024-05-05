@@ -44,9 +44,9 @@ public partial class Fishley
 
 		foreach (var links in scrapedWebsites.Values)
 		{
-			if (links.Count() >= maxCount)
+			if (links.Count() > maxCount)
 			{
-				links.RemoveAt(maxCount);
+				links.RemoveAt(0);
 			}
 		}
 
