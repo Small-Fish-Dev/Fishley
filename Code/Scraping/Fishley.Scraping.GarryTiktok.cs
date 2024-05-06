@@ -2,11 +2,11 @@ namespace Fishley;
 
 public partial class Fishley
 {
-	public class LatentPlacesScrapper : WebsiteScraper
+	public class GarryTiktokScraper : WebsiteScraper
 	{
-		public override string Url => "https://urlebird.com/user/latentplaces/";
-		public override int SecondsCooldown => 60 * 20 + 1; // 20 Minutes
-		public override SocketGuildChannel ChannelToPost => CryptoZoologyChannel;
+		public override string Url => "https://urlebird.com/user/garrynewman/";
+		public override int SecondsCooldown => 60 * 20 + 2; // 20 Minutes
+		public override SocketGuildChannel ChannelToPost => SboxFeedChannel;
 
 		public override async Task<(string, Embed, string)> Fetch()
 		{
@@ -31,7 +31,7 @@ public partial class Fishley
 						links.Add(match.Value);
 				}
 
-				return (links[1], null, null); // Skip the first one that's pinned
+				return (links.First(), null, null);
 			}
 		}
 	}

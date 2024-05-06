@@ -10,7 +10,9 @@ public partial class Fishley
 		{ "youtube", new YoutubeScraper() },
 		{ "garry", new GarryScraper() },
 		{ "asset.party", new AssetPartyScraper() },
-		{ "latentplaces", new LatentPlacesScrapper() }
+		{ "latentplaces", new LatentPlacesScrapper() },
+		{ "garrytiktok", new GarryTiktokScraper() },
+		{ "mindfunk", new MindfunkScraper() }
 	};
 
 	public static async Task ComputeScrapers()

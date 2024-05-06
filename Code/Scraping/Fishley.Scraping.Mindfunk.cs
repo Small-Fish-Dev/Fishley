@@ -2,9 +2,9 @@ namespace Fishley;
 
 public partial class Fishley
 {
-	public class LatentPlacesScrapper : WebsiteScraper
+	public class MindfunkScraper : WebsiteScraper
 	{
-		public override string Url => "https://urlebird.com/user/latentplaces/";
+		public override string Url => "https://urlebird.com/user/mindfunk7/";
 		public override int SecondsCooldown => 60 * 20 + 1; // 20 Minutes
 		public override SocketGuildChannel ChannelToPost => CryptoZoologyChannel;
 
@@ -31,7 +31,7 @@ public partial class Fishley
 						links.Add(match.Value);
 				}
 
-				return (links[1], null, null); // Skip the first one that's pinned
+				return (links[3], null, null); // Skip the first three that are pinned
 			}
 		}
 	}
