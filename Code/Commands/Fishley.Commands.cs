@@ -14,6 +14,8 @@ public partial class Fishley
 
 	private static async Task SlashCommandHandler(SocketSlashCommand command)
 	{
+		if (!Running) return;
+
 		var name = command.Data.Name;
 		var channel = command.Channel;
 
@@ -35,6 +37,8 @@ public partial class Fishley
 
 	private static async Task ButtonHandler(SocketMessageComponent component)
 	{
+		if (!Running) return;
+
 		var componentId = component.Data.CustomId;
 		if (componentId == null) return; // Unpossible
 
