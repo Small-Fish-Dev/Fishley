@@ -9,7 +9,8 @@ public partial class Fishley
 		{ "r_sandbox", new SubredditScraper() },
 		{ "youtube", new YoutubeScraper() },
 		{ "garry", new GarryScraper() },
-		{ "asset.party", new AssetPartyScraper() }
+		{ "asset.party", new AssetPartyScraper() },
+		{ "latentplaces", new LatentPlacesScrapper() }
 	};
 
 	public static async Task ComputeScrapers()
@@ -33,7 +34,10 @@ public partial class Fishley
 
 				if (currentUrls == null || !currentUrls.Contains(fetched.Item1))
 				{
-					scrapedWebsites[scraper.Key].Add(fetched.Item1);
+					if (scrapedWebsites.ContainsKey(scraper.Key))
+						scrapedWebsites[scraper.Key].Add(fetched.Item1);
+					else
+						scrapedWebsites.Add(scraper.Key, new List<string>() { fetched.Item1 });
 
 					await SendMessage((SocketTextChannel)scraper.Value.ChannelToPost, $"{fetched.Item1}", embed: fetched.Item2, pathToUpload: fetched.Item3);
 				}
