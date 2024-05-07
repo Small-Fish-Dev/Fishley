@@ -289,13 +289,32 @@ public partial class Fishley
 
 		if (mentioned)
 		{
-			List<string> phrases = new List<string>
+			List<string> phrases;
+			
+			if (message.Content.TrimEnd().EndsWith('?'))
 			{
-				"Fintastic day we're having!",
-				"Let minnow if you need anything!",
-				"Small fish, big dreams!",
-				"For what porpoise you call me?"
-			};
+				phrases = [
+					"Absolutely!",
+					"Nope!",
+					"Maybe...",
+					"Catch me later!",
+					"Probably",
+					"Yes!",
+					"Yesn't!",
+					"Of course!",
+					"Ask another fish!"
+				];
+			}
+			else
+			{
+				phrases = new List<string>
+				{
+					"Fintastic day we're having!",
+					"Let minnow if you need anything!",
+					"Small fish, big dreams!",
+					"For what porpoise you call me?"
+				};
+			}
 
 			int randomIndex = Random.Next(phrases.Count);
 			string randomPhrase = phrases[randomIndex];
