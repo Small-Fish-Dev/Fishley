@@ -294,7 +294,8 @@ public partial class Fishley
 				"Fintastic day we're having!",
 				"Let minnow if you need anything!",
 				"Small fish, big dreams!",
-				"For what porpoise you call me?"
+				"For what porpoise you call me?",
+				"kicks is a small fish employee"
 			};
 
 			int randomIndex = Random.Next(phrases.Count);
