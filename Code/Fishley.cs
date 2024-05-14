@@ -138,7 +138,7 @@ public partial class Fishley
 	/// <param name="embed"></param>
 	/// <param name="pathToUpload"></param>
 	/// <returns></returns>
-	public static async Task<bool> SendMessage(SocketTextChannel channel, string message, SocketMessage messageToReply = null, float deleteAfterSeconds = 0, Embed embed = null, string pathToUpload = null)
+	public static async Task<bool> SendMessage(SocketTextChannel channel, string message, SocketMessage messageToReply = null, float deleteAfterSeconds = 0, Embed embed = null, string pathToUpload = null, MessageComponent component = null)
 	{
 		if (channel is null) return false;
 		if (string.IsNullOrWhiteSpace(message) || string.IsNullOrEmpty(message)) return false;
@@ -153,7 +153,9 @@ public partial class Fishley
 		if (pathToUpload != null)
 			await channel.SendFileAsync(pathToUpload, message, messageReference: replyTo, embed: embed);
 		else
-			await channel.SendMessageAsync(message, messageReference: replyTo, embed: embed);
+		{
+			await channel.SendMessageAsync(message, messageReference: replyTo, components: component, embed: embed);
+		}
 
 		if (sentMessage != null)
 		{
@@ -248,10 +250,15 @@ public partial class Fishley
 		}
 		else
 		{
-			if (CanModerate(user))
+			if (IsAdmin(user))
 				await SendMessage(textChannel, $"<@{giver.Id}> attempted to warn <@{user.Id}> but I'm not powerful enough to do it.", deleteAfterSeconds: 5f);
 			else
-				await AddWarn(user, textMessage, $"<@{giver.Id}> warned <@{user.Id}>", warnEmoteAlreadyThere: true);
+			{
+				if (IsSmallFish(user) && !IsAdmin(user) && !IsAdmin(giver))
+					await SendMessage(textChannel, $"<@{giver.Id}> attempted to warn <@{user.Id}> but they're not powerful enough to do it.", deleteAfterSeconds: 5f);
+				else
+					await AddWarn(user, textMessage, $"<@{giver.Id}> warned <@{user.Id}>", warnEmoteAlreadyThere: true);
+			}
 		}
 	}
 
@@ -290,7 +297,7 @@ public partial class Fishley
 		if (mentioned)
 		{
 			List<string> phrases;
-			
+
 			if (message.Content.TrimEnd().EndsWith('?'))
 			{
 				phrases = [
@@ -319,8 +326,7 @@ public partial class Fishley
 			int randomIndex = Random.Next(phrases.Count);
 			string randomPhrase = phrases[randomIndex];
 
-			var reference = new MessageReference(message.Id);
-			await message.Channel.SendMessageAsync(randomPhrase, messageReference: reference);
+			await SendMessage((SocketTextChannel)message.Channel, randomPhrase, message);
 		}
 	}
 

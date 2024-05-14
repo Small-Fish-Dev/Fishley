@@ -29,7 +29,7 @@ public partial class Fishley
 		if (channel == null || message == null || socketMessage == null) return;
 		if (socketMessage.Reactions.FirstOrDefault(x => x.Key.Equals(WarnEmoji)).Value.ReactionCount >= (warnEmoteAlreadyThere ? 2 : 1)) return; // Don't warn if this message led to a warn already
 
-		if (CanModerate(user))
+		if (IsAdmin(user))
 		{
 			DebugSay($"Attempted to give warning to {user.GlobalName}({user.Id})");
 			await SendMessage(channel, $"{message} I can't warn you so please don't do it again.", reply ? socketMessage : null, 5f);
