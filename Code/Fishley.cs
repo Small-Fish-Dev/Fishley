@@ -105,13 +105,15 @@ public partial class Fishley
 
 		foreach (var command in Commands.Values)
 		{
-			if (existingCommands.Any(x => x.Name == command.Builder.Name)) continue;
+			if (existingCommands.Any(x => command.Builder != null && x.Name == command.Builder.Name)) continue;
+			if (command.Builder == null) continue;
 
 			await SmallFishServer.CreateApplicationCommandAsync(command.Builder.Build());
 			await Task.Delay(300); // Wait a bit in between
 		} // Add any new commands
 
-		var allCommandsUpdated = Commands.Values.Select(x => x.Builder.Build())
+		var allCommandsUpdated = Commands.Values.Where(x => x.Builder != null)
+		.Select(x => x.Builder.Build())
 			.ToArray();
 		await SmallFishServer.BulkOverwriteApplicationCommandAsync(allCommandsUpdated); // Update commands if they were modified
 

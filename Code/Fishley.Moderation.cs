@@ -60,7 +60,11 @@ public partial class Fishley
 		await UpdateOrCreateUser(storedUser);
 
 		DebugSay($"Given warning to {user.GlobalName}({user.Id})");
-		await SendMessage(channel, $"{message}{(includeWarnCount ? $" ({(timedOut ? "Timed Out" : $"Warning {storedUser.Warnings}/3")})" : "")}", reply ? socketMessage : null);
+		var component = new ComponentBuilder()
+			.WithButton("Remove Warn ($50.00)", $"fine_paid-{50}-{user.Id}", ButtonStyle.Danger)
+			.Build();
+
+		await SendMessage(channel, $"{message}{(includeWarnCount ? $" ({(timedOut ? "Timed Out" : $"Warning {storedUser.Warnings}/3")})" : "")}", reply ? socketMessage : null, component: component);
 
 		await socketMessage.AddReactionAsync(WarnEmoji);
 	}
