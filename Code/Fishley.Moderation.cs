@@ -64,7 +64,7 @@ public partial class Fishley
 
 		DebugSay($"Given warning to {user.GlobalName}({user.Id})");
 		var component = new ComponentBuilder()
-			.WithButton($"Remove Warn ({NiceMoney((float)warnPrice)})", $"fine_paid-{warnPrice}-{user.Id}", ButtonStyle.Danger)
+			.WithButton($"Remove Warn (${warnPrice}.00)", $"fine_paid-{warnPrice}-{user.Id}", ButtonStyle.Danger)
 			.Build();
 
 		await SendMessage(channel, $"{message}{(includeWarnCount ? $" ({(timedOut ? "Timed Out" : $"Warning {storedUser.Warnings}/3")})" : "")}", reply ? socketMessage : null, component: component);
