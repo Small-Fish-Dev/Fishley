@@ -13,6 +13,13 @@ public partial class Fishley
 		OpenAIClient = new OpenAI_API.OpenAIAPI(_openAIKey);
 	}
 
+	/// <summary>
+	/// Get a response out of Fishley through ChatGPT
+	/// </summary>
+	/// <param name="input"></param>
+	/// <param name="context"></param>
+	/// <param name="gpt4"></param>
+	/// <returns></returns>
 	public static async Task<string> OpenAIChat(string input, string context = null, bool gpt4 = false)
 	{
 		var chat = OpenAIClient.Chat.CreateConversation();
@@ -23,9 +30,15 @@ public partial class Fishley
 			chat.AppendSystemMessage(context);
 
 		chat.AppendUserInput(input);
-		var response = await chat.GetResponseFromChatbotAsync();
+		return await chat.GetResponseFromChatbotAsync();
 	}
 
+	/// <summary>
+	/// Let Fishley repond to a message through ChatGPT
+	/// </summary>
+	/// <param name="message"></param>
+	/// <param name="gpt4"></param>
+	/// <returns></returns>
 	public static async Task OpenAIRespond(SocketMessage message, bool gpt4 = false)
 	{
 		var messageAuthor = (SocketGuildUser)message.Author;
@@ -37,9 +50,9 @@ public partial class Fishley
 			if (!role.IsEveryone)
 				rolesString = $"{rolesString}, {role.Name}";
 
-		var context = $"[This message is sent by the user: {message.Author.GlobalName}. The user has has {storedUser.Warnings}/3 warnings. The user is the following roles: {rolesString}. The message was sent at {DateTime.UtcNow.ToString()}UTC.]:";
+		var context = $"[This message is sent by the user: {message.Author.GlobalName}. The user has has {storedUser.Warnings}/3 warnings. The user is the following roles: {rolesString}. The message was sent at {DateTime.UtcNow}UTC.]:";
 
-		var response = await OpenAIChat(message.Content, context, gpt4);
+		var response = await OpenAIChat(message.CleanContent, context, gpt4);
 
 		var hasWarning = response.Contains("[WARNING]");
 
@@ -60,5 +73,27 @@ public partial class Fishley
 	{
 		var messageAuthor = (SocketGuildUser)message.Author;
 		var messageChannel = (SocketTextChannel)message.Channel;
+
+		var moderation = await OpenAIClient.Moderation.CallModerationAsync(message.CleanContent);
+		var minimumModeration = 5f; // 5% will make this editable later TODO: Some roles have higher percentages required
+
+		if (moderation.Results.Any(x => x.HighestFlagScore * 100f >= minimumModeration))
+		{
+			var allCategories = moderation.Results.SelectMany(x => x.CategoryScores)
+				.Where(x => x.Value * 100f >= minimumModeration)
+				.OrderByDescending(x => x.Value);
+
+			var categoriesString = "";
+			foreach (var category in allCategories)
+				categoriesString = $"{categoriesString}**{category.Key}:** {Math.Round(category.Value * 100f, 1)}%;\n";
+
+			var responseString = $"I find that your message breaks one of our rules, perhaps I'll warn you, please don't do it again!\nThese are the categories your message fall into:\n{categoriesString}";
+
+			await AddWarn((SocketGuildUser)message.Author, message, responseString);
+			return true;
+		}
+		else
+			return false;
+
 	}
 }
