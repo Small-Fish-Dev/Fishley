@@ -10,7 +10,8 @@ public partial class Fishley
 		{ "transfer", new TransferCommand() },
 		{ "invoice", new InvoiceCommand() },
 		{ "leaderboards", new LeaderboardsCommand() },
-		{ "finebutton", new FineButton() }
+		{ "finebutton", new FineButton() },
+		{ "generate", new ImageCommand() }
 	};
 
 	private static async Task SlashCommandHandler(SocketSlashCommand command)

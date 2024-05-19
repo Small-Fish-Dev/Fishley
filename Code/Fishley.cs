@@ -295,14 +295,14 @@ public partial class Fishley
 		if (await HandleFilters(userMessage))
 			return;
 
-		if (await ModerateMessage(message))
+		if (await ModerateMessage(message)) // TODO Don't moderate moderators to save money
 			return;
 
 		var mentioned = message.MentionedUsers.Any(user => user.Id == FishleyId);
 
 		if (mentioned)
 		{
-			await OpenAIRespond(message, CanModerate((SocketGuildUser)message.Author));
+			OpenAIRespond(message, CanModerate((SocketGuildUser)message.Author)); // Let's try not awaiting it
 			return;
 		}
 	}
