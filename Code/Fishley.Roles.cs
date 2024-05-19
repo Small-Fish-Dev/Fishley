@@ -12,5 +12,7 @@ public partial class Fishley
 
 	public static bool IsSmallFish(SocketGuildUser user) => user.Roles.Contains(SmallFishRole);
 	public static bool IsAdmin(SocketGuildUser user) => user.Roles.Contains(AdminRole);
+	public static bool IsClambassador(SocketGuildUser user) => user.Roles.Contains(ClambassadorRole);
+	public static bool IsFishOfTheDay(SocketGuildUser user) => user.Roles.Contains(FishOfTheDayRole);
 	public static bool CanModerate(SocketGuildUser user) => IsAdmin(user) || IsSmallFish(user);
 }

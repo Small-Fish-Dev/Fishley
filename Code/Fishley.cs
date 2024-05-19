@@ -22,6 +22,7 @@ global using System.ComponentModel.DataAnnotations.Schema;
 global using System.Net;
 global using AssetParty;
 global using Animals;
+global using OpenAI_API;
 
 namespace Fishley;
 
@@ -288,7 +289,6 @@ public partial class Fishley
 			}
 		}
 
-
 		if (!Running) return;
 
 		if (await HandleFilters(userMessage))
@@ -298,37 +298,23 @@ public partial class Fishley
 
 		if (mentioned)
 		{
-			List<string> phrases;
+			var user = await GetOrCreateUser(message.Author.Id);
+			var apiKey = ConfigGet<string>("ChatGPTKey");
+			var prompt = ConfigGet<string>("FishleyPrompt");
+			var client = new OpenAI_API.OpenAIAPI(apiKey);
+			var chat = client.Chat.CreateConversation();
+			chat.Model = OpenAI_API.Models.Model.ChatGPTTurbo;
+			chat.AppendSystemMessage(prompt);
 
-			if (message.Content.TrimEnd().EndsWith('?'))
-			{
-				phrases = [
-					"Absolutely!",
-					"Nope!",
-					"Maybe...",
-					"Catch me later!",
-					"Probably",
-					"Yes!",
-					"Yesn't!",
-					"Of course!",
-					"Ask another fish!"
-				];
-			}
-			else
-			{
-				phrases = new List<string>
-				{
-					"Fintastic day we're having!",
-					"Let minnow if you need anything!",
-					"Small fish, big dreams!",
-					"For what porpoise you call me?"
-				};
-			}
+			var rolesString = $"{(IsSmallFish((SocketGuildUser)message.Author) ? "Is a member of Small Fish, " : "")}{(IsAdmin((SocketGuildUser)message.Author) ? "Is an Admin, " : "")}{(IsClambassador((SocketGuildUser)message.Author) ? "Is a Clambassador, " : "")}{(IsFishOfTheDay((SocketGuildUser)message.Author) ? "Is the Fish of the Day, " : "")}";
+			var input = $"[This message is sent by the user: {message.Author.GlobalName}, who has {user.Warnings}/3 warnings], {rolesString}, sent at {DateTime.UtcNow.ToString()}UTC and has said the following]: {message.Content}";
+			chat.AppendUserInput(input);
+			var response = await chat.GetResponseFromChatbotAsync();
+			var hasWarning = response.Contains("[WARNING]");
 
-			int randomIndex = Random.Next(phrases.Count);
-			string randomPhrase = phrases[randomIndex];
-
-			await SendMessage((SocketTextChannel)message.Channel, randomPhrase, message);
+			await SendMessage((SocketTextChannel)message.Channel, response.Replace("[WARNING]", ""), message);
+			if (hasWarning)
+				await AddWarn((SocketGuildUser)message.Author, message);
 		}
 	}
 
