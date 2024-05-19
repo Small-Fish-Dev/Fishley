@@ -103,6 +103,31 @@ public partial class Fishley
 			await SendMessage(messageChannel, clearedResponse, message);
 	}
 
+	// How sensitive it is to topics before it takes actions, from 0% to 100%
+	public static Dictionary<string, float> ModerationThresholds = new()
+	{
+		{ "sexual", 25f },
+		{ "hate", 75f },
+		{ "harassment", 80f },
+		{ "self-harm", 50f },
+		{ "sexual/minors", 5f },
+		{ "hate/threatening", 40f },
+		{ "violence/graphic", 50f },
+		{ "self-harm/intent", 50f },
+		{ "self-harm/instructions", 5f },
+		{ "harassment/threatening", 75f },
+		{ "violence", 80f },
+		{ "default", 50f }
+	};
+
+	public static float GetModerationThreshold(string key)
+	{
+		if (ModerationThresholds.ContainsKey(key))
+			return ModerationThresholds[key];
+		else
+			return ModerationThresholds["default"];
+	}
+
 	/// <summary>
 	/// Check if the message is problematic, returns true if a warning has been issued.
 	/// </summary>
@@ -114,14 +139,13 @@ public partial class Fishley
 		var messageChannel = (SocketTextChannel)message.Channel;
 
 		var moderation = await OpenAIClient.Moderation.CallModerationAsync(message.CleanContent);
-		var minimumModeration = 50f; // 50% will make this editable later TODO: Some roles have higher percentages required
 
-		if (moderation.Results.Any(x => x.HighestFlagScore * 100f >= minimumModeration))
+		var allCategories = moderation.Results.SelectMany(x => x.CategoryScores)
+			.Where(x => Math.Round(x.Value * 100f, 1) >= GetModerationThreshold(x.Key))
+			.OrderByDescending(x => x.Value);
+
+		if (allCategories.Count() > 0)
 		{
-			var allCategories = moderation.Results.SelectMany(x => x.CategoryScores)
-				.Where(x => x.Value * 100f >= minimumModeration)
-				.OrderByDescending(x => x.Value);
-
 			var categoriesString = "";
 			foreach (var category in allCategories)
 				categoriesString = $"{categoriesString}**{category.Key}:** {Math.Round(category.Value * 100f, 1)}%;\n";
@@ -145,7 +169,7 @@ public partial class Fishley
 	public static async Task<bool> IsTextBreakingRules(string message)
 	{
 		var moderation = await OpenAIClient.Moderation.CallModerationAsync(message);
-		var minimumModeration = 10f; // 50% will make this editable later TODO: Some roles have higher percentages required
+		var minimumModeration = 10f; // 10%, very liberal
 
 		if (moderation.Results.Any(x => x.HighestFlagScore * 100f >= minimumModeration))
 			return true;
