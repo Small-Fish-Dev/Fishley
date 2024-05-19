@@ -84,12 +84,14 @@ public partial class Fishley
 			}
 		}
 
-
 		if (reply != null)
 		{
 			context.Add($"[The message you're replying to is a reply to the following message sent by {((SocketGuildUser)reply.Author).DisplayName} that says '{reply.Content}']");
 			DebugSay($"[The message you're replying to is a reply to the following message sent by {((SocketGuildUser)reply.Author).DisplayName} that says '{reply.Content}']");
 		}
+
+		if (Emergency)
+			context.Add("[EMERGENCY MODE HAS BEEN ACTIVATED, RESPOND IN ALL CAPS, PANIC WHEN POSSIBLE, ADD ⚠️ EMOJI EVERYWHERE, FORM UNCOHERENT SENTENCES, GIVE WARNINGS AS MUCH AS POSSIBLE, FREAK OUT]");
 
 		var response = await OpenAIChat(message.CleanContent, context, gpt4);
 
