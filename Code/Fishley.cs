@@ -34,6 +34,7 @@ public partial class Fishley
 	private static string _configPath => @"/home/ubre/Desktop/Fishley/config.json";
 	public static Dictionary<string, string> Config { get; private set; }
 	public static bool Running { get; set; } = false;
+	public static bool Emergency { get; set; } = false;
 	public static DateTime LastMessage { get; set; } = DateTime.UtcNow;
 	public static int SecondsSinceLastMessage => (int)(DateTime.UtcNow - LastMessage).TotalSeconds;
 	public static HttpClient HttpClient { get; set; } = new HttpClient();

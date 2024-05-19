@@ -13,7 +13,8 @@ public partial class Fishley
 		{ "finebutton", new FineButton() },
 		{ "generate", new ImageCommand() },
 		{ "shutdown", new ShutdownCommand() },
-		{ "restart", new RestartCommand() }
+		{ "restart", new RestartCommand() },
+		{ "emergency", new EmergencyCommand() }
 	};
 
 	private static async Task SlashCommandHandler(SocketSlashCommand command)
