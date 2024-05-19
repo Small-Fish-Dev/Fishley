@@ -122,10 +122,11 @@ public partial class Fishley
 
 	public static float GetModerationThreshold(string key)
 	{
+		var multiplier = Emergency ? 0.2f : 1f;
 		if (ModerationThresholds.ContainsKey(key))
-			return ModerationThresholds[key];
+			return ModerationThresholds[key] * multiplier;
 		else
-			return ModerationThresholds["default"];
+			return ModerationThresholds["default"] * multiplier;
 	}
 
 	/// <summary>
@@ -150,7 +151,12 @@ public partial class Fishley
 			foreach (var category in allCategories)
 				categoriesString = $"{categoriesString}**{category.Key}:** {Math.Round(category.Value * 100f, 1)}%;\n";
 
-			var responseString = $"I find that your message breaks one of our rules, perhaps I'll warn you, please don't do it again!\nThese are the categories your message fall into:\n{categoriesString}";
+			var responseString = "";
+
+			if (Emergency)
+				responseString = $"⚠️**EMERGENCY MODERATION**⚠️\n YOU BROKE THE FOLLOWING:\n{categoriesString}";
+			else
+				responseString = $"I find that your message breaks one of our rules, perhaps I'll warn you, please don't do it again!\nThese are the categories your message fall into:\n{categoriesString}";
 
 			await AddWarn((SocketGuildUser)message.Author, message, responseString);
 			return true;
