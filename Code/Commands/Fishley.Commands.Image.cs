@@ -28,7 +28,7 @@ public partial class Fishley
 			var dalle3 = command.Data.Options.Count() > 1 ? (bool)command.Data.Options.Last().Value : false;
 
 			var storedUser = await GetOrCreateUser(command.User.Id);
-			var price = dalle3 ? 1f : 0.5f; // TODO CHANGE TO 100 AND 50
+			var price = dalle3 ? 10f : 5f; // TODO CHANGE TO 100 AND 50
 
 			if ((float)storedUser.Money < price)
 			{
