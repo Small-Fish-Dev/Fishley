@@ -295,10 +295,15 @@ public partial class Fishley
 		if (await HandleFilters(userMessage))
 			return;
 
+		if (await ModerateMessage(message))
+			return;
+
 		var mentioned = message.MentionedUsers.Any(user => user.Id == FishleyId);
 
 		if (mentioned)
 		{
+			await OpenAIRespond(message, CanModerate((SocketGuildUser)message.Author));
+			return;
 		}
 	}
 
