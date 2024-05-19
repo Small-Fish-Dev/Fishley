@@ -80,6 +80,7 @@ public partial class Fishley
 			DebugSay("Token not found!");
 
 		await InitializeRarityGroups();
+		InitiateOpenAI();
 
 		await Client.LoginAsync(TokenType.Bot, token);
 		await Client.StartAsync();
@@ -298,23 +299,6 @@ public partial class Fishley
 
 		if (mentioned)
 		{
-			var user = await GetOrCreateUser(message.Author.Id);
-			var apiKey = ConfigGet<string>("ChatGPTKey");
-			var prompt = ConfigGet<string>("FishleyPrompt");
-			var client = new OpenAI_API.OpenAIAPI(apiKey);
-			var chat = client.Chat.CreateConversation();
-			chat.Model = OpenAI_API.Models.Model.ChatGPTTurbo;
-			chat.AppendSystemMessage(prompt);
-
-			var rolesString = $"{(IsSmallFish((SocketGuildUser)message.Author) ? "Is a member of Small Fish, " : "")}{(IsAdmin((SocketGuildUser)message.Author) ? "Is an Admin, " : "")}{(IsClambassador((SocketGuildUser)message.Author) ? "Is a Clambassador, " : "")}{(IsFishOfTheDay((SocketGuildUser)message.Author) ? "Is the Fish of the Day, " : "")}";
-			var input = $"[This message is sent by the user: {message.Author.GlobalName}, who has {user.Warnings}/3 warnings], {rolesString}, sent at {DateTime.UtcNow.ToString()}UTC and has said the following]: {message.Content}";
-			chat.AppendUserInput(input);
-			var response = await chat.GetResponseFromChatbotAsync();
-			var hasWarning = response.Contains("[WARNING]");
-
-			await SendMessage((SocketTextChannel)message.Channel, response.Replace("[WARNING]", ""), message);
-			if (hasWarning)
-				await AddWarn((SocketGuildUser)message.Author, message);
 		}
 	}
 
