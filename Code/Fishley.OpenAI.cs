@@ -103,18 +103,18 @@ public partial class Fishley
 			await SendMessage(messageChannel, clearedResponse, message);
 	}
 
-	// How sensitive it is to topics before it takes actions, from 0% to 100%
+	// How sensitive it is to topics before it takes actions, from 0% to 100%, 0% = Always, 50% = Mentions, 100% Never
 	public static Dictionary<string, float> ModerationThresholds = new()
 	{
-		{ "sexual", 25f },
+		{ "sexual", 35f },
 		{ "hate", 75f },
 		{ "harassment", 80f },
 		{ "self-harm", 50f },
-		{ "sexual/minors", 5f },
+		{ "sexual/minors", 15f },
 		{ "hate/threatening", 40f },
 		{ "violence/graphic", 50f },
 		{ "self-harm/intent", 50f },
-		{ "self-harm/instructions", 5f },
+		{ "self-harm/instructions", 15f },
 		{ "harassment/threatening", 75f },
 		{ "violence", 80f },
 		{ "default", 50f }
