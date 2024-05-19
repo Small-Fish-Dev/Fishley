@@ -11,7 +11,9 @@ public partial class Fishley
 		{ "invoice", new InvoiceCommand() },
 		{ "leaderboards", new LeaderboardsCommand() },
 		{ "finebutton", new FineButton() },
-		{ "generate", new ImageCommand() }
+		{ "generate", new ImageCommand() },
+		{ "shutdown", new ShutdownCommand() },
+		{ "restart", new RestartCommand() }
 	};
 
 	private static async Task SlashCommandHandler(SocketSlashCommand command)

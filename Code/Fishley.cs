@@ -273,23 +273,6 @@ public partial class Fishley
 		if (userMessage.Author.IsBot)
 			return;
 
-		if (userMessage.Author is SocketGuildUser sender)
-		{
-			if (CanModerate(sender))
-			{
-				if (userMessage.Content.Contains("emergency", StringComparison.OrdinalIgnoreCase))
-				{
-					await message.Channel.SendMessageAsync("Emergency protocol initiated. Shutting down.");
-					Running = false;
-				}
-				if (userMessage.Content.Contains("restart", StringComparison.OrdinalIgnoreCase))
-				{
-					await message.Channel.SendMessageAsync("Restarting protocol initiated. Restarting.");
-					Environment.Exit(127);
-				}
-			}
-		}
-
 		if (!Running) return;
 
 		if (await HandleFilters(userMessage))
