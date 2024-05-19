@@ -6,7 +6,7 @@ public partial class Fishley
 	{
 		public override SlashCommandBuilder Builder => new SlashCommandBuilder()
 		.WithName("generate")
-		.WithDescription("Pay to generate an image from Fishley! ($50 for Dalle2 $100 for Dalle3)")
+		.WithDescription("Pay to generate an image from Fishley! ($25 for Dalle2 $50 for Dalle3)")
 		.AddOption(new SlashCommandOptionBuilder()
 			.WithName("prompt")
 			.WithDescription("What to generate")
@@ -28,7 +28,7 @@ public partial class Fishley
 			var dalle3 = command.Data.Options.Count() > 1 ? (bool)command.Data.Options.Last().Value : false;
 
 			var storedUser = await GetOrCreateUser(command.User.Id);
-			var price = dalle3 ? 10f : 5f; // TODO CHANGE TO 100 AND 50
+			var price = dalle3 ? 50f : 25f;
 
 			if ((float)storedUser.Money < price)
 			{
