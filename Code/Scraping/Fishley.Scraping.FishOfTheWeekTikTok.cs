@@ -31,6 +31,8 @@ public partial class Fishley
 						links.Add(match.Value);
 				}
 
+				if (links == null || links.Count() == 0) return (null, null, null);
+
 				return (links.First(), null, null);
 			}
 		}
