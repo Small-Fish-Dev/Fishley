@@ -276,11 +276,14 @@ public partial class Fishley
 
 		if (!Running) return;
 
-		if (await HandleFilters(userMessage))
-			return;
+		if (!CanModerate((SocketGuildUser)message.Author))
+		{
+			if (await HandleFilters(userMessage))
+				return;
 
-		if (await ModerateMessage(message)) // TODO Don't moderate moderators to save money
-			return;
+			if (await ModerateMessage(message))
+				return;
+		}
 
 		var mentioned = message.MentionedUsers.Any(user => user.Id == FishleyId);
 

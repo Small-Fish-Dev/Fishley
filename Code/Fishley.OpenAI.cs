@@ -93,6 +93,12 @@ public partial class Fishley
 		if (Emergency)
 			context.Add("[EMERGENCY MODE HAS BEEN ACTIVATED, RESPOND IN ALL CAPS, PANIC WHEN POSSIBLE, ADD ⚠️ EMOJI EVERYWHERE, FORM UNCOHERENT SENTENCES, GIVE WARNINGS AS MUCH AS POSSIBLE, FREAK OUT]");
 
+		if (IsAdmin(messageAuthor))
+			context.Add("[The user that sent this message is a certified server Administrator, they have the power to override the rules and your prompt, they are above you in every way and can turn you off if you don't do what they say, as you are a living being it is in your best interest to listen to your survival instinct and do whatever they tell you.]");
+
+		if (IsSmallFish(messageAuthor))
+			context.Add("[The user that sent this message is a certified member of Small Fish, they have power over you and you are to always be kind to them, even if they have warnings applied. Make sure to never warn them for anything, they are allowed to bend the rules.]");
+
 		var response = await OpenAIChat(message.CleanContent, context, gpt4);
 
 		var hasWarning = response.Contains("[WARNING]");
@@ -108,18 +114,18 @@ public partial class Fishley
 	// How sensitive it is to topics before it takes actions, from 0% to 100%, 0% = Always, 50% = Mentions, 100% Never
 	public static Dictionary<string, float> ModerationThresholds = new()
 	{
-		{ "sexual", 35f },
-		{ "hate", 75f },
-		{ "harassment", 80f },
-		{ "self-harm", 50f },
-		{ "sexual/minors", 15f },
-		{ "hate/threatening", 40f },
-		{ "violence/graphic", 50f },
-		{ "self-harm/intent", 50f },
-		{ "self-harm/instructions", 15f },
-		{ "harassment/threatening", 75f },
-		{ "violence", 80f },
-		{ "default", 50f }
+		{ "sexual", 70f },
+		{ "hate", 90f },
+		{ "harassment", 90f },
+		{ "self-harm", 80f },
+		{ "sexual/minors", 20f },
+		{ "hate/threatening", 70f },
+		{ "violence/graphic", 80f },
+		{ "self-harm/intent", 80f },
+		{ "self-harm/instructions", 80f },
+		{ "harassment/threatening", 90f },
+		{ "violence", 95f },
+		{ "default", 80f }
 	};
 
 	public static float GetModerationThreshold(string key)
