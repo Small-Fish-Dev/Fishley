@@ -68,7 +68,7 @@ public partial class Fishley
 
 		var context = new List<string>();
 
-		context.Add($"[This message is sent by the user: {message.Author.GlobalName}. The user has has {storedUser.Warnings}/3 warnings. The user is the following roles: {rolesString}. The message was sent at {DateTime.UtcNow}UTC.]:");
+		context.Add($"[This message is sent by the user: {message.Author.GetUsername()}. The user has has {storedUser.Warnings}/3 warnings. The user is the following roles: {rolesString}. The message was sent at {DateTime.UtcNow}UTC.]:");
 
 		var reference = message.Reference;
 		SocketMessage reply = null;

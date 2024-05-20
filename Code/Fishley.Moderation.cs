@@ -31,7 +31,7 @@ public partial class Fishley
 
 		if (IsAdmin(user))
 		{
-			DebugSay($"Attempted to give warning to {user.GlobalName}({user.Id})");
+			DebugSay($"Attempted to give warning to {user.GetUsername()}({user.Id})");
 			await SendMessage(channel, $"{message} I can't warn you so please don't do it again.", reply ? socketMessage : null, 5f);
 			return;
 		}
@@ -62,7 +62,7 @@ public partial class Fishley
 
 		await UpdateOrCreateUser(storedUser);
 
-		DebugSay($"Given warning to {user.GlobalName}({user.Id})");
+		DebugSay($"Given warning to {user.GetUsername()}({user.Id})");
 		var component = new ComponentBuilder()
 			.WithButton($"Remove Warn (${warnPrice}.00)", $"fine_paid-{warnPrice}-{user.Id}", ButtonStyle.Danger)
 			.Build();
@@ -94,7 +94,7 @@ public partial class Fishley
 				break;
 		}
 
-		DebugSay($"Removed warning from {user.GlobalName}({user.Id})");
+		DebugSay($"Removed warning from {user.GetUsername()}({user.Id})");
 
 		storedUser.Warnings = Math.Max(storedUser.Warnings - 1, 0);
 		await UpdateOrCreateUser(storedUser);

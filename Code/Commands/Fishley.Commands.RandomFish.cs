@@ -68,7 +68,7 @@ public partial class Fishley
 				var maxLuckTime = 60f * 60f * 48f; // 2 days
 				var luck = (int)(Math.Min((float)passed, maxLuckTime) / maxLuckTime) * 15 - (badLuck ? 1 : 0);
 				var randomAnimal = await GetRandomAnimalFromRarity(new ListSelector().SelectItem(AnimalRarities, 3 + luck, 7));
-				var embedTitle = $"{command.User.GlobalName} caught: {randomAnimal.CommonName}!";
+				var embedTitle = $"{command.User.GetUsername()} caught: {randomAnimal.CommonName}!";
 
 				var embed = new AnimalEmbedBuilder(randomAnimal, embedTitle, command.User)
 				{
@@ -151,7 +151,7 @@ public partial class Fishley
 				var user = await GetOrCreateUser(component.User.Id);
 				var MoneyToAdd = Random.Shared.Next(3, 80);
 
-				_ = await component.FollowupAsync($"Killer Fish has been greeted by **{component.User.GlobalName}**, and he is feeling **kind** today! <@{component.User.Id}> receives {NiceMoney((float)MoneyToAdd)} as a blessing gift.", ephemeral: false);
+				_ = await component.FollowupAsync($"Killer Fish has been greeted by **{component.User.GetUsername()}**, and he is feeling **kind** today! <@{component.User.Id}> receives {NiceMoney((float)MoneyToAdd)} as a blessing gift.", ephemeral: false);
 
 				user.Money = user.Money + MoneyToAdd;
 				await UpdateOrCreateUser(user);
@@ -168,7 +168,7 @@ public partial class Fishley
 				var user = await GetOrCreateUser(component.User.Id);
 				var moneyLost = user.Money / Random.Shared.Next(10, 17);
 
-				_ = await component.FollowupAsync($"Oh no! **{component.User.GlobalName}** greeted Killer Fish, but Killer Fish shows **NO FORGIVENESS**. <@{component.User.Id}> was robbed by Killer Fish and lost {NiceMoney((float)moneyLost)}...", ephemeral: false);
+				_ = await component.FollowupAsync($"Oh no! **{component.User.GetUsername()}** greeted Killer Fish, but Killer Fish shows **NO FORGIVENESS**. <@{component.User.Id}> was robbed by Killer Fish and lost {NiceMoney((float)moneyLost)}...", ephemeral: false);
 
 				user.Money = user.Money - moneyLost;
 				await UpdateOrCreateUser(user);
