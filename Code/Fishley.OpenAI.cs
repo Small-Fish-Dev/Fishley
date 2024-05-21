@@ -68,7 +68,7 @@ public partial class Fishley
 
 		var context = new List<string>();
 
-		context.Add($"[This message is sent by the user: {message.Author.GetUsername()}. The user has {storedUser.Warnings}/3 warnings. The user is the following roles: {rolesString}. The message was sent at {DateTime.UtcNow}UTC. The user has ${storedUser.Money}]:");
+		context.Add($"[This message is sent by the user: {message.Author.GetUsername()}. The user has {storedUser.Warnings}/3 warnings. The user is the following roles: {rolesString}. The message was sent at {DateTime.UtcNow}UTC. The user has ${Math.Round(storedUser.Money, 2)}]:");
 
 		var reference = message.Reference;
 		SocketMessage reply = null;
@@ -103,18 +103,16 @@ public partial class Fishley
 
 		var hasWarning = response.Contains("[WARNING]");
 		var hasUnwarning = response.Contains("[UNWARNING]");
-		var hasTip = response.Contains("[TIP]");
+		var hasTip = response.Contains("[TIP");
 
 		var clearedResponse = response
-		.Replace("[WARNING]", "Warn issued")
-		.Replace("[UNWARNING]", "Warn remoed")
-		.Replace("[TIP]", "$1.00 tip given")
 		.Replace("@everyone", "everyone")
 		.Replace("@here", "here"); // Just to be safe...
 
 		if (hasTip)
 		{
-			storedUser.Money += 1;
+			var tip = (int)response.Split("[TIP").Last()[0];
+			storedUser.Money += tip;
 			await UpdateOrCreateUser(storedUser);
 		}
 
