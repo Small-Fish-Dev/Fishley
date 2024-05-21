@@ -21,7 +21,8 @@ public partial class Fishley
 	/// <returns></returns>
 	public static async Task<string> CreateImage(string input, bool dalle3 = false)
 	{
-		var response = await OpenAIClient.ImageGenerations.CreateImageAsync(input, dalle3 ? OpenAI_API.Models.Model.DALLE3 : OpenAI_API.Models.Model.DALLE2);
+		var request = new OpenAI_API.Images.ImageGenerationRequest(input, dalle3 ? OpenAI_API.Models.Model.DALLE3 : OpenAI_API.Models.Model.DALLE2, OpenAI_API.Images.ImageSize._512);
+		var response = await OpenAIClient.ImageGenerations.CreateImageAsync(request);
 
 		DebugSay($"RESPONSE WAS: {response}");
 
