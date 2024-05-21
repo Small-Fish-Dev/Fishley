@@ -103,18 +103,10 @@ public partial class Fishley
 
 		var hasWarning = response.Contains("[WARNING]");
 		var hasUnwarning = response.Contains("[UNWARNING]");
-		var hasTip = response.Contains("[TIP");
 
 		var clearedResponse = response
 		.Replace("@everyone", "everyone")
 		.Replace("@here", "here"); // Just to be safe...
-
-		if (hasTip)
-		{
-			var tip = (int)response.Split("[TIP").Last()[0];
-			storedUser.Money += tip;
-			await UpdateOrCreateUser(storedUser);
-		}
 
 		if (hasWarning)
 			await AddWarn(messageAuthor, message, clearedResponse);
