@@ -102,10 +102,15 @@ public partial class Fishley
 		var response = await OpenAIChat(message.CleanContent, context, gpt4);
 
 		var hasWarning = response.Contains("[WARNING]");
-		var hasUnwarning = response.Contains("[UNWARN]");
+		var hasUnwarning = response.Contains("[UNWARNING]");
 		var hasTip = response.Contains("[TIP]");
 
-		var clearedResponse = response.Replace("@everyone", "everyone").Replace("@here", "here"); // Just to be safe...
+		var clearedResponse = response
+		.Replace("[WARNING]", "Warn issued")
+		.Replace("[UNWARNING]", "Warn remoed")
+		.Replace("[TIP]", "$1.00 tip given")
+		.Replace("@everyone", "everyone")
+		.Replace("@here", "here"); // Just to be safe...
 
 		if (hasTip)
 		{
