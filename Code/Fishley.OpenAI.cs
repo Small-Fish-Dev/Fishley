@@ -9,7 +9,7 @@ public partial class Fishley
 	private static void InitiateOpenAI()
 	{
 		_openAIKey = ConfigGet<string>("ChatGPTKey");
-		_fishleySystemPrompt = ConfigGet<string>("FishleyPrompt");
+		_fishleySystemPrompt = File.ReadAllText(ConfigGet<string>("FishleyPrompt"));
 		OpenAIClient = new OpenAI_API.OpenAIAPI(_openAIKey);
 	}
 
@@ -68,7 +68,7 @@ public partial class Fishley
 
 		var context = new List<string>();
 
-		context.Add($"[This message is sent by the user: {message.Author.GetUsername()}. The user has has {storedUser.Warnings}/3 warnings. The user is the following roles: {rolesString}. The message was sent at {DateTime.UtcNow}UTC.]:");
+		context.Add($"[This message is sent by the user: {message.Author.GetUsername()}. The user has {storedUser.Warnings}/3 warnings. The user is the following roles: {rolesString}. The message was sent at {DateTime.UtcNow}UTC. The user has ${storedUser.Money}]:");
 
 		var reference = message.Reference;
 		SocketMessage reply = null;
@@ -102,13 +102,26 @@ public partial class Fishley
 		var response = await OpenAIChat(message.CleanContent, context, gpt4);
 
 		var hasWarning = response.Contains("[WARNING]");
+		var hasUnwarning = response.Contains("[UNWARN]");
+		var hasTip = response.Contains("[TIP]");
 
-		var clearedResponse = response.Replace("[WARNING]", "\n").Replace("@everyone", "@ everyone").Replace("@here", "@ here"); // Just to be safe...
+		var clearedResponse = response.Replace("@everyone", "everyone").Replace("@here", "here"); // Just to be safe...
+
+		if (hasTip)
+		{
+			storedUser.Money += 1;
+			await UpdateOrCreateUser(storedUser);
+		}
 
 		if (hasWarning)
 			await AddWarn(messageAuthor, message, clearedResponse);
 		else
+		{
+			if (hasUnwarning)
+				await RemoveWarn(messageAuthor);
+
 			await SendMessage(messageChannel, clearedResponse, message);
+		}
 	}
 
 	// How sensitive it is to topics before it takes actions, from 0% to 100%, 0% = Always, 50% = Mentions, 100% Never
