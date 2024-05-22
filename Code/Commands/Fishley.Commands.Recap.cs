@@ -53,10 +53,7 @@ public partial class Fishley
 				var recapString = "";
 
 				foreach (var message in messages)
-				{
-					if (message.Author is not SocketWebhookUser)
-						recapString += $"[{message.Timestamp}]{((SocketGuildUser)message.Author).GetUsername()}: {message.CleanContent}{(message.Embeds != null && message.Embeds.Count() > 0 ? "[MESSAGE HAS AN EMBED]" : "")}\n";
-				}
+					recapString += $"[{message.Timestamp}]{((SocketGuildUser)message.Author).GetUsername()}: {message.CleanContent}{(message.Embeds != null && message.Embeds.Count() > 0 ? "[MESSAGE HAS AN EMBED]" : "")}\n";
 
 				var context = new List<string>();
 
