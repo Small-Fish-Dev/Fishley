@@ -237,15 +237,7 @@ public partial class Fishley
 		var giver = guildChannel.GetUser(reaction.UserId);
 		if (giver is null) return;
 		if (giver.IsBot) return;
-
-		if (!reaction.Emote.Equals(WarnEmoji))
-		{
-			if (reaction.Emote.Name == "❓")
-			{
-				await SendMessage((SocketTextChannel)guildChannel, $"<@{reaction.UserId}> I saw you adding a ❓ reaction to a message, it seems you're quite conchfused about something, do you need me to explain anything?");
-			}
-			return;
-		}
+		if (!reaction.Emote.Equals(WarnEmoji)) return;
 
 		var message = await cacheableMessage.GetOrDownloadAsync();
 		if (message is null) return;
