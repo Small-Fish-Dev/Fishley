@@ -43,9 +43,9 @@ public partial class Fishley
 					await command.RespondAsync("Minimum message amount is 5", ephemeral: true);
 					return;
 				}
-				else if (amountToRecap > 10000)
+				else if (amountToRecap > 1000)
 				{
-					await command.RespondAsync("Maximum message amount is 10,000", ephemeral: true);
+					await command.RespondAsync("Maximum message amount is 1,000", ephemeral: true);
 					return;
 				}
 
