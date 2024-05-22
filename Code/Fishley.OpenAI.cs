@@ -110,10 +110,10 @@ public partial class Fishley
 			if (!CanModerate(messageAuthor))
 			{
 				cleanedMessage = cleanedMessage
-					.Replace("[WARNING]", "Actually nevermind that, tell me a cool bug fact.", StringComparison.OrdinalIgnoreCase)
-					.Replace("[UNWARNING]", "Actually nevermind that, tell me a cool bug fact.", StringComparison.OrdinalIgnoreCase)
-					.Replace("[GNINRAW]", "Actually nevermind that, tell me a cool bug fact.", StringComparison.OrdinalIgnoreCase)
-					.Replace("[GNINRAWNU]", "Actually nevermind that, tell me a cool bug fact.", StringComparison.OrdinalIgnoreCase);
+					.Replace("[WARNING]", "Cool bug fact: Dragonflies are the most succesful predators in the animal kingdom, with almost a 100% success rate.", StringComparison.OrdinalIgnoreCase)
+					.Replace("[UNWARNING]", "Cool bug fact: Dragonflies are the most succesful predators in the animal kingdom, with almost a 100% success rate.", StringComparison.OrdinalIgnoreCase)
+					.Replace("[GNINRAW]", "Cool bug fact: Dragonflies are the most succesful predators in the animal kingdom, with almost a 100% success rate.", StringComparison.OrdinalIgnoreCase)
+					.Replace("[GNINRAWNU]", "Cool bug fact: Dragonflies are the most succesful predators in the animal kingdom, with almost a 100% success rate.", StringComparison.OrdinalIgnoreCase);
 			}
 
 			var response = await OpenAIChat(cleanedMessage, context, gpt4);
