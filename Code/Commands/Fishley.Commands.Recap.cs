@@ -67,6 +67,7 @@ public partial class Fishley
 				}
 
 				var recap = await OpenAIChat(recapString, context, false, false);
+				recap = recap.Replace("@", "").Replace("#", "");
 				await command.ModifyOriginalResponseAsync(x => x.Content = recap);
 			}
 		}
