@@ -22,6 +22,8 @@ public partial class Fishley
 
 		public override bool SpamOnly => false;
 
+		private bool _recapping = false;
+
 		public async Task RecapMessages(SocketSlashCommand command)
 		{
 			using (var typing = command.Channel.EnterTypingState())
@@ -29,6 +31,12 @@ public partial class Fishley
 				var amountToRecap = Convert.ToInt32((long)command.Data.Options.First().Value);
 				var question = command.Data.Options.Count() == 2 ? (string)command.Data.Options.Last().Value : null;
 				var channel = command.Channel;
+
+				if (_recapping)
+				{
+					await command.RespondAsync("I am already recapping something else, wait.", ephemeral: true);
+					return;
+				}
 
 				if (amountToRecap < 5)
 				{
@@ -49,11 +57,12 @@ public partial class Fishley
 
 				await command.RespondAsync($"Recapping the last {amountToRecap} messages...");
 
+				_recapping = true;
 				var messages = await channel.GetMessagesAsync(amountToRecap).FlattenAsync();
 				var recapString = "";
 
 				foreach (var message in messages)
-					recapString += $"[{message.Timestamp}]{((SocketGuildUser)message.Author).GetUsername()}: {message.CleanContent}{(message.Embeds != null && message.Embeds.Count() > 0 ? "[MESSAGE HAS AN EMBED]" : "")}\n";
+					recapString += $"[{message.Timestamp}]{message.Author.GetUsername()}: {message.CleanContent}{(message.Embeds != null && message.Embeds.Count() > 0 ? "[MESSAGE HAS AN EMBED]" : "")}\n";
 
 				var context = new List<string>();
 
@@ -69,6 +78,8 @@ public partial class Fishley
 				var recap = await OpenAIChat(recapString, context, false, false);
 				recap = recap.Replace("@", "").Replace("#", "");
 				await command.ModifyOriginalResponseAsync(x => x.Content = recap);
+
+				_recapping = false;
 			}
 		}
 	}
