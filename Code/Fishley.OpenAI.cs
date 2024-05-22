@@ -35,12 +35,15 @@ public partial class Fishley
 	/// <param name="input"></param>
 	/// <param name="context"></param>
 	/// <param name="gpt4"></param>
+	/// <param name="useSystemPrompt"></param>
 	/// <returns></returns>
-	public static async Task<string> OpenAIChat(string input, List<string> context = null, bool gpt4 = false)
+	public static async Task<string> OpenAIChat(string input, List<string> context = null, bool gpt4 = false, bool useSystemPrompt = true)
 	{
 		var chat = OpenAIClient.Chat.CreateConversation();
 		chat.Model = gpt4 ? new OpenAI_API.Models.Model("gpt-4o") : OpenAI_API.Models.Model.ChatGPTTurbo;
-		chat.AppendSystemMessage(_fishleySystemPrompt);
+
+		if (useSystemPrompt)
+			chat.AppendSystemMessage(_fishleySystemPrompt);
 
 		if (context != null)
 			foreach (var ctx in context)
@@ -90,8 +93,7 @@ public partial class Fishley
 
 			if (reply != null)
 			{
-				context.Add($"[The message you're replying to is a reply to the following message sent by {((SocketGuildUser)reply.Author).DisplayName} that says '{reply.Content}']");
-				DebugSay($"[The message you're replying to is a reply to the following message sent by {((SocketGuildUser)reply.Author).DisplayName} that says '{reply.Content}']");
+				context.Add($"[The message you're replying to is a reply to the following message sent by {((SocketGuildUser)reply.Author).GetUsername()} that says '{reply.Content}']");
 			}
 
 			if (Emergency)
