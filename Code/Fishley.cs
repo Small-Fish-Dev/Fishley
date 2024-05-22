@@ -232,15 +232,29 @@ public partial class Fishley
 	private static async Task ReactionAdded(Cacheable<IUserMessage, ulong> cacheableMessage, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
 	{
 		if (!Running) return;
-		if (!reaction.Emote.Equals(WarnEmoji)) return;
-		if (reaction.Channel is not SocketGuildChannel guildChannel) return;
 
+		if (reaction.Channel is not SocketGuildChannel guildChannel) return;
 		var giver = guildChannel.GetUser(reaction.UserId);
-		if (giver is null || !CanModerate(giver)) return;
+		if (giver is null) return;
 		if (giver.IsBot) return;
+
+		if (!reaction.Emote.Equals(WarnEmoji))
+		{
+			if (reaction.Emote.Name == "❓")
+			{
+				await SendMessage((SocketTextChannel)guildChannel, $"<@{reaction.UserId}> I saw you adding a ❓ reaction to a message, it seems you're quite conchfused about something, do you need me to explain anything?");
+			}
+			return;
+		}
 
 		var message = await cacheableMessage.GetOrDownloadAsync();
 		if (message is null) return;
+
+		if (!CanModerate(giver))
+		{
+			await message.RemoveReactionAsync(reaction.Emote, reaction.UserId); // Remove any non moderator warning
+			return;
+		}
 
 		var user = guildChannel.GetUser(message.Author.Id);
 		if (user is null) return;
