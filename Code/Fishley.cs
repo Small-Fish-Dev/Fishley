@@ -295,7 +295,7 @@ public partial class Fishley
 
 		if (mentioned)
 		{
-			OpenAIRespond(message, CanModerate((SocketGuildUser)message.Author)); // Let's try not awaiting it
+			OpenAIRespond(message); // Let's try not awaiting it
 			return;
 		}
 	}
