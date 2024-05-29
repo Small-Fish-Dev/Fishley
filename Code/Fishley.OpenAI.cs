@@ -93,7 +93,7 @@ public partial class Fishley
 
 			if (reply != null)
 			{
-				context.Add($"[The message you're replying to is a reply to the following message sent by {((SocketGuildUser)reply.Author).GetUsername()} that says '{reply.Content}']");
+				context.Add($"[The message you're replying to is a reply to the following message sent by {reply.Author.GetUsername()} that says '{reply.Content}']");
 			}
 
 			if (Emergency)

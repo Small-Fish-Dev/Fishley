@@ -6,7 +6,12 @@ public partial class Fishley
 	{
 		public override SlashCommandBuilder Builder => new SlashCommandBuilder()
 		.WithName("balance")
-		.WithDescription("How much money do you have");
+		.WithDescription("How much money do you have")
+		.AddOption(new SlashCommandOptionBuilder()
+			.WithName("user")
+			.WithDescription("Who to check")
+			.WithRequired(false)
+			.WithType(ApplicationCommandOptionType.User));
 
 		public override Func<SocketSlashCommand, Task> Function => Balance;
 
@@ -14,9 +19,18 @@ public partial class Fishley
 
 		public async Task Balance(SocketSlashCommand command)
 		{
-			var user = await GetOrCreateUser(command.User.Id);
+			var targetUser = (SocketUser)command.Data.Options.FirstOrDefault(x => x.Name == "user")?.Value ?? null;
 
-			await command.RespondAsync($"You have {NiceMoney((float)user.Money)}");
+			if (targetUser != null)
+			{
+				var user = await GetOrCreateUser(targetUser.Id);
+				await command.RespondAsync($"{targetUser.GetUsername()} has {NiceMoney((float)user.Money)}");
+			}
+			else
+			{
+				var user = await GetOrCreateUser(command.User.Id);
+				await command.RespondAsync($"You have {NiceMoney((float)user.Money)}");
+			}
 		}
 	}
 

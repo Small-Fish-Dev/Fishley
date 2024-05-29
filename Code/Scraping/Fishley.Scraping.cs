@@ -12,8 +12,8 @@ public partial class Fishley
 		{ "asset.party", new AssetPartyScraper() },
 		{ "latentplaces", new LatentPlacesScrapper() },
 		{ "garrytiktok", new GarryTiktokScraper() },
-		{ "fish_of_the_week", new FishOfTheWeekTikTok() },
-		{ "mindfunk", new MindfunkScraper() }
+		{ "fish_of_the_week", new FishOfTheWeekTikTok() }
+		//{ "mindfunk", new MindfunkScraper() }
 	};
 
 	public static async Task ComputeScrapers()
