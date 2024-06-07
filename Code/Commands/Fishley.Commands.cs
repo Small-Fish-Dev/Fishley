@@ -11,7 +11,6 @@ public partial class Fishley
 		{ "invoice", new InvoiceCommand() },
 		{ "leaderboards", new LeaderboardsCommand() },
 		{ "finebutton", new FineButton() },
-		{ "generate", new ImageCommand() },
 		{ "shutdown", new ShutdownCommand() },
 		{ "restart", new RestartCommand() },
 		{ "emergency", new EmergencyCommand() },
