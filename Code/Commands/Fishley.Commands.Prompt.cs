@@ -36,13 +36,13 @@ public partial class Fishley
 				return;
 			}
 
-			if ( prompt.Length < 5 )
+			if (prompt.Length < 5)
 			{
 				await command.RespondAsync("Prompt too short.", ephemeral: true);
 				return;
-			
+			}
 
-			prompt = prompt.Replace( "'", "").Replace( "DROP", "I'm an idiot" ).Replace( "<script>", "Im an idiot" );
+			prompt = prompt.Replace("'", "").Replace("DROP", "I'm an idiot").Replace("<script>", "Im an idiot");
 
 			var price = 5;
 
