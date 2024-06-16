@@ -18,7 +18,13 @@ public partial class Fishley
 
 	public static async Task ComputeScrapers()
 	{
-		var scrapedWebsites = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, List<string>>>(await File.ReadAllTextAsync(_scrapedSites));
+		var file = await File.ReadAllTextAsync(_scrapedSites);
+
+		var scrapedWebsites = new Dictionary<string, List<string>>();
+
+		if (file != null && file != string.Empty)
+			scrapedWebsites = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, List<string>>>(file);
+
 		foreach (var scraper in WebsitesToCheck)
 		{
 			var secondsPassed = (DateTime.UtcNow - scraper.Value.LastFetched).TotalSeconds;

@@ -10,6 +10,7 @@ public partial class Fishley
 		public DateTime LastWarn { get; set; }
 		public decimal Money { get; set; }
 		public DateTime LastFish { get; set; }
+		public string CustomFishleyPrompt { get; set; }
 
 		public DiscordUser(ulong userId)
 		{
