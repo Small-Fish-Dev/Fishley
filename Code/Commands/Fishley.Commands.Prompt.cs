@@ -6,11 +6,11 @@ public partial class Fishley
 	{
 		public override SlashCommandBuilder Builder => new SlashCommandBuilder()
 		.WithName("prompt")
-		.WithDescription("Save a custom prompt for Fishley to remember whenever he responds to you. (Costs $5)")
+		.WithDescription("Save a custom prompt for Fishley to remember whenever he responds to you. (Costs $5) (Leave no prompt to reset)")
 		.AddOption(new SlashCommandOptionBuilder()
 			.WithName("prompt")
 			.WithDescription("Prompt appended to Fishley responses to you. (Max 2000 characters)")
-			.WithRequired(true)
+			.WithRequired(false)
 			.WithType(ApplicationCommandOptionType.String));
 
 		public override Func<SocketSlashCommand, Task> Function => SetPrompt;
@@ -19,6 +19,15 @@ public partial class Fishley
 
 		public async Task SetPrompt(SocketSlashCommand command)
 		{
+			var storedUser = await GetOrCreateUser(command.User.Id);
+
+			if (command.Data.Options.Count() == 0)
+			{
+				storedUser.CustomFishleyPrompt = prompt;
+				await UpdateOrCreateUser(storedUser);
+				await command.RespondAsync($"Your prompt has been reset.", ephemeral: true);
+				return;
+			}
 			var prompt = (string)command.Data.Options.First().Value;
 
 			if (prompt.Length > 2000)
@@ -27,8 +36,15 @@ public partial class Fishley
 				return;
 			}
 
+			if ( prompt.Length < 5 )
+			{
+				await command.RespondAsync("Prompt too short.", ephemeral: true);
+				return;
+			
+
+			prompt = prompt.Replace( "'", "").Replace( "DROP", "I'm an idiot" ).Replace( "<script>", "Im an idiot" );
+
 			var price = 5;
-			var storedUser = await GetOrCreateUser(command.User.Id);
 
 			if (storedUser.Money < price)
 			{
