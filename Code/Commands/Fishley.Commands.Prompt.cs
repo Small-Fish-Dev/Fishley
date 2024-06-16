@@ -6,10 +6,10 @@ public partial class Fishley
 	{
 		public override SlashCommandBuilder Builder => new SlashCommandBuilder()
 		.WithName("prompt")
-		.WithDescription("Save a custom prompt for Fishley to remember whenever he responds to you. (Costs $5) (Leave no prompt to reset)")
+		.WithDescription("Save a custom prompt for Fishley to remember whenever he responds to you. (Reset if not set)")
 		.AddOption(new SlashCommandOptionBuilder()
 			.WithName("prompt")
-			.WithDescription("Prompt appended to Fishley responses to you. (Max 2000 characters)")
+			.WithDescription("Prompt appended to Fishley responses to you. (Costs $5)")
 			.WithRequired(false)
 			.WithType(ApplicationCommandOptionType.String));
 
