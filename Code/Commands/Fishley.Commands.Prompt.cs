@@ -23,7 +23,7 @@ public partial class Fishley
 
 			if (command.Data.Options.Count() == 0)
 			{
-				storedUser.CustomFishleyPrompt = prompt;
+				storedUser.CustomFishleyPrompt = null;
 				await UpdateOrCreateUser(storedUser);
 				await command.RespondAsync($"Your prompt has been reset.", ephemeral: true);
 				return;
