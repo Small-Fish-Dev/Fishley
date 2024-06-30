@@ -310,4 +310,29 @@ public partial class Fishley
 
 		await HandleFilters(userMessage);
 	}
+
+	private static async Task AssignRoles()
+	{
+		DebugSay("Downloading all users...");
+		await SmallFishServer.DownloadUsersAsync();
+		DebugSay($"Found {SmallFishServer.Users.Count()} users.");
+
+		var rolesGiven = 0;
+
+		foreach (var user in SmallFishServer.Users)
+		{
+			// If the user existed before you were forced to pick one of these three roles
+			if (user.Roles.Contains(DramaDolphinRole)) continue;
+			if (user.Roles.Contains(NewsNewtRole)) continue;
+			if (user.Roles.Contains(PlaytestPenguinRole)) continue;
+			if (CanModerate(user)) continue;
+
+			await user.AddRoleAsync(NewsNewtRole); // We give them the news newt role
+
+			rolesGiven++;
+			DebugSay($"Assigned {user.GetUsername()} the NewsNewt role.");
+		}
+
+		DebugSay($"Assigned a total of {rolesGiven} users.");
+	}
 }

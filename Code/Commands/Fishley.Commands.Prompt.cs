@@ -6,7 +6,7 @@ public partial class Fishley
 	{
 		public override SlashCommandBuilder Builder => new SlashCommandBuilder()
 		.WithName("prompt")
-		.WithDescription("Save a custom prompt for Fishley to remember whenever he responds to you. (Reset if not set)")
+		.WithDescription("Save a custom prompt for Fishley to remember whenever he responds to you.")
 		.AddOption(new SlashCommandOptionBuilder()
 			.WithName("prompt")
 			.WithDescription("Prompt appended to Fishley responses to you. (Costs $5)")
@@ -43,6 +43,9 @@ public partial class Fishley
 			}
 
 			prompt = prompt.Replace("'", "").Replace("DROP", "I'm an idiot").Replace("<script>", "Im an idiot");
+			prompt = prompt.Replace("[", "(");
+			prompt = prompt.Replace("]", ")");
+			prompt = prompt.Replace("warning", "Tell me Im an idiot", StringComparison.OrdinalIgnoreCase);
 
 			var price = 5;
 

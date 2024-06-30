@@ -8,6 +8,9 @@ public partial class Fishley
 	public static SocketRole Warning1Role => SmallFishServer.GetRole(1063893887564914869);
 	public static SocketRole Warning2Role => SmallFishServer.GetRole(1063894349617823766);
 	public static SocketRole Warning3Role => SmallFishServer.GetRole(1227004898802143252);
+	public static SocketRole DramaDolphinRole => SmallFishServer.GetRole(1128639097603358840);
+	public static SocketRole NewsNewtRole => SmallFishServer.GetRole(1128639400838963300);
+	public static SocketRole PlaytestPenguinRole => SmallFishServer.GetRole(1197211499911991467);
 
 
 	public static bool IsSmallFish(SocketGuildUser user) => user.Roles.Contains(SmallFishRole);
