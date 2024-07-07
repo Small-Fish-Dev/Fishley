@@ -2,7 +2,7 @@ using Discord.WebSocket;
 using Discord.Commands;
 using Discord;
 
-namespace AssetParty;
+namespace SboxGame;
 
 public enum PackageType
 {
@@ -54,7 +54,7 @@ public struct Package
 	public List<string> EditorReferences { get; set; }
 	public Interaction Interaction { get; set; } // This doesn't seem to be filled out
 	[JsonIgnore]
-	public string FullUrl => $"{AssetParty.AssetPartyUrl}{Org.Ident}/{Ident}";
+	public string FullUrl => $"{SboxGame.SboxGameUrl}{Org.Ident}/{Ident}";
 
 	public Package() { }
 

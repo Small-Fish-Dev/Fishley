@@ -17,12 +17,12 @@ global using System.Globalization;
 global using System.ComponentModel.DataAnnotations.Schema;
 global using System.Net;
 
-namespace AssetParty;
+namespace SboxGame;
 
-public partial class AssetParty
+public partial class SboxGame
 {
 	public static string ServicesUrl => "https://services.facepunch.com/sbox/package/find?q=";
-	public static string AssetPartyUrl => "https://asset.party/";
+	public static string SboxGameUrl => "https://sbox.game/";
 
 	public static async Task<Query> QueryAsync(PackageType packageType = PackageType.All, QuerySort sortType = QuerySort.All) // TODO: Add tags, orders, and facets (They must all be strings unfortunately)
 	{
@@ -48,7 +48,7 @@ public partial class AssetParty
 
 			if (string.IsNullOrEmpty(jsonContent))
 			{
-				Console.WriteLine("Asset.Party query was empty.");
+				Console.WriteLine("Sbox.Game query was empty.");
 				return null;
 			}
 

@@ -1,4 +1,4 @@
-namespace AssetParty;
+namespace SboxGame;
 
 public struct Organization
 {
@@ -8,7 +8,7 @@ public struct Organization
 	public string Thumb { get; set; }
 	public string Twitter { get; set; }
 	public string WebUrl { get; set; }
-	public string Url => $"{AssetParty.AssetPartyUrl}{Ident}";
+	public string Url => $"{SboxGame.SboxGameUrl}{Ident}";
 
 	public Organization() { }
 }

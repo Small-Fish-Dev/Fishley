@@ -1,4 +1,4 @@
-namespace AssetParty;
+namespace SboxGame;
 
 public struct Score
 {

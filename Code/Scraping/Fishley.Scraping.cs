@@ -9,7 +9,7 @@ public partial class Fishley
 		{ "r_sandbox", new SubredditScraper() },
 		{ "youtube", new YoutubeScraper() },
 		{ "garry", new GarryScraper() },
-		{ "asset.party", new AssetPartyScraper() },
+		{ "sbox.game", new SboxGameScraper() },
 		{ "latentplaces", new LatentPlacesScrapper() },
 		{ "garrytiktok", new GarryTiktokScraper() },
 		{ "fish_of_the_week", new FishOfTheWeekTikTok() }

@@ -1,4 +1,4 @@
-namespace AssetParty;
+namespace SboxGame;
 
 public enum QuerySort
 {
