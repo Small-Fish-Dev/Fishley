@@ -34,13 +34,13 @@ public partial class Fishley
 	/// </summary>
 	/// <param name="input"></param>
 	/// <param name="context"></param>
-	/// <param name="gpt4"></param>
+	/// <param name="turbo"></param>
 	/// <param name="useSystemPrompt"></param>
 	/// <returns></returns>
-	public static async Task<string> OpenAIChat(string input, List<string> context = null, bool gpt4 = false, bool useSystemPrompt = true)
+	public static async Task<string> OpenAIChat(string input, List<string> context = null, bool turbo = false, bool useSystemPrompt = true)
 	{
 		var chat = OpenAIClient.Chat.CreateConversation();
-		chat.Model = gpt4 ? new OpenAI_API.Models.Model("gpt-4o") : OpenAI_API.Models.Model.ChatGPTTurbo;
+		chat.Model = turbo ? new OpenAI_API.Models.Model("gpt-4o") : new OpenAI_API.Models.Model("gpt-4o-mini");
 
 		if (useSystemPrompt)
 			chat.AppendSystemMessage(_fishleySystemPrompt);
@@ -58,9 +58,9 @@ public partial class Fishley
 	/// Let Fishley repond to a message through ChatGPT
 	/// </summary>
 	/// <param name="message"></param>
-	/// <param name="gpt4"></param>
+	/// <param name="turbo"></param>
 	/// <returns></returns>
-	public static async Task OpenAIRespond(SocketMessage message, bool gpt4 = false)
+	public static async Task OpenAIRespond(SocketMessage message, bool turbo = false)
 	{
 		var messageAuthor = (SocketGuildUser)message.Author;
 		var messageChannel = (SocketTextChannel)message.Channel;
@@ -121,7 +121,7 @@ public partial class Fishley
 					.Replace("[GNINRAWNU]", "Cool bug fact: Dragonflies are the most succesful predators in the animal kingdom, with almost a 100% success rate.", StringComparison.OrdinalIgnoreCase);
 			}
 
-			var response = await OpenAIChat(cleanedMessage, context, gpt4);
+			var response = await OpenAIChat(cleanedMessage, context, turbo);
 
 			var hasWarning = response.Contains("[WARNING]");
 			var hasUnwarning = response.Contains("[UNWARNING]");
