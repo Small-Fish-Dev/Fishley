@@ -1,5 +1,21 @@
 namespace Fishley;
 
+public struct ScrapingResult
+{
+	public string Url { get; set; }
+	public Embed Embed { get; set; }
+	public string Video { get; set; }
+	public string ExtraUrl { get; set; }
+
+	public ScrapingResult(string url, Embed embed, string video = null, string extraUrl = null)
+	{
+		Url = url;
+		Embed = embed;
+		Video = video;
+		ExtraUrl = extraUrl;
+	}
+}
+
 public partial class Fishley
 {
 	private static string _scrapedSites => @"/home/ubre/Desktop/Fishley/scraped_sites.json";
@@ -39,21 +55,24 @@ public partial class Fishley
 
 				var fetched = await scraper.Value.Fetch();
 
-				if (fetched.Item1 == null) continue;
+				if (fetched.Url == null) continue;
 
-				if (currentUrls == null || !currentUrls.Contains(fetched.Item1))
+				if (currentUrls == null || !currentUrls.Contains(fetched.Url))
 				{
 					if (scrapedWebsites.ContainsKey(scraper.Key))
-						scrapedWebsites[scraper.Key].Add(fetched.Item1);
+						scrapedWebsites[scraper.Key].Add(fetched.Url);
 					else
-						scrapedWebsites.Add(scraper.Key, new List<string>() { fetched.Item1 });
+						scrapedWebsites.Add(scraper.Key, new List<string>() { fetched.Url });
 
-					await SendMessage((SocketTextChannel)scraper.Value.ChannelToPost, $"{fetched.Item1}", embed: fetched.Item2, pathToUpload: fetched.Item3);
+					if (fetched.ExtraUrl != null)
+						await SendMessage((SocketTextChannel)scraper.Value.ChannelToPost, fetched.ExtraUrl);
+
+					await SendMessage((SocketTextChannel)scraper.Value.ChannelToPost, $"{fetched.Url}", embed: fetched.Embed, pathToUpload: fetched.Video);
 				}
 			}
 		}
 
-		var maxCount = 20;
+		var maxCount = 100;
 
 		foreach (var links in scrapedWebsites.Values)
 		{
@@ -73,10 +92,10 @@ public partial class Fishley
 		public virtual SocketGuildChannel ChannelToPost { get; private set; }
 		public DateTime LastFetched { get; set; }
 
-		public virtual async Task<(string, Embed, string)> Fetch()
+		public virtual async Task<ScrapingResult> Fetch()
 		{
 			await Task.CompletedTask;
-			return (null, null, null);
+			return new ScrapingResult(null, null);
 		}
 	}
 }

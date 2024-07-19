@@ -8,7 +8,7 @@ public partial class Fishley
 		public override int SecondsCooldown => 60 + 7;
 		public override SocketGuildChannel ChannelToPost => SboxFeedChannel;
 
-		public override async Task<(string, Embed, string)> Fetch()
+		public override async Task<ScrapingResult> Fetch()
 		{
 			using (HttpClient client = new HttpClient())
 			{
@@ -18,7 +18,7 @@ public partial class Fishley
 				response.EnsureSuccessStatusCode();
 				string htmlContent = await response.Content.ReadAsStringAsync();
 
-				if (string.IsNullOrEmpty(htmlContent)) return (null, null, null);
+				if (string.IsNullOrEmpty(htmlContent)) return new ScrapingResult(null, null, null);
 
 				List<string> links = new List<string>();
 				Regex videoLinkRegex = new Regex(@"\/watch\?v=([a-zA-Z0-9_-]{11})");
@@ -33,7 +33,7 @@ public partial class Fishley
 						links.Add(link);
 				}
 
-				return (links.First(), null, null);
+				return new ScrapingResult(links.First(), null, null);
 			}
 		}
 	}

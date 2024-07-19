@@ -8,7 +8,7 @@ public partial class Fishley
 		public override int SecondsCooldown => 60 * 20 + 1; // 20 Minutes
 		public override SocketGuildChannel ChannelToPost => CryptoZoologyChannel;
 
-		public override async Task<(string, Embed, string)> Fetch()
+		public override async Task<ScrapingResult> Fetch()
 		{
 			using (HttpClient client = new HttpClient())
 			{
@@ -18,7 +18,7 @@ public partial class Fishley
 				response.EnsureSuccessStatusCode();
 				string htmlContent = await response.Content.ReadAsStringAsync();
 
-				if (string.IsNullOrEmpty(htmlContent)) return (null, null, null);
+				if (string.IsNullOrEmpty(htmlContent)) return new ScrapingResult(null, null, null);
 
 				List<string> links = new List<string>();
 				Regex videoLinkRegex = new Regex(@"https:\/\/urlebird\.com\/video\/([^\/]+)\/");
@@ -31,7 +31,7 @@ public partial class Fishley
 						links.Add(match.Value);
 				}
 
-				return (links[1], null, null); // Skip the first one that's pinned
+				return new ScrapingResult(links[1], null, null); // Skip the first one that's pinned
 			}
 		}
 	}
