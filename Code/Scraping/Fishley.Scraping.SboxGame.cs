@@ -15,13 +15,8 @@ public partial class Fishley
 
 			var newestItem = query.Packages.First();
 			var embed = await newestItem.ToEmbed();
-			string extraVideo = null;
 
-			if (newestItem.Screenshots != null && newestItem.Screenshots.Count() >= 1)
-				if (newestItem.Screenshots.First().IsVideo)
-					extraVideo = newestItem.Screenshots.First().Url;
-
-			return new ScrapingResult(newestItem.FullUrl, embed.Item1, embed.Item2, extraVideo);
+			return new ScrapingResult(newestItem.FullUrl, embed.Item1, embed.Item2);
 		}
 	}
 }
