@@ -67,7 +67,7 @@ public partial class Fishley
 			.WithButton($"Remove Warn (${warnPrice}.00)", $"fine_paid-{warnPrice}-{user.Id}", ButtonStyle.Danger)
 			.Build();
 
-		await SendMessage(channel, $"{message}{(includeWarnCount ? $" ({(timedOut ? "Timed Out" : $"Warning {storedUser.Warnings}/3")})" : "")}", reply ? socketMessage : null, component: component);
+		await SendMessage(channel, $"{message}{(includeWarnCount ? $"\n__({(timedOut ? "Timed Out" : $"Warning {storedUser.Warnings}/3")})" : "")}__", reply ? socketMessage : null, component: component);
 
 		await socketMessage.AddReactionAsync(WarnEmoji);
 	}
