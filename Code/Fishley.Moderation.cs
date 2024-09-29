@@ -148,11 +148,12 @@ public partial class Fishley
 
 		if (storedUser.Warnings - 1 >= 0)
 		{
-			await SendMessage(channel, $"{message}{(includePassCount ? $"\n__({$"{storedUser.Warnings}/3 warns left"})" : "")}__", reply ? socketMessage : null);
+			var warnsLeft = storedUser.Warnings - 1;
+			await SendMessage(channel, $"{message}{(includePassCount ? $"\n__({$"{warnsLeft} warn{(warnsLeft != 1 ? "s" : "")} left"})" : "")}__", reply ? socketMessage : null);
 		}
 		else
 		{
-			var passesLeft = -storedUser.Warnings;
+			var passesLeft = -(storedUser.Warnings - 1);
 			await SendMessage(channel, $"{message}{(includePassCount ? $"\n__({$"{passesLeft} pass{(passesLeft != 1 ? "es" : "")} left"})" : "")}__", reply ? socketMessage : null);
 		}
 
