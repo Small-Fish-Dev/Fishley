@@ -1,5 +1,5 @@
 namespace Fishley;
-
+/*
 public partial class Fishley
 {
 	public class ImageCommand : DiscordSlashCommand
@@ -53,4 +53,4 @@ public partial class Fishley
 			}
 		}
 	}
-}
+}*/

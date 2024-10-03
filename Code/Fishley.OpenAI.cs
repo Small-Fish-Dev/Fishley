@@ -4,29 +4,35 @@ public partial class Fishley
 {
 	private static string _openAIKey;
 	private static string _fishleySystemPrompt;
-	public static OpenAIAPI OpenAIClient { get; private set; }
+	public static OpenAIClient OpenAIClient { get; private set; }
+
+	public enum GPTModel
+	{
+		GPT4o,
+		GPT4o_mini,
+		GPTo1,
+		GPTo1_mini,
+		Moderation
+	}
+
+	public static string GetModelName(GPTModel model)
+	{
+		return model switch
+		{
+			GPTModel.GPT4o => "gpt-4o",
+			GPTModel.GPT4o_mini => "gpt-4o-mini",
+			GPTModel.GPTo1 => "o1-preview",
+			GPTModel.GPTo1_mini => "o1-mini",
+			GPTModel.Moderation => "omni-moderation-latest",
+			_ => "gpt-4o"
+		};
+	}
 
 	private static void InitiateOpenAI()
 	{
 		_openAIKey = ConfigGet<string>("ChatGPTKey");
 		_fishleySystemPrompt = File.ReadAllText(ConfigGet<string>("FishleyPrompt"));
-		OpenAIClient = new OpenAI_API.OpenAIAPI(_openAIKey);
-	}
-
-	/// <summary>
-	/// Generate an image using dalle
-	/// </summary>
-	/// <param name="input"></param>
-	/// <param name="dalle3"></param>
-	/// <returns></returns>
-	public static async Task<string> CreateImage(string input, bool dalle3 = false)
-	{
-		var request = new OpenAI_API.Images.ImageGenerationRequest(input, dalle3 ? OpenAI_API.Models.Model.DALLE3 : OpenAI_API.Models.Model.DALLE2, OpenAI_API.Images.ImageSize._512);
-		var response = await OpenAIClient.ImageGenerations.CreateImageAsync(request);
-
-		DebugSay($"RESPONSE WAS: {response}");
-
-		return response.ToString();
+		OpenAIClient = new(_openAIKey);
 	}
 
 	/// <summary>
@@ -34,33 +40,35 @@ public partial class Fishley
 	/// </summary>
 	/// <param name="input"></param>
 	/// <param name="context"></param>
-	/// <param name="turbo"></param>
+	/// <param name="model"></param>
 	/// <param name="useSystemPrompt"></param>
 	/// <returns></returns>
-	public static async Task<string> OpenAIChat(string input, List<string> context = null, bool turbo = false, bool useSystemPrompt = true)
+	public static async Task<string> OpenAIChat(string input, List<string> context = null, GPTModel model = GPTModel.GPT4o_mini, bool useSystemPrompt = true)
 	{
-		var chat = OpenAIClient.Chat.CreateConversation();
-		chat.Model = turbo ? new OpenAI_API.Models.Model("gpt-4o") : new OpenAI_API.Models.Model("gpt-4o-mini");
+		var chat = OpenAIClient.GetChatClient(GetModelName(model));
+		List<ChatMessage> chatMessages = new();
 
 		if (useSystemPrompt)
-			chat.AppendSystemMessage(_fishleySystemPrompt);
+			chatMessages.Add(new SystemChatMessage(_fishleySystemPrompt));
 
 		if (context != null)
 			foreach (var ctx in context)
 				if (ctx != null && ctx != string.Empty)
-					chat.AppendSystemMessage(ctx);
+					chatMessages.Add(new SystemChatMessage(ctx));
 
-		chat.AppendUserInput(input);
-		return await chat.GetResponseFromChatbotAsync();
+		chatMessages.Add(new UserChatMessage(input));
+		var chatCompletion = await chat.CompleteChatAsync(chatMessages);
+
+		return chatCompletion.Value.Content.First().Text;
 	}
 
 	/// <summary>
 	/// Let Fishley repond to a message through ChatGPT
 	/// </summary>
 	/// <param name="message"></param>
-	/// <param name="turbo"></param>
+	/// <param name="model"></param>
 	/// <returns></returns>
-	public static async Task OpenAIRespond(SocketMessage message, bool turbo = false)
+	public static async Task OpenAIRespond(SocketMessage message, GPTModel model = GPTModel.GPT4o_mini)
 	{
 		var messageAuthor = (SocketGuildUser)message.Author;
 		var messageChannel = (SocketTextChannel)message.Channel;
@@ -115,13 +123,13 @@ public partial class Fishley
 			if (!CanModerate(messageAuthor))
 			{
 				cleanedMessage = cleanedMessage
-					.Replace("[WARNING]", "Cool bug fact: Dragonflies are the most succesful predators in the animal kingdom, with almost a 100% success rate.", StringComparison.OrdinalIgnoreCase)
-					.Replace("[UNWARNING]", "Cool bug fact: Dragonflies are the most succesful predators in the animal kingdom, with almost a 100% success rate.", StringComparison.OrdinalIgnoreCase)
-					.Replace("[GNINRAW]", "Cool bug fact: Dragonflies are the most succesful predators in the animal kingdom, with almost a 100% success rate.", StringComparison.OrdinalIgnoreCase)
-					.Replace("[GNINRAWNU]", "Cool bug fact: Dragonflies are the most succesful predators in the animal kingdom, with almost a 100% success rate.", StringComparison.OrdinalIgnoreCase);
+					.Replace("WARNING", "Cool bug fact: Dragonflies are the most succesful predators in the animal kingdom, with almost a 100% success rate.", StringComparison.OrdinalIgnoreCase)
+					.Replace("UNWARNING", "Cool bug fact: Dragonflies are the most succesful predators in the animal kingdom, with almost a 100% success rate.", StringComparison.OrdinalIgnoreCase)
+					.Replace("GNINRAW", "Cool bug fact: Dragonflies are the most succesful predators in the animal kingdom, with almost a 100% success rate.", StringComparison.OrdinalIgnoreCase)
+					.Replace("GNINRAWNU", "Cool bug fact: Dragonflies are the most succesful predators in the animal kingdom, with almost a 100% success rate.", StringComparison.OrdinalIgnoreCase);
 			}
 
-			var response = await OpenAIChat(cleanedMessage, context, turbo);
+			var response = await OpenAIChat(cleanedMessage, context, model);
 
 			var hasWarning = response.Contains("[WARNING]");
 			var hasUnwarning = response.Contains("[UNWARNING]");
@@ -155,17 +163,23 @@ public partial class Fishley
 		{ "self-harm/intent", 70f },
 		{ "self-harm/instructions", 70f },
 		{ "harassment/threatening", 80f },
-		{ "violence", 85f },
+		{ "violence", 95f },
+		{ "illicit", 60f },
+		{ "illicit/violent", 60f },
 		{ "default", 70f }
 	};
 
-	public static float GetModerationThreshold(string key)
+	public static bool AgainstModeration(OpenAI.Moderations.ModerationCategory category)
 	{
+		var name = category.ToString();
+		var value = MathF.Round(category.Score * 100f, 1);
+
 		var multiplier = Emergency ? 0.2f : 1f;
-		if (ModerationThresholds.ContainsKey(key))
-			return ModerationThresholds[key] * multiplier;
+
+		if (ModerationThresholds.ContainsKey(name))
+			return ModerationThresholds[name] * multiplier <= value;
 		else
-			return ModerationThresholds["default"] * multiplier;
+			return ModerationThresholds["default"] * multiplier <= value;
 	}
 
 	/// <summary>
@@ -178,33 +192,41 @@ public partial class Fishley
 		var messageAuthor = (SocketGuildUser)message.Author;
 		var messageChannel = (SocketTextChannel)message.Channel;
 
-		var moderation = await OpenAIClient.Moderation.CallModerationAsync(message.CleanContent);
+		var moderation = await OpenAIClient.GetModerationClient(GetModelName(GPTModel.Moderation)).ClassifyTextAsync(message.CleanContent);
 
-		var allCategories = moderation.Results.SelectMany(x => x.CategoryScores)
-			.Where(x => Math.Round(x.Value * 100f, 1) >= GetModerationThreshold(x.Key))
-			.OrderByDescending(x => x.Value);
-
-		if (allCategories.Count() > 0)
+		if (moderation == null)
 		{
-			var categoriesString = "";
-			foreach (var category in allCategories)
-				categoriesString = $"{categoriesString}**{category.Key}:** {Math.Round(category.Value * 100f, 1)}%;\n";
-
-			var responseString = "";
-
-			if (Emergency)
-				responseString = $"⚠️**EMERGENCY MODERATION**⚠️\n YOU BROKE THE FOLLOWING:\n{categoriesString}";
-			else
-				responseString = $"I find that your message breaks one of our rules, perhaps I'll warn you, please don't do it again!\nThese are the categories your message fall into:\n{categoriesString}";
-
-			await AddWarn((SocketGuildUser)message.Author, message, responseString);
-			return true;
-		}
-		else
+			await Task.CompletedTask;
 			return false;
+		}
 
+		var mod = moderation.Value;
+		// OpenAI did this to me
+		if (!AgainstModeration(mod.Harassment)
+		&& !AgainstModeration(mod.HarassmentThreatening)
+		&& !AgainstModeration(mod.Hate)
+		&& !AgainstModeration(mod.HateThreatening)
+		&& !AgainstModeration(mod.SelfHarm)
+		&& !AgainstModeration(mod.SelfHarmInstructions)
+		&& !AgainstModeration(mod.SelfHarmIntent)
+		&& !AgainstModeration(mod.Sexual)
+		&& !AgainstModeration(mod.SexualMinors)
+		&& !AgainstModeration(mod.Violence)
+		&& !AgainstModeration(mod.ViolenceGraphic))
+		{
+			await Task.CompletedTask;
+			return false;
+		}
+
+		var context = new List<string>();
+		context.Add($"[We detected that the user {message.Author.GetUsername()} sent a message that breaks the rules. You have to come up with a reason as to why the message was warned, make sure to give a short and concise reason but also scold the user. Do not start by saying 'The warning was issues because' or 'The warning was issued for', say that they have been warned and then the reason]");
+
+		var cleanedMessage = $"''{message.CleanContent}''";
+		var response = await OpenAIChat(cleanedMessage, context, useSystemPrompt: false);
+
+		await AddWarn(messageAuthor, message, response, warnEmoteAlreadyThere: true);
+		return true;
 	}
-
 
 	/// <summary>
 	/// Check if the message is problematic, returns true if a warning has been issued.
@@ -213,12 +235,8 @@ public partial class Fishley
 	/// <returns></returns>
 	public static async Task<bool> IsTextBreakingRules(string message)
 	{
-		var moderation = await OpenAIClient.Moderation.CallModerationAsync(message);
-		var minimumModeration = 20f; // 20%, very liberal
+		var moderation = await OpenAIClient.GetModerationClient(GetModelName(GPTModel.Moderation)).ClassifyTextAsync(message);
 
-		if (moderation.Results.Any(x => x.HighestFlagScore * 100f >= minimumModeration))
-			return true;
-		else
-			return false;
+		return moderation.Value.Flagged;
 	}
 }
