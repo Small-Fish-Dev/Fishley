@@ -15,6 +15,11 @@ public partial class Fishley
 		Moderation
 	}
 
+	public class ModerationCategory
+	{
+		public Dictionary<string, bool> categories { get; set; }
+	}
+
 	public static string GetModelName(GPTModel model)
 	{
 		return model switch
@@ -155,17 +160,17 @@ public partial class Fishley
 	{
 		{ "sexual", 70f },
 		{ "hate", 80f },
-		{ "harassment", 80f },
+		{ "harassment", 90f },
 		{ "self-harm", 70f },
 		{ "sexual/minors", 20f },
 		{ "hate/threatening", 60f },
-		{ "violence/graphic", 70f },
+		{ "violence/graphic", 80f },
 		{ "self-harm/intent", 70f },
 		{ "self-harm/instructions", 70f },
-		{ "harassment/threatening", 80f },
+		{ "harassment/threatening", 90f },
 		{ "violence", 95f },
-		{ "illicit", 60f },
-		{ "illicit/violent", 60f },
+		{ "illicit", 90f },
+		{ "illicit/violent", 90f },
 		{ "default", 70f }
 	};
 
@@ -190,9 +195,13 @@ public partial class Fishley
 	public static async Task<bool> ModerateMessage(SocketMessage message)
 	{
 		var messageAuthor = (SocketGuildUser)message.Author;
-		var messageChannel = (SocketTextChannel)message.Channel;
+		var modModel = OpenAIClient.GetModerationClient(GetModelName(GPTModel.Moderation));
 
-		var moderation = await OpenAIClient.GetModerationClient(GetModelName(GPTModel.Moderation)).ClassifyTextAsync(message.CleanContent);
+		// Text moderation
+		if (string.IsNullOrEmpty(message.CleanContent) || string.IsNullOrWhiteSpace(message.CleanContent) || message.CleanContent.Length == 0)
+			return false;
+
+		var moderation = await modModel.ClassifyTextAsync(message.CleanContent);
 
 		if (moderation == null)
 		{
@@ -201,25 +210,42 @@ public partial class Fishley
 		}
 
 		var mod = moderation.Value;
-		// OpenAI did this to me
-		if (!AgainstModeration(mod.Harassment)
-		&& !AgainstModeration(mod.HarassmentThreatening)
-		&& !AgainstModeration(mod.Hate)
-		&& !AgainstModeration(mod.HateThreatening)
-		&& !AgainstModeration(mod.SelfHarm)
-		&& !AgainstModeration(mod.SelfHarmInstructions)
-		&& !AgainstModeration(mod.SelfHarmIntent)
-		&& !AgainstModeration(mod.Sexual)
-		&& !AgainstModeration(mod.SexualMinors)
-		&& !AgainstModeration(mod.Violence)
-		&& !AgainstModeration(mod.ViolenceGraphic))
+		var brokenModeration = new List<string>();
+
+		if (AgainstModeration(mod.Harassment))
+			brokenModeration.Add(mod.Harassment.ToString());
+		if (AgainstModeration(mod.HarassmentThreatening))
+			brokenModeration.Add(mod.HarassmentThreatening.ToString());
+		if (AgainstModeration(mod.Hate))
+			brokenModeration.Add(mod.Hate.ToString());
+		if (AgainstModeration(mod.HateThreatening))
+			brokenModeration.Add(mod.HateThreatening.ToString());
+		if (AgainstModeration(mod.SelfHarm))
+			brokenModeration.Add(mod.SelfHarm.ToString());
+		if (AgainstModeration(mod.SelfHarmInstructions))
+			brokenModeration.Add(mod.SelfHarmInstructions.ToString());
+		if (AgainstModeration(mod.SelfHarmIntent))
+			brokenModeration.Add(mod.SelfHarmIntent.ToString());
+		if (AgainstModeration(mod.Sexual))
+			brokenModeration.Add(mod.Sexual.ToString());
+		if (AgainstModeration(mod.SexualMinors))
+			brokenModeration.Add(mod.SexualMinors.ToString());
+		if (AgainstModeration(mod.Violence))
+			brokenModeration.Add(mod.Violence.ToString());
+		if (AgainstModeration(mod.ViolenceGraphic))
+			brokenModeration.Add(mod.ViolenceGraphic.ToString());
+
+		if (brokenModeration.Count == 0)
 		{
 			await Task.CompletedTask;
 			return false;
 		}
 
 		var context = new List<string>();
-		context.Add($"[We detected that the user {message.Author.GetUsername()} sent a message that breaks the rules. You have to come up with a reason as to why the message was warned, make sure to give a short and concise reason but also scold the user. Do not start by saying 'The warning was issues because' or 'The warning was issued for', say that they have been warned and then the reason]");
+		context.Add($"[We detected that the user {message.Author.GetUsername()} sent a message that breaks the rules. You have to come up with a reason as to why the message was warned, make sure to give a short and concise reason but also scold the user. Do not start by saying 'The warning was issued because' or 'The warning was issued for', say that they have been warned and then the reason]");
+
+		if (message.Embeds != null && message.Embeds.Count() > 0)
+			context.Add("The message also contained an embed which may have been the reason for the warn. It most likely was if the message is empty.");
 
 		var cleanedMessage = $"''{message.CleanContent}''";
 		var response = await OpenAIChat(cleanedMessage, context, useSystemPrompt: false);
