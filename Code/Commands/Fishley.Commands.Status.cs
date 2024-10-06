@@ -56,10 +56,21 @@ public partial class Fishley
 		.WithName("emergency")
 		.WithDescription("Set Fishley to emergency mode")
 		.AddOption(new SlashCommandOptionBuilder()
-			.WithName("enabled")
-			.WithDescription("Enabled or Disabled")
-			.WithRequired(true)
-			.WithType(ApplicationCommandOptionType.Boolean))
+			.WithName("rule")
+			.WithDescription("Describe which messages break the rules and Fishley should punish.")
+			.WithRequired(false)
+			.WithType(ApplicationCommandOptionType.String))
+		.AddOption(new SlashCommandOptionBuilder()
+			.WithName("punishment")
+			.WithDescription("What should Fishley do to messages that break the rule.")
+			.WithRequired(false)
+			.AddChoice("Warn", 0)
+			.AddChoice("Timeout", 1)
+			.AddChoice("Delete", 2)
+			.AddChoice("Warn and Timeout", 3)
+			.AddChoice("Delete and Timeout", 4)
+			.AddChoice("Kick", 5)
+			.WithType(ApplicationCommandOptionType.Integer))
 		.WithDefaultMemberPermissions(GuildPermission.Administrator);
 
 		public override Func<SocketSlashCommand, Task> Function => Emergancy;
@@ -68,11 +79,34 @@ public partial class Fishley
 
 		public async Task Emergancy(SocketSlashCommand command)
 		{
-			var enabled = (bool)command.Data.Options.First().Value;
 
 			if (IsAdmin((SocketGuildUser)command.User))
 			{
-				await command.RespondAsync($"EMERGENCY PROTOCOL {(enabled ? "ACTIVATED" : "DISACTIVATED")}");
+				var enabled = !Emergency;
+
+				if (enabled)
+				{
+					if (command.Data.Options.First() == null || command.Data.Options.Last() == null)
+					{
+						await command.RespondAsync($"To enable you have to define a rule and a punishment.", ephemeral: true);
+						return;
+					}
+				}
+
+				var rule = (string)command.Data.Options.First().Value;
+				var punishment = (long)command.Data.Options.Last().Value;
+				var punishmentName = punishment switch
+				{
+					0 => "Warn",
+					1 => "Timeout",
+					2 => "Delete",
+					3 => "Warn and Timeout",
+					4 => "Delete and Timeout",
+					5 => "Kick",
+					_ => "None"
+				};
+
+				await command.RespondAsync($"**EMERGENCY PROTOCOL __{(enabled ? "ACTIVATED" : "DISACTIVATED")}__**\nRule: `{rule}`\nPushiment: `{punishmentName}`");
 				Emergency = enabled;
 			}
 			else

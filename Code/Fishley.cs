@@ -37,6 +37,8 @@ public partial class Fishley
 	public static Dictionary<string, string> Config { get; private set; }
 	public static bool Running { get; set; } = false;
 	public static bool Emergency { get; set; } = false;
+	public static string Rule { get; set; } = "Keep things tidy";
+	public static long Punishment { get; set; } = 0;
 	public static DateTime LastMessage { get; set; } = DateTime.UtcNow;
 	public static int SecondsSinceLastMessage => (int)(DateTime.UtcNow - LastMessage).TotalSeconds;
 	public static HttpClient HttpClient { get; set; } = new HttpClient();
@@ -239,10 +241,10 @@ public partial class Fishley
 		var giver = guildChannel.GetUser(reaction.UserId);
 		if (giver is null) return;
 		if (giver.IsBot) return;
-		if (!reaction.Emote.Equals(WarnEmoji) && !reaction.Emote.Equals(PassEmoji)) return;
 
 		var message = await cacheableMessage.GetOrDownloadAsync();
 		if (message is null) return;
+		if (!reaction.Emote.Equals(WarnEmoji) && !reaction.Emote.Equals(PassEmoji)) return;
 
 		if (!CanModerate(giver))
 		{
