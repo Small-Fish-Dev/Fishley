@@ -71,6 +71,11 @@ public partial class Fishley
 			.AddChoice("Delete and Timeout", 4)
 			.AddChoice("Kick", 5)
 			.WithType(ApplicationCommandOptionType.Integer))
+		.AddOption(new SlashCommandOptionBuilder()
+			.WithName("prompt")
+			.WithDescription("Does Fishley need his prompt to understand the context of the rule?")
+			.WithRequired(false)
+			.WithType(ApplicationCommandOptionType.Boolean))
 		.WithDefaultMemberPermissions(GuildPermission.Administrator);
 
 		public override Func<SocketSlashCommand, Task> Function => Emergancy;
@@ -86,15 +91,16 @@ public partial class Fishley
 
 				if (enabled)
 				{
-					if (command.Data.Options.First() == null || command.Data.Options.Last() == null)
+					if (commands.Data.Options.Count() < 2)
 					{
 						await command.RespondAsync($"To enable you have to define a rule and a punishment.", ephemeral: true);
 						return;
 					}
 				}
 
-				var rule = (string)command.Data.Options.First().Value;
-				var punishment = (long)command.Data.Options.Last().Value;
+				var rule = (string)command.Data.Options[0].Value;
+				var punishment = (long)command.Data.Options[1].Value;
+				var usePrompt = command.Data.Options.Count() == 3 ? (bool)command.Data.Options.Last().Value : false;
 				var punishmentName = punishment switch
 				{
 					0 => "Warn",
@@ -106,10 +112,11 @@ public partial class Fishley
 					_ => "None"
 				};
 
-				await command.RespondAsync($"EMERGENCY PROTOCOL: **__{(enabled ? "ACTIVATED" : "DISACTIVATED")}__**{(enabled ? $"\nRule: `{rule}`\nPushiment: `{punishmentName}" : "")})`");
+				await command.RespondAsync($"EMERGENCY PROTOCOL: **__{(enabled ? "ACTIVATED" : "DISACTIVATED")}__**{(enabled ? $"\nRule: `{rule}`\nPushiment: `{punishmentName}`\nFeed Prompt: `{usePrompt}`" : "")}");
 				Emergency = enabled;
 				Rule = rule;
 				Punishment = punishment;
+				UsePrompt = usePrompt;
 			}
 			else
 				await command.RespondAsync($"You can't use this command?", ephemeral: true);

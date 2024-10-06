@@ -44,6 +44,7 @@ public partial class Fishley
 		set => _rule = value;
 	}
 	public static long Punishment { get; set; } = 0;
+	public static bool UsePrompt { get; set; } = false;
 	public static DateTime LastMessage { get; set; } = DateTime.UtcNow;
 	public static int SecondsSinceLastMessage => (int)(DateTime.UtcNow - LastMessage).TotalSeconds;
 	public static HttpClient HttpClient { get; set; } = new HttpClient();

@@ -287,7 +287,7 @@ public partial class Fishley
 			emergencyContext.Add($"[The rule given by the moderator that you must upheld or that describes the messages to target is the following: {Rule}]");
 			emergencyContext.Add($"The message is the following:");
 
-			var recap = await OpenAIChat(message.CleanContent, emergencyContext, GPTModel.GPT4o, false);
+			var recap = await OpenAIChat(message.CleanContent, emergencyContext, GPTModel.GPT4o, UsePrompt);
 
 			if (recap.Contains("YES", StringComparison.InvariantCultureIgnoreCase) || recap.Contains("DO", StringComparison.InvariantCultureIgnoreCase))
 			{
