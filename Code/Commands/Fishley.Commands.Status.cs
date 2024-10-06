@@ -91,32 +91,37 @@ public partial class Fishley
 
 				if (enabled)
 				{
-					if (commands.Data.Options.Count() < 2)
+					if (command.Data.Options.Count() < 2)
 					{
 						await command.RespondAsync($"To enable you have to define a rule and a punishment.", ephemeral: true);
 						return;
 					}
+
+					var rule = (string)command.Data.Options.ToArray()[0].Value;
+					var punishment = (long)command.Data.Options.ToArray()[1].Value;
+					var usePrompt = command.Data.Options.Count() == 3 ? (bool)command.Data.Options.Last().Value : false;
+					var punishmentName = punishment switch
+					{
+						0 => "Warn",
+						1 => "Timeout",
+						2 => "Delete",
+						3 => "Warn and Timeout",
+						4 => "Delete and Timeout",
+						5 => "Kick",
+						_ => "None"
+					};
+
+					await command.RespondAsync($"EMERGENCY PROTOCOL: **__ACTIVATED__**\nRule: `{rule}`\nPushiment: `{punishmentName}`\nFeed Prompt: `{usePrompt}`");
+					Rule = rule;
+					Punishment = punishment;
+					UsePrompt = usePrompt;
+				}
+				else
+				{
+					await command.RespondAsync($"EMERGENCY PROTOCOL: **__DISACTIVATED__**");
 				}
 
-				var rule = (string)command.Data.Options[0].Value;
-				var punishment = (long)command.Data.Options[1].Value;
-				var usePrompt = command.Data.Options.Count() == 3 ? (bool)command.Data.Options.Last().Value : false;
-				var punishmentName = punishment switch
-				{
-					0 => "Warn",
-					1 => "Timeout",
-					2 => "Delete",
-					3 => "Warn and Timeout",
-					4 => "Delete and Timeout",
-					5 => "Kick",
-					_ => "None"
-				};
-
-				await command.RespondAsync($"EMERGENCY PROTOCOL: **__{(enabled ? "ACTIVATED" : "DISACTIVATED")}__**{(enabled ? $"\nRule: `{rule}`\nPushiment: `{punishmentName}`\nFeed Prompt: `{usePrompt}`" : "")}");
 				Emergency = enabled;
-				Rule = rule;
-				Punishment = punishment;
-				UsePrompt = usePrompt;
 			}
 			else
 				await command.RespondAsync($"You can't use this command?", ephemeral: true);
