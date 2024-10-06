@@ -37,7 +37,16 @@ public partial class Fishley
 	public static Dictionary<string, string> Config { get; private set; }
 	public static bool Running { get; set; } = false;
 	public static bool Emergency { get; set; } = false;
-	public static string Rule { get; set; } = "Keep things tidy";
+	static string _rule = "Keep things tidy";
+	public static string Rule
+	{
+		get => _rule;
+		set
+		{
+			DebugSay(value);
+			_rule = value;
+		}
+	}
 	public static long Punishment { get; set; } = 0;
 	public static DateTime LastMessage { get; set; } = DateTime.UtcNow;
 	public static int SecondsSinceLastMessage => (int)(DateTime.UtcNow - LastMessage).TotalSeconds;
@@ -372,10 +381,13 @@ public partial class Fishley
 
 		if (!CanModerate((SocketGuildUser)message.Author))
 		{
-			if (await HandleFilters(userMessage))
-				return;
+			if (Emergency)
+				await ModerateEmergency(message);
 
 			if (await ModerateMessage(message))
+				return;
+
+			if (await HandleFilters(userMessage))
 				return;
 		}
 

@@ -108,6 +108,10 @@ public partial class Fishley
 
 				await command.RespondAsync($"**EMERGENCY PROTOCOL __{(enabled ? "ACTIVATED" : "DISACTIVATED")}__**\nRule: `{rule}`\nPushiment: `{punishmentName}`");
 				Emergency = enabled;
+				Rule = rule;
+				Punishment = punishment;
+				DebugSay(Rule);
+				DebugSay(Punishment.ToString());
 			}
 			else
 				await command.RespondAsync($"You can't use this command?", ephemeral: true);
