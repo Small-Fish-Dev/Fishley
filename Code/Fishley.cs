@@ -41,11 +41,7 @@ public partial class Fishley
 	public static string Rule
 	{
 		get => _rule;
-		set
-		{
-			DebugSay(value);
-			_rule = value;
-		}
+		set => _rule = value;
 	}
 	public static long Punishment { get; set; } = 0;
 	public static DateTime LastMessage { get; set; } = DateTime.UtcNow;

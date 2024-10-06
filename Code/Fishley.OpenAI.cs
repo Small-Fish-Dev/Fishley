@@ -289,14 +289,8 @@ public partial class Fishley
 
 			var recap = await OpenAIChat(message.CleanContent, emergencyContext, GPTModel.GPT4o, false);
 
-			DebugSay(message.CleanContent);
-			DebugSay(recap);
-			DebugSay(Rule);
-			DebugSay(Punishment.ToString());
-
 			if (recap.Contains("YES", StringComparison.InvariantCultureIgnoreCase) || recap.Contains("DO", StringComparison.InvariantCultureIgnoreCase))
 			{
-				DebugSay("WARNING");
 				var messageAuthor = (SocketGuildUser)message.Author;
 
 				if (Punishment == 0 || Punishment == 3)
