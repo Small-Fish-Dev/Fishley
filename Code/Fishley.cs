@@ -376,11 +376,11 @@ public partial class Fishley
 
 		if (!Running) return;
 
+		if (Emergency)
+			await ModerateEmergency(message);
+
 		if (!CanModerate((SocketGuildUser)message.Author))
 		{
-			if (Emergency)
-				await ModerateEmergency(message);
-
 			if (await ModerateMessage(message))
 				return;
 

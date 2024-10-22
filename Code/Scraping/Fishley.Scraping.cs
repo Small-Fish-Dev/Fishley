@@ -23,9 +23,10 @@ public partial class Fishley
 	public static Dictionary<string, WebsiteScraper> WebsitesToCheck = new()
 	{
 		{ "r_sandbox", new SubredditScraper() },
+		{ "twitch", new TwitchScraper() },
 		{ "youtube", new YoutubeScraper() },
 		{ "garry", new GarryScraper() },
-		{ "sbox.game", new SboxGameScraper() },
+		//{ "sbox.game", new SboxGameScraper() },
 		{ "latentplaces", new LatentPlacesScrapper() },
 		{ "garrytiktok", new GarryTiktokScraper() },
 		{ "fish_of_the_week", new FishOfTheWeekTikTok() }
