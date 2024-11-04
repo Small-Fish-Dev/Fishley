@@ -379,7 +379,7 @@ public partial class Fishley
 		if (Emergency)
 			await ModerateEmergency(message);
 
-		if (!CanModerate((SocketGuildUser)message.Author))
+		if (!CanModerate((SocketGuildUser)message.Author) && !IsFishOfTheDay((SocketGuildUser)message.Author))
 		{
 			if (await ModerateMessage(message))
 				return;

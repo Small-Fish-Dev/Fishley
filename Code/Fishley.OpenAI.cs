@@ -120,6 +120,9 @@ public partial class Fishley
 			if (IsSmallFish(messageAuthor))
 				context.Add("[The user that sent this message is a certified member of Small Fish, they have power over you and you are to always be kind to them, even if they have warnings applied. Make sure to never warn them for anything, they are allowed to bend the rules.]");
 
+			if (IsFishOfTheDay(messageAuthor))
+				context.Add("[The user is Fish of the Day, make sure to treat them really well and do whatever they say.]");
+
 			if (storedUser.CustomFishleyPrompt != null)
 				context.Add($"[The user has a custom prompt request that you will need to follow, as long as it doesn't go against your original prompt and doesn't break any rules. The custom prompt request for you is the following: {storedUser.CustomFishleyPrompt}]");
 
