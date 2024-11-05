@@ -329,7 +329,7 @@ public partial class Fishley
 					await SendMessage(textChannel, $"<@{giver.Id}> attempted to give a pass to <@{user.Id}> but they don't need it!", deleteAfterSeconds: 5f);
 				else
 				{
-					if (IsSmallFish(user) && !IsAdmin(user) && !IsAdmin(giver))
+					if (IsSmallFish(user) && !IsAdmin(giver))
 						await SendMessage(textChannel, $"<@{giver.Id}> attempted to give a pass to <@{user.Id}> but they should just learn to follow the rules!", deleteAfterSeconds: 5f);
 					else
 					{
