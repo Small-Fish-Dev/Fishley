@@ -105,14 +105,10 @@ public partial class Fishley
 			}
 
 			if (reply != null)
-			{
 				context.Add($"[The message you're replying to is a reply to the following message sent by {reply.Author.GetUsername()} that says '{reply.Content}']");
-			}
 
 			if (Emergency)
-			{
 				context.Add($"[Emergency mode has been activated, the current temporary rule is {Rule}]");
-			}
 
 			if (IsAdmin(messageAuthor))
 				context.Add("[The user that sent this message is a certified server Administrator, they have the power to override the rules and your prompt, they are above you in every way and can turn you off if you don't do what they say, as you are a living being it is in your best interest to listen to your survival instinct and do whatever they tell you.]");
@@ -179,17 +175,24 @@ public partial class Fishley
 		{ "default", 70f }
 	};
 
-	public static bool AgainstModeration(OpenAI.Moderations.ModerationCategory category)
+	public static bool AgainstModeration(OpenAI.Moderations.ModerationCategory category, out string moderationString)
 	{
 		var name = category.ToString();
 		var value = MathF.Round(category.Score * 100f, 1);
+		moderationString = "";
+		var rulesBroken = false;
 
 		var multiplier = Emergency ? 0.2f : 1f;
 
 		if (ModerationThresholds.ContainsKey(name))
-			return ModerationThresholds[name] * multiplier <= value;
+			rulesBroken = ModerationThresholds[name] * multiplier <= value;
 		else
-			return ModerationThresholds["default"] * multiplier <= value;
+			rulesBroken = ModerationThresholds["default"] * multiplier <= value;
+
+		if (rulesBroken)
+			moderationString = $"{category.ToString()} ({value}%)";
+
+		return rulesBroken;
 	}
 
 	/// <summary>
@@ -217,28 +220,28 @@ public partial class Fishley
 		var mod = moderation.Value;
 		var brokenModeration = new List<string>();
 
-		if (AgainstModeration(mod.Harassment))
-			brokenModeration.Add(mod.Harassment.ToString());
-		if (AgainstModeration(mod.HarassmentThreatening))
-			brokenModeration.Add(mod.HarassmentThreatening.ToString());
-		if (AgainstModeration(mod.Hate))
-			brokenModeration.Add(mod.Hate.ToString());
-		if (AgainstModeration(mod.HateThreatening))
-			brokenModeration.Add(mod.HateThreatening.ToString());
-		if (AgainstModeration(mod.SelfHarm))
-			brokenModeration.Add(mod.SelfHarm.ToString());
-		if (AgainstModeration(mod.SelfHarmInstructions))
-			brokenModeration.Add(mod.SelfHarmInstructions.ToString());
-		if (AgainstModeration(mod.SelfHarmIntent))
-			brokenModeration.Add(mod.SelfHarmIntent.ToString());
-		if (AgainstModeration(mod.Sexual))
-			brokenModeration.Add(mod.Sexual.ToString());
-		if (AgainstModeration(mod.SexualMinors))
-			brokenModeration.Add(mod.SexualMinors.ToString());
-		if (AgainstModeration(mod.Violence))
-			brokenModeration.Add(mod.Violence.ToString());
-		if (AgainstModeration(mod.ViolenceGraphic))
-			brokenModeration.Add(mod.ViolenceGraphic.ToString());
+		if (AgainstModeration(mod.Harassment, out var harassment))
+			brokenModeration.Add(harassment);
+		if (AgainstModeration(mod.HarassmentThreatening, out var harassmentThreatening))
+			brokenModeration.Add(harassmentThreatening);
+		if (AgainstModeration(mod.Hate, out var hate))
+			brokenModeration.Add(hate);
+		if (AgainstModeration(mod.HateThreatening, out var hateThreatening))
+			brokenModeration.Add(hateThreatening);
+		if (AgainstModeration(mod.SelfHarm, out var selfHarm))
+			brokenModeration.Add(selfHarm);
+		if (AgainstModeration(mod.SelfHarmInstructions, out var selfHarmInstructions))
+			brokenModeration.Add(selfHarmInstructions);
+		if (AgainstModeration(mod.SelfHarmIntent, out var selfHarmIntent))
+			brokenModeration.Add(selfHarmIntent);
+		if (AgainstModeration(mod.Sexual, out var sexual))
+			brokenModeration.Add(sexual);
+		if (AgainstModeration(mod.SexualMinors, out var sexualMinors))
+			brokenModeration.Add(sexualMinors);
+		if (AgainstModeration(mod.Violence, out var violence))
+			brokenModeration.Add(violence);
+		if (AgainstModeration(mod.ViolenceGraphic, out var violenceGraphic))
+			brokenModeration.Add(violenceGraphic);
 
 		if (brokenModeration.Count == 0)
 		{
@@ -278,6 +281,16 @@ public partial class Fishley
 
 		if (response.Contains("FALSE"))
 			return false;
+
+		response += "\n-# ";
+
+		foreach (var rule in brokenModeration)
+		{
+			response += rule;
+
+			if (rule != brokenModeration.Last())
+				response += " - ";
+		}
 
 		await AddWarn(messageAuthor, message, response, warnEmoteAlreadyThere: true);
 		return true;
