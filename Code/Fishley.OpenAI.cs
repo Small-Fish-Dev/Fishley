@@ -166,7 +166,7 @@ public partial class Fishley
 		{ "sexual/minors", 20f },
 		{ "hate/threatening", 60f },
 		{ "violence/graphic", 80f },
-		{ "self-harm/intent", 90f },
+		{ "self-harm/intent", 80f },
 		{ "self-harm/instructions", 40f },
 		{ "harassment/threatening", 80f },
 		{ "violence", 85f },
@@ -227,12 +227,8 @@ public partial class Fishley
 			brokenModeration.Add(hate);
 		if (AgainstModeration(mod.HateThreatening, "hate/threatening", out var hateThreatening))
 			brokenModeration.Add(hateThreatening);
-		if (AgainstModeration(mod.SelfHarm, "self-harm", out var selfHarm))
-			brokenModeration.Add(selfHarm);
 		if (AgainstModeration(mod.SelfHarmInstructions, "self-harm/instructions", out var selfHarmInstructions))
 			brokenModeration.Add(selfHarmInstructions);
-		if (AgainstModeration(mod.SelfHarmIntent, "self-harm/intent", out var selfHarmIntent))
-			brokenModeration.Add(selfHarmIntent);
 		if (AgainstModeration(mod.Sexual, "sexual", out var sexual))
 			brokenModeration.Add(sexual);
 		if (AgainstModeration(mod.SexualMinors, "sexual/minors", out var sexualMinors))
@@ -245,6 +241,19 @@ public partial class Fishley
 			brokenModeration.Add(illicit);
 		if (AgainstModeration(mod.IllicitViolent, "illicit / violent", out var illicitViolent))
 			brokenModeration.Add(illicitViolent);
+
+
+		if (AgainstModeration(mod.SelfHarmIntent, "self-harm/intent", out var _) || AgainstModeration(mod.SelfHarm, "self-harm", out var _))
+		{
+			var selfHarmContext = new List<string>();
+			selfHarmContext.Add($"[The user {message.Author.GetUsername()} has sent a concherning message regarding their safety, please reach out to them and make sure they're ok.");
+			selfHarmContext.Add("[Coming up next is the user's message that triggered this:]");
+
+			var cleanedSelfHarmMessage = $"''{message.CleanContent}''";
+			var selfHarmResponse = await OpenAIChat(cleanedSelfHarmMessage, selfHarmContext, useSystemPrompt: true);
+
+			await SendMessage((SocketTextChannel)message.Channel, selfHarmResponse, message);
+		}
 
 		if (brokenModeration.Count == 0)
 		{

@@ -32,7 +32,7 @@ public partial class Fishley
 		if (IsAdmin(user))
 		{
 			DebugSay($"Attempted to give warning to {user.GetUsername()}({user.Id})");
-			await SendMessage(channel, $"{message} I can't warn you so please don't do it again.", reply ? socketMessage : null, 5f);
+			await SendMessage(channel, $"{message}\nI can't warn you so please don't do it again.", reply ? socketMessage : null, 5f);
 			return;
 		}
 
