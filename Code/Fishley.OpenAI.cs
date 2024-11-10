@@ -196,7 +196,7 @@ public partial class Fishley
 				totalWarns = 2;
 		}
 
-		moderationString = value <= 0.1f ? null : $"{name} ({value}%)";
+		moderationString = value <= 0.1f ? "" : $"{name} ({value}%)";
 
 		return rulesBroken;
 	}
@@ -319,18 +319,18 @@ public partial class Fishley
 		if (postStats && categories.Count() > 0)
 		{
 			var response = "This does not break any rule\n-# ";
-			var rules = string.Empty;
+			var rules = "";
 
 			foreach (var rule in categories)
 			{
-				if (rule != null)
+				if (rule != "")
 				{
 					rules += rule;
 					rules += " - ";
 				}
 			}
 
-			if (rules == string.Empty)
+			if (rules == "")
 				return false;
 
 			response += rules;
