@@ -196,7 +196,7 @@ public partial class Fishley
 				totalWarns = 2;
 		}
 
-		moderationString = $"{name} ({value}%)";
+		moderationString = value <= 0.1f ? null : $"{name} ({value}%)";
 
 		return rulesBroken;
 	}
@@ -319,12 +319,19 @@ public partial class Fishley
 		if (postStats && categories.Count() > 0)
 		{
 			var response = "This does not break any rule\n-# ";
+			var rules = string.Empty;
 
 			foreach (var rule in categories)
 			{
-				response += rule;
-				response += " - ";
+				if (rule != null)
+				{
+					response += rule;
+					response += " - ";
+				}
 			}
+
+			if (rules == string.Empty)
+				return false;
 
 			response = response.Substring(0, response.Length - 3);
 			await SendMessage((SocketTextChannel)message.Channel, response, message, 5f);
