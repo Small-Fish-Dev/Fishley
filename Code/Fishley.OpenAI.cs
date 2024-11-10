@@ -161,7 +161,7 @@ public partial class Fishley
 	{
 		{ "sexual", 70f },
 		{ "hate", 80f },
-		{ "harassment", 80f },
+		{ "harassment", 90f },
 		{ "self-harm", 80f },
 		{ "sexual/minors", 20f },
 		{ "hate/threatening", 60f },
