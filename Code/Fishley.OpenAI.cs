@@ -252,8 +252,32 @@ public partial class Fishley
 		if (message.Embeds != null && message.Embeds.Count() > 0)
 			context.Add("The message also contained an embed which may have been the reason for the warn. It most likely was if the message is empty.");
 
+		context.Add("[If you believe the warn was given by accident or was missing context from the missing reply, then do not write anything except for the word FALSE in all caps. Always assume warns need to be checked twice before writing a reason behind it.]");
+
+		var reference = message.Reference;
+		SocketMessage reply = null;
+
+		if (reference != null)
+		{
+			if (reference.MessageId.IsSpecified)
+			{
+				var foundMessage = await message.Channel.GetMessageAsync(reference.MessageId.Value);
+
+				if (foundMessage != null)
+					reply = (SocketMessage)foundMessage;
+			}
+		}
+
+		if (reply != null)
+		{
+			context.Add($"[The message that was given a pass to is a reply to the following message sent by {reply.Author.GetUsername()} that says '{reply.Content}']");
+		}
+
 		var cleanedMessage = $"''{message.CleanContent}''";
-		var response = await OpenAIChat(cleanedMessage, context, useSystemPrompt: false);
+		var response = await OpenAIChat(cleanedMessage, context, useSystemPrompt: true);
+
+		if (response.Contains("FALSE"))
+			return false;
 
 		await AddWarn(messageAuthor, message, response, warnEmoteAlreadyThere: true);
 		return true;
