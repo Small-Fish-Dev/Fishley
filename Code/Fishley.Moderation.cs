@@ -20,8 +20,9 @@ public partial class Fishley
 	/// <param name="includeWarnCount"></param>
 	/// <param name="reply"></param>
 	/// <param name="warnEmoteAlreadyThere"></param>
+	/// <param name="warnCount"></param>
 	/// <returns></returns>
-	private static async Task AddWarn(SocketGuildUser user, SocketMessage socketMessage = null, string message = null, bool includeWarnCount = true, bool reply = true, bool warnEmoteAlreadyThere = false)
+	private static async Task AddWarn(SocketGuildUser user, SocketMessage socketMessage = null, string message = null, bool includeWarnCount = true, bool reply = true, bool warnEmoteAlreadyThere = false, int warnCount = 1)
 	{
 		var storedUser = await GetOrCreateUser(user.Id);
 
@@ -38,36 +39,32 @@ public partial class Fishley
 
 		var timedOut = false;
 
-		switch (storedUser.Warnings)
-		{
-			case 0:
-				await user.AddRoleAsync(Warning1Role);
-				break;
-			case 1:
-				await user.AddRoleAsync(Warning2Role);
-				break;
-			case 2:
-				await user.AddRoleAsync(Warning3Role);
-				break;
-			case >= 3:
-				await user.SetTimeOutAsync(TimeSpan.FromSeconds(TimeoutDuration));
-				timedOut = true;
-				break;
-		}
-
-		storedUser.Warnings = Math.Min(storedUser.Warnings + 1, 3);
+		storedUser.Warnings = Math.Min(storedUser.Warnings + warnCount, 4);
 		storedUser.LastWarn = DateTime.UtcNow;
 
+		if (storedUser.Warnings >= 1)
+			await user.AddRoleAsync(Warning1Role);
+		if (storedUser.Warnings >= 2)
+			await user.AddRoleAsync(Warning2Role);
+		if (storedUser.Warnings >= 3)
+			await user.AddRoleAsync(Warning3Role);
+		if (storedUser.Warnings >= 4)
+		{
+			await user.SetTimeOutAsync(TimeSpan.FromSeconds(TimeoutDuration));
+			timedOut = true;
+		}
+
 		var warnPrice = (int)Math.Max((float)storedUser.Money / 20f, 10f);
+		warnPrice *= warnCount;
 
 		await UpdateOrCreateUser(storedUser);
 
-		DebugSay($"Given warning to {user.GetUsername()}({user.Id})");
+		DebugSay($"Given {warnCount} warnings to {user.GetUsername()}({user.Id})");
 
 		if (storedUser.Warnings > 0)
 		{
 			var component = new ComponentBuilder()
-				.WithButton($"Remove Warn (${warnPrice}.00)", $"fine_paid-{warnPrice}-{user.Id}", ButtonStyle.Danger)
+				.WithButton($"Remove Warn (${warnPrice}.00)", $"fine_paid-{warnPrice}-{user.Id}-{warnCount}", ButtonStyle.Danger)
 				.Build();
 
 			await SendMessage(channel, $"{message}{(includeWarnCount ? $"\n__({(timedOut ? "Timed Out" : $"Warning {storedUser.Warnings}/3")})" : "")}__", reply ? socketMessage : null, component: component);
@@ -85,27 +82,23 @@ public partial class Fishley
 	/// Remove a warning from the user
 	/// </summary>
 	/// <param name="user"></param>
+	/// <param name="warnCount"></param>
 	/// <returns></returns>
-	private static async Task RemoveWarn(SocketGuildUser user)
+	private static async Task RemoveWarn(SocketGuildUser user, int warnCount = 1)
 	{
 		var storedUser = await GetOrCreateUser(user.Id);
+		storedUser.Warnings = Math.Max(storedUser.Warnings - warnCount, 0);
 
-		switch (storedUser.Warnings)
-		{
-			case 1:
-				await user.RemoveRoleAsync(Warning1Role);
-				break;
-			case 2:
-				await user.RemoveRoleAsync(Warning2Role);
-				break;
-			case 3:
-				await user.RemoveRoleAsync(Warning3Role);
-				break;
-		}
+		if (storedUser.Warnings <= 0)
+			await user.RemoveRoleAsync(Warning1Role);
+		if (storedUser.Warnings <= 1)
+			await user.RemoveRoleAsync(Warning2Role);
+		if (storedUser.Warnings <= 2)
+			await user.RemoveRoleAsync(Warning3Role);
+		if (storedUser.Warnings <= 3)
+			await user.RemoveTimeOutAsync();
 
-		DebugSay($"Removed warning from {user.GetUsername()}({user.Id})");
-
-		storedUser.Warnings = Math.Max(storedUser.Warnings - 1, 0);
+		DebugSay($"Removed {warnCount} warnings from {user.GetUsername()}({user.Id})");
 		await UpdateOrCreateUser(storedUser);
 	}
 

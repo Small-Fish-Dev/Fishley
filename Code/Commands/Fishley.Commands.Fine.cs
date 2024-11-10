@@ -14,6 +14,7 @@ public partial class Fishley
 			var data = component.Data.CustomId.Split("-");
 			var amount = (decimal)int.Parse(data[1]);
 			var targetId = ulong.Parse(data[2]);
+			var warnCount = int.Parse(data[3]);
 			var targetIsPayee = component.User.Id == targetId;
 
 			if (component.User.Id != targetId && !IsAdmin((SocketGuildUser)component.User))
@@ -46,9 +47,7 @@ public partial class Fishley
 				await UpdateOrCreateUser(payer);
 			}
 
-			await RemoveWarn(targetDiscord);
-
-			await targetDiscord.RemoveTimeOutAsync(); // Remove timeout if there was
+			await RemoveWarn(targetDiscord, warnCount);
 
 			if (targetIsPayee)
 				await component.RespondAsync($"<@{component.User.Id}> paid their fine of {NiceMoney((float)amount)} and removed the warn!");
