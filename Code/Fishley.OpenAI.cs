@@ -325,14 +325,15 @@ public partial class Fishley
 			{
 				if (rule != null)
 				{
-					response += rule;
-					response += " - ";
+					rules += rule;
+					rules += " - ";
 				}
 			}
 
 			if (rules == string.Empty)
 				return false;
 
+			response += rules;
 			response = response.Substring(0, response.Length - 3);
 			await SendMessage((SocketTextChannel)message.Channel, response, message, 5f);
 		}
