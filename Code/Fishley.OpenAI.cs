@@ -169,7 +169,7 @@ public partial class Fishley
 		{ "self-harm/intent", 80f },
 		{ "self-harm/instructions", 40f },
 		{ "harassment/threatening", 80f },
-		{ "violence", 85f },
+		{ "violence", 96f },
 		{ "illicit", 80f },
 		{ "illicit/violent", 80f },
 		{ "default", 70f }
