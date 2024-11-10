@@ -378,7 +378,7 @@ public partial class Fishley
 			}
 			else
 			{
-				if (await ModerateMessage((SocketMessage)message, 0.75f))
+				if (await ModerateMessage((SocketMessage)message, 0.75f, true))
 					return;
 			}
 		}

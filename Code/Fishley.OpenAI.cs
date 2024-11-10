@@ -206,8 +206,10 @@ public partial class Fishley
 	/// Check if the message is problematic, returns true if a warning has been issued.
 	/// </summary>
 	/// <param name="message"></param>
+	/// <param name="sensitivity"></param>
+	/// <param name="postStats"></param>
 	/// <returns></returns>
-	public static async Task<bool> ModerateMessage(SocketMessage message, float sensitivity = 1f)
+	public static async Task<bool> ModerateMessage(SocketMessage message, float sensitivity = 1f, bool postStats = false)
 	{
 		// Text moderation
 		if (string.IsNullOrEmpty(message.CleanContent) || string.IsNullOrWhiteSpace(message.CleanContent) || message.CleanContent.Length == 0)
@@ -226,30 +228,29 @@ public partial class Fishley
 
 		var mod = moderation.Value;
 		var brokenModeration = new Dictionary<string, int>();
+		var categories = new List<string>();
 
-		if (AgainstModeration(mod.Harassment, "harassment", sensitivity, out var harassment, out var harassmentWarns))
-			brokenModeration.Add(harassment, harassmentWarns);
-		if (AgainstModeration(mod.HarassmentThreatening, "harassment/threatening", sensitivity, out var harassmentThreatening, out var harassmentThreateningWarns))
-			brokenModeration.Add(harassmentThreatening, harassmentThreateningWarns);
-		if (AgainstModeration(mod.Hate, "hate", sensitivity, out var hate, out var hateWarns))
-			brokenModeration.Add(hate, hateWarns);
-		if (AgainstModeration(mod.HateThreatening, "hate/threatening", sensitivity, out var hateThreatening, out var hateThreateningWarns))
-			brokenModeration.Add(hateThreatening, hateThreateningWarns);
-		if (AgainstModeration(mod.SelfHarmInstructions, "self-harm/instructions", sensitivity, out var selfHarmInstructions, out var selfHarmInstructionsWarns))
-			brokenModeration.Add(selfHarmInstructions, selfHarmInstructionsWarns);
-		if (AgainstModeration(mod.Sexual, "sexual", sensitivity, out var sexual, out var sexualWarns))
-			brokenModeration.Add(sexual, sexualWarns);
-		if (AgainstModeration(mod.SexualMinors, "sexual/minors", sensitivity, out var sexualMinors, out var sexualMinorsWarns))
-			brokenModeration.Add(sexualMinors, sexualMinorsWarns);
-		if (AgainstModeration(mod.Violence, "violence", sensitivity, out var violence, out var violenceWarns))
-			brokenModeration.Add(violence, violenceWarns);
-		if (AgainstModeration(mod.ViolenceGraphic, "violence/graphic", sensitivity, out var violenceGraphic, out var violenceGraphicWarns))
-			brokenModeration.Add(violenceGraphic, violenceGraphicWarns);
-		if (AgainstModeration(mod.Illicit, "illicit", sensitivity, out var illicit, out var illicitWarns))
-			brokenModeration.Add(illicit, illicitWarns);
-		if (AgainstModeration(mod.IllicitViolent, "illicit / violent", sensitivity, out var illicitViolent, out var illicitViolentWarns))
-			brokenModeration.Add(illicitViolent, illicitViolentWarns);
+		void ProcessModeration(OpenAI.Moderations.ModerationCategory category, string name, float sensitivity)
+		{
+			if (AgainstModeration(category, name, sensitivity, out var moderationString, out var totalWarns) || postStats)
+			{
+				if (totalWarns > 0)
+					brokenModeration.Add(moderationString, totalWarns);
+				categories.Add(moderationString);
+			}
+		}
 
+		ProcessModeration(mod.Harassment, "harassment", sensitivity);
+		ProcessModeration(mod.HarassmentThreatening, "harassment/threatening", sensitivity);
+		ProcessModeration(mod.Hate, "hate", sensitivity);
+		ProcessModeration(mod.HateThreatening, "hate/threatening", sensitivity);
+		ProcessModeration(mod.SelfHarmInstructions, "self-harm/instructions", sensitivity);
+		ProcessModeration(mod.Sexual, "sexual", sensitivity);
+		ProcessModeration(mod.SexualMinors, "sexual/minors", sensitivity);
+		ProcessModeration(mod.Violence, "violence", sensitivity);
+		ProcessModeration(mod.ViolenceGraphic, "violence/graphic", sensitivity);
+		ProcessModeration(mod.Illicit, "illicit", sensitivity);
+		ProcessModeration(mod.IllicitViolent, "illicit / violent", sensitivity);
 
 		if (AgainstModeration(mod.SelfHarmIntent, "self-harm/intent", sensitivity, out var _, out var _) || AgainstModeration(mod.SelfHarm, "self-harm", sensitivity, out var _, out var _))
 		{
@@ -263,60 +264,74 @@ public partial class Fishley
 			await SendMessage((SocketTextChannel)message.Channel, selfHarmResponse, message);
 		}
 
-		if (brokenModeration.Count == 0)
+		if (brokenModeration.Count > 0)
 		{
-			await Task.CompletedTask;
-			return false;
-		}
 
-		var context = new List<string>();
-		context.Add($"[We detected that the user {message.Author.GetUsername()} sent a message that breaks the rules. You have to come up with a reason as to why the message was warned, make sure to give a short and concise reason but also scold the user. Do not start by saying 'The warning was issued because' or 'The warning was issued for', say that they have been warned and then the reason]");
+			var context = new List<string>();
+			context.Add($"[We detected that the user {message.Author.GetUsername()} sent a message that breaks the rules. You have to come up with a reason as to why the message was warned, make sure to give a short and concise reason but also scold the user. Do not start by saying 'The warning was issued because' or 'The warning was issued for', say that they have been warned and then the reason]");
 
-		if (message.Embeds != null && message.Embeds.Count() > 0)
-			context.Add("The message also contained an embed which may have been the reason for the warn. It most likely was if the message is empty.");
+			if (message.Embeds != null && message.Embeds.Count() > 0)
+				context.Add("The message also contained an embed which may have been the reason for the warn. It most likely was if the message is empty.");
 
-		context.Add("[If you believe the warn was given by accident or was missing context from the missing reply, then do not write anything except for the word FALSE in all caps. Always assume warns need to be checked twice before writing a reason behind it.]");
+			context.Add("[If you believe the warn was given by accident or was missing context from the missing reply, then do not write anything except for the word FALSE in all caps. Always assume warns need to be checked twice before writing a reason behind it.]");
 
-		var reference = message.Reference;
-		SocketMessage reply = null;
+			var reference = message.Reference;
+			SocketMessage reply = null;
 
-		if (reference != null)
-		{
-			if (reference.MessageId.IsSpecified)
+			if (reference != null)
 			{
-				var foundMessage = await message.Channel.GetMessageAsync(reference.MessageId.Value);
+				if (reference.MessageId.IsSpecified)
+				{
+					var foundMessage = await message.Channel.GetMessageAsync(reference.MessageId.Value);
 
-				if (foundMessage != null)
-					reply = (SocketMessage)foundMessage;
+					if (foundMessage != null)
+						reply = (SocketMessage)foundMessage;
+				}
 			}
+
+			if (reply != null)
+			{
+				context.Add($"[The message that was given a pass to is a reply to the following message sent by {reply.Author.GetUsername()} that says '{reply.Content}']");
+			}
+
+			var cleanedMessage = $"''{message.CleanContent}''";
+			var response = await OpenAIChat(cleanedMessage, context, useSystemPrompt: true);
+
+			if (response.Contains("FALSE"))
+				return false;
+
+			response += "\n-# ";
+
+			var totalWarns = 0;
+
+			foreach (var rule in brokenModeration)
+			{
+				response += rule.Key;
+				response += " - ";
+				totalWarns += rule.Value;
+			}
+
+			response = response.Substring(0, response.Length - 3);
+
+			await AddWarn(messageAuthor, message, response, warnEmoteAlreadyThere: true, warnCount: totalWarns);
+			return true;
 		}
 
-		if (reply != null)
+		if (postStats && categories.Count() > 0)
 		{
-			context.Add($"[The message that was given a pass to is a reply to the following message sent by {reply.Author.GetUsername()} that says '{reply.Content}']");
+			var response = "This does not break any rule\n-# ";
+
+			foreach (var rule in categories)
+			{
+				response += rule;
+				response += " - ";
+			}
+
+			response = response.Substring(0, response.Length - 3);
+			await SendMessage((SocketTextChannel)message.Channel, response, message, 5f);
 		}
 
-		var cleanedMessage = $"''{message.CleanContent}''";
-		var response = await OpenAIChat(cleanedMessage, context, useSystemPrompt: true);
-
-		if (response.Contains("FALSE"))
-			return false;
-
-		response += "\n-# ";
-
-		var totalWarns = 0;
-
-		foreach (var rule in brokenModeration)
-		{
-			response += rule.Key;
-			response += " - ";
-			totalWarns += rule.Value;
-		}
-
-		response = response.Substring(0, response.Length - 3);
-
-		await AddWarn(messageAuthor, message, response, warnEmoteAlreadyThere: true, warnCount: totalWarns);
-		return true;
+		return false;
 	}
 
 	/// <summary>
