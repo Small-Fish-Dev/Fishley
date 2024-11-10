@@ -14,6 +14,7 @@ public partial class Fishley
 			var data = component.Data.CustomId.Split("-");
 			var amount = (decimal)int.Parse(data[1]);
 			var targetId = ulong.Parse(data[2]);
+			var targetIsPayee = component.User.Id == targetId;
 
 			if (component.User.Id != targetId && !CanModerate((SocketGuildUser)component.User))
 			{
@@ -23,7 +24,7 @@ public partial class Fishley
 
 			var payer = await GetOrCreateUser(component.User.Id);
 
-			if (payer.Money < amount && !CanModerate((SocketGuildUser)component.User))
+			if (payer.Money < amount && targetIsPayee)
 			{
 				await component.RespondAsync("You don't have enough money to pay this fine.", ephemeral: true);
 				return;
@@ -39,14 +40,17 @@ public partial class Fishley
 				return;
 			}
 
-			payer.Money -= amount;
-			await UpdateOrCreateUser(payer);
+			if (targetIsPayee)
+			{
+				payer.Money -= amount;
+				await UpdateOrCreateUser(payer);
+			}
 
 			await RemoveWarn(targetDiscord);
 
 			await targetDiscord.RemoveTimeOutAsync(); // Remove timeout if there was
 
-			if (component.User.Id == targetId)
+			if (targetIsPayee)
 				await component.RespondAsync($"<@{component.User.Id}> paid their fine of {NiceMoney((float)amount)} and removed the warn!");
 			else
 				await component.Message.DeleteAsync();
