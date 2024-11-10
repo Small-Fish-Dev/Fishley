@@ -334,7 +334,7 @@ public partial class Fishley
 					else
 					{
 						var context = new List<string>();
-						context.Add($"[The moderator {giver.GetUsername()} has given a pass to the following user: {message.Author.GetUsername()}. A pass is able to negate a warn and usually it means you either were wronged or did something cool. You have to come up with a reason as to why the moderator gave a pass to the user based on the message that it was given to, make sure to give a short and concise reason. If you can't find any reason then make it up based on what you've seen. Just go straight to saying the reason behind the pass, do not start by saying 'The moderator likely issued a pass because' or 'The pass was issued for' JUST SAY THE REASON FOR THE PASS AND THATS IT, nothing else.]");
+						context.Add($"[The moderator {giver.GetUsername()} has given a pass to the following user: {message.Author.GetUsername()}. A pass is able to negate a warn and usually it means you either were wronged or did something cool. You have to come up with a reason as to why the moderator gave a pass to the user based on the message that it was given to, make sure to give a short and concise reason. If you can't find any reason then say in all caps NO REASON. Just go straight to saying the reason behind the pass, do not start by saying 'The moderator likely issued a pass because' or 'The pass was issued for' JUST SAY THE REASON FOR THE PASS AND THATS IT, nothing else.]");
 
 						var reference = message.Reference;
 						SocketMessage reply = null;
@@ -359,8 +359,9 @@ public partial class Fishley
 
 						var cleanedMessage = $"''{message.CleanContent}''";
 						var response = await OpenAIChat(cleanedMessage, context, useSystemPrompt: false);
+						var reason = response.Contains("NO REASON") ? "" : $"\n**Reason:** {response}";
 
-						await GivePass(user, textMessage, $"<@{giver.Id}> gave a pass to <@{user.Id}>\n**Reason:** {response}", passEmoteAlreadyThere: true);
+						await GivePass(user, textMessage, $"<@{giver.Id}> gave a pass to <@{user.Id}>{reason}", passEmoteAlreadyThere: true);
 					}
 				}
 			}

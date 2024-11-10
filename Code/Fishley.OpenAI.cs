@@ -161,23 +161,22 @@ public partial class Fishley
 	{
 		{ "sexual", 70f },
 		{ "hate", 80f },
-		{ "harassment", 90f },
-		{ "self-harm", 70f },
+		{ "harassment", 80f },
+		{ "self-harm", 80f },
 		{ "sexual/minors", 20f },
 		{ "hate/threatening", 60f },
 		{ "violence/graphic", 80f },
-		{ "self-harm/intent", 70f },
-		{ "self-harm/instructions", 70f },
-		{ "harassment/threatening", 90f },
-		{ "violence", 95f },
-		{ "illicit", 90f },
-		{ "illicit/violent", 90f },
+		{ "self-harm/intent", 90f },
+		{ "self-harm/instructions", 40f },
+		{ "harassment/threatening", 80f },
+		{ "violence", 85f },
+		{ "illicit", 80f },
+		{ "illicit/violent", 80f },
 		{ "default", 70f }
 	};
 
-	public static bool AgainstModeration(OpenAI.Moderations.ModerationCategory category, out string moderationString)
+	public static bool AgainstModeration(OpenAI.Moderations.ModerationCategory category, string name, out string moderationString)
 	{
-		var name = category.ToString();
 		var value = MathF.Round(category.Score * 100f, 1);
 		moderationString = "";
 		var rulesBroken = false;
@@ -190,7 +189,7 @@ public partial class Fishley
 			rulesBroken = ModerationThresholds["default"] * multiplier <= value;
 
 		if (rulesBroken)
-			moderationString = $"{category.ToString()} ({value}%)";
+			moderationString = $"{name} ({value}%)";
 
 		return rulesBroken;
 	}
@@ -220,28 +219,32 @@ public partial class Fishley
 		var mod = moderation.Value;
 		var brokenModeration = new List<string>();
 
-		if (AgainstModeration(mod.Harassment, out var harassment))
+		if (AgainstModeration(mod.Harassment, "harassment", out var harassment))
 			brokenModeration.Add(harassment);
-		if (AgainstModeration(mod.HarassmentThreatening, out var harassmentThreatening))
+		if (AgainstModeration(mod.HarassmentThreatening, "harassment/threatening", out var harassmentThreatening))
 			brokenModeration.Add(harassmentThreatening);
-		if (AgainstModeration(mod.Hate, out var hate))
+		if (AgainstModeration(mod.Hate, "hate", out var hate))
 			brokenModeration.Add(hate);
-		if (AgainstModeration(mod.HateThreatening, out var hateThreatening))
+		if (AgainstModeration(mod.HateThreatening, "hate/threatening", out var hateThreatening))
 			brokenModeration.Add(hateThreatening);
-		if (AgainstModeration(mod.SelfHarm, out var selfHarm))
+		if (AgainstModeration(mod.SelfHarm, "self-harm", out var selfHarm))
 			brokenModeration.Add(selfHarm);
-		if (AgainstModeration(mod.SelfHarmInstructions, out var selfHarmInstructions))
+		if (AgainstModeration(mod.SelfHarmInstructions, "self-harm/instructions", out var selfHarmInstructions))
 			brokenModeration.Add(selfHarmInstructions);
-		if (AgainstModeration(mod.SelfHarmIntent, out var selfHarmIntent))
+		if (AgainstModeration(mod.SelfHarmIntent, "self-harm/intent", out var selfHarmIntent))
 			brokenModeration.Add(selfHarmIntent);
-		if (AgainstModeration(mod.Sexual, out var sexual))
+		if (AgainstModeration(mod.Sexual, "sexual", out var sexual))
 			brokenModeration.Add(sexual);
-		if (AgainstModeration(mod.SexualMinors, out var sexualMinors))
+		if (AgainstModeration(mod.SexualMinors, "sexual/minors", out var sexualMinors))
 			brokenModeration.Add(sexualMinors);
-		if (AgainstModeration(mod.Violence, out var violence))
+		if (AgainstModeration(mod.Violence, "violence", out var violence))
 			brokenModeration.Add(violence);
-		if (AgainstModeration(mod.ViolenceGraphic, out var violenceGraphic))
+		if (AgainstModeration(mod.ViolenceGraphic, "violence/graphic", out var violenceGraphic))
 			brokenModeration.Add(violenceGraphic);
+		if (AgainstModeration(mod.Illicit, "illicit", out var illicit))
+			brokenModeration.Add(illicit);
+		if (AgainstModeration(mod.IllicitViolent, "illicit / violent", out var illicitViolent))
+			brokenModeration.Add(illicitViolent);
 
 		if (brokenModeration.Count == 0)
 		{
