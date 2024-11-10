@@ -196,8 +196,7 @@ public partial class Fishley
 				totalWarns = 2;
 		}
 
-		if (rulesBroken)
-			moderationString = $"{name} ({value}%)";
+		moderationString = $"{name} ({value}%)";
 
 		return rulesBroken;
 	}

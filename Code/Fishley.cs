@@ -370,7 +370,7 @@ public partial class Fishley
 		if (reaction.Emote.Equals(MinimodEmoji))
 		{
 			if (textMessage.Reactions.FirstOrDefault(x => x.Key.Equals(WarnEmoji)).Value.ReactionCount >= 1) return; // Don't check if it was already warned
-			if (textMessage.Reactions.FirstOrDefault(x => x.Key.Equals(MinimodEmoji)).Value.ReactionCount >= 1) return; // Don't check if it was already minimodded
+			if (textMessage.Reactions.FirstOrDefault(x => x.Key.Equals(MinimodEmoji)).Value.ReactionCount >= 2) return; // Don't check if it was already minimodded
 
 			if (user.Id == Client.CurrentUser.Id)
 			{
