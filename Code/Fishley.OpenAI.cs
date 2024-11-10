@@ -175,13 +175,13 @@ public partial class Fishley
 		{ "default", 70f }
 	};
 
-	public static bool AgainstModeration(OpenAI.Moderations.ModerationCategory category, string name, out string moderationString)
+	public static bool AgainstModeration(OpenAI.Moderations.ModerationCategory category, string name, float sensitivity, out string moderationString)
 	{
 		var value = MathF.Round(category.Score * 100f, 1);
 		moderationString = "";
 		var rulesBroken = false;
 
-		var multiplier = Emergency ? 0.2f : 1f;
+		var multiplier = (Emergency ? 0.5f : 1f) * sensitivity;
 
 		if (ModerationThresholds.ContainsKey(name))
 			rulesBroken = ModerationThresholds[name] * multiplier <= value;
@@ -199,7 +199,7 @@ public partial class Fishley
 	/// </summary>
 	/// <param name="message"></param>
 	/// <returns></returns>
-	public static async Task<bool> ModerateMessage(SocketMessage message)
+	public static async Task<bool> ModerateMessage(SocketMessage message, float sensitivity = 1f)
 	{
 		// Text moderation
 		if (string.IsNullOrEmpty(message.CleanContent) || string.IsNullOrWhiteSpace(message.CleanContent) || message.CleanContent.Length == 0)
@@ -219,31 +219,31 @@ public partial class Fishley
 		var mod = moderation.Value;
 		var brokenModeration = new List<string>();
 
-		if (AgainstModeration(mod.Harassment, "harassment", out var harassment))
+		if (AgainstModeration(mod.Harassment, "harassment", sensitivity, out var harassment))
 			brokenModeration.Add(harassment);
-		if (AgainstModeration(mod.HarassmentThreatening, "harassment/threatening", out var harassmentThreatening))
+		if (AgainstModeration(mod.HarassmentThreatening, "harassment/threatening", sensitivity, out var harassmentThreatening))
 			brokenModeration.Add(harassmentThreatening);
-		if (AgainstModeration(mod.Hate, "hate", out var hate))
+		if (AgainstModeration(mod.Hate, "hate", sensitivity, out var hate))
 			brokenModeration.Add(hate);
-		if (AgainstModeration(mod.HateThreatening, "hate/threatening", out var hateThreatening))
+		if (AgainstModeration(mod.HateThreatening, "hate/threatening", sensitivity, out var hateThreatening))
 			brokenModeration.Add(hateThreatening);
-		if (AgainstModeration(mod.SelfHarmInstructions, "self-harm/instructions", out var selfHarmInstructions))
+		if (AgainstModeration(mod.SelfHarmInstructions, "self-harm/instructions", sensitivity, out var selfHarmInstructions))
 			brokenModeration.Add(selfHarmInstructions);
-		if (AgainstModeration(mod.Sexual, "sexual", out var sexual))
+		if (AgainstModeration(mod.Sexual, "sexual", sensitivity, out var sexual))
 			brokenModeration.Add(sexual);
-		if (AgainstModeration(mod.SexualMinors, "sexual/minors", out var sexualMinors))
+		if (AgainstModeration(mod.SexualMinors, "sexual/minors", sensitivity, out var sexualMinors))
 			brokenModeration.Add(sexualMinors);
-		if (AgainstModeration(mod.Violence, "violence", out var violence))
+		if (AgainstModeration(mod.Violence, "violence", sensitivity, out var violence))
 			brokenModeration.Add(violence);
-		if (AgainstModeration(mod.ViolenceGraphic, "violence/graphic", out var violenceGraphic))
+		if (AgainstModeration(mod.ViolenceGraphic, "violence/graphic", sensitivity, out var violenceGraphic))
 			brokenModeration.Add(violenceGraphic);
-		if (AgainstModeration(mod.Illicit, "illicit", out var illicit))
+		if (AgainstModeration(mod.Illicit, "illicit", sensitivity, out var illicit))
 			brokenModeration.Add(illicit);
-		if (AgainstModeration(mod.IllicitViolent, "illicit / violent", out var illicitViolent))
+		if (AgainstModeration(mod.IllicitViolent, "illicit / violent", sensitivity, out var illicitViolent))
 			brokenModeration.Add(illicitViolent);
 
 
-		if (AgainstModeration(mod.SelfHarmIntent, "self-harm/intent", out var _) || AgainstModeration(mod.SelfHarm, "self-harm", out var _))
+		if (AgainstModeration(mod.SelfHarmIntent, "self-harm/intent", sensitivity, out var _) || AgainstModeration(mod.SelfHarm, "self-harm", sensitivity, out var _))
 		{
 			var selfHarmContext = new List<string>();
 			selfHarmContext.Add($"[The user {message.Author.GetUsername()} has sent a concherning message regarding their safety, please reach out to them and make sure they're ok.");

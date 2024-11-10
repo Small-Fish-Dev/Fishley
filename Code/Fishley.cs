@@ -250,9 +250,9 @@ public partial class Fishley
 
 		var message = await cacheableMessage.GetOrDownloadAsync();
 		if (message is null) return;
-		if (!reaction.Emote.Equals(WarnEmoji) && !reaction.Emote.Equals(PassEmoji)) return;
+		if (!reaction.Emote.Equals(WarnEmoji) && !reaction.Emote.Equals(PassEmoji) && !reaction.Emote.Equals(MinimodEmoji)) return;
 
-		if (!CanModerate(giver))
+		if (!CanModerate(giver) && !reaction.Emote.Equals(MinimodEmoji))
 		{
 			await message.RemoveReactionAsync(reaction.Emote, reaction.UserId); // Remove any non moderator warning
 			return;
@@ -366,6 +366,23 @@ public partial class Fishley
 				}
 			}
 		}
+
+		if (reaction.Emote.Equals(MinimodEmoji))
+		{
+			if (textMessage.Reactions.FirstOrDefault(x => x.Key.Equals(WarnEmoji)).Value.ReactionCount >= 1) return; // Don't check if it was already warned
+			if (textMessage.Reactions.FirstOrDefault(x => x.Key.Equals(MinimodEmoji)).Value.ReactionCount >= 1) return; // Don't check if it was already minimodded
+
+			if (user.Id == Client.CurrentUser.Id)
+			{
+				await SendMessage(textChannel, $"<@{giver.Id}> don't try to minimod me, know your place human.", deleteAfterSeconds: 5f);
+			}
+			else
+			{
+				if (await ModerateMessage((SocketMessage)message, 0.75f))
+					return;
+			}
+		}
+
 	}
 
 	private static async Task MessageReceived(SocketMessage message)
