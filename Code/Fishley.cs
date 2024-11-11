@@ -394,8 +394,22 @@ public partial class Fishley
 			}
 			else
 			{
-				if (await ModerateMessage((SocketMessage)message, 0.75f, true))
+				var storedUser = await GetOrCreateUser(user.Id);
+
+				if ( storedUser.Money < 1 )
 					return;
+				
+				storedUser.Money -= 1;
+
+				await UpdateOrCreateUser(storedUser);
+				if (await ModerateMessage((SocketMessage)message, 0.75f, true))
+				{
+					storedUser = await GetOrCreateUser(user.Id);
+					storedUser.Money += 10;
+
+					await UpdateOrCreateUser(storedUser);
+					return;
+				}
 			}
 		}
 
