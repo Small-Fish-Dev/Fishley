@@ -361,7 +361,7 @@ public partial class Fishley
 						var response = await OpenAIChat(cleanedMessage, context, useSystemPrompt: false);
 						var reason = response.Contains("NO REASON") ? "" : $"\n**Reason:** {response}";
 
-						await GivePass(user, textMessage, $"<@{giver.Id}> gave a pass to <@{user.Id}>{reason}", passEmoteAlreadyThere: true);
+						await AddWarn(user, textMessage, $"<@{giver.Id}> warned <@{user.Id}>\n**Reason:** {response}", warnEmoteAlreadyThere: true);
 					}
 				}
 			}
@@ -374,7 +374,7 @@ public partial class Fishley
 
 			if (user.Id == Client.CurrentUser.Id)
 			{
-				await SendMessage(textChannel, $"<@{giver.Id}> don't try to minimod me, know your place human.", deleteAfterSeconds: 5f);
+				await AddWarn(user, textMessage, $"<@{giver.Id}> don't try to minimod me, know your place human.", true, false);
 			}
 			else
 			{
