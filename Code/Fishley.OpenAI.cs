@@ -335,7 +335,7 @@ public partial class Fishley
 
 			response += rules;
 			response = response.Substring(0, response.Length - 3);
-			await SendMessage((SocketTextChannel)message.Channel, response, message, 5f);
+			await SendMessage((SocketTextChannel)message.Channel, response, message, 5f, replyPing: false);
 		}
 
 		return false;
