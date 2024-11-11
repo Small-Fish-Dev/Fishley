@@ -152,8 +152,9 @@ public partial class Fishley
 	/// <param name="deleteAfterSeconds"></param>
 	/// <param name="embed"></param>
 	/// <param name="pathToUpload"></param>
+	/// <param name="replyPing"></param>
 	/// <returns></returns>
-	public static async Task<bool> SendMessage(SocketTextChannel channel, string message, SocketMessage messageToReply = null, float deleteAfterSeconds = 0, Embed embed = null, string pathToUpload = null, MessageComponent component = null)
+		public static async Task<bool> SendMessage( SocketTextChannel channel, string message, SocketMessage messageToReply = null, float deleteAfterSeconds = 0, Embed embed = null, string pathToUpload = null, MessageComponent component = null, bool replyPing = true )
 	{
 		if (channel is null) return false;
 		if ((string.IsNullOrWhiteSpace(message) || string.IsNullOrEmpty(message)) && embed == null) return false;
@@ -166,10 +167,24 @@ public partial class Fishley
 		Discord.Rest.RestUserMessage sentMessage = null;
 
 		if (pathToUpload != null)
-			await channel.SendFileAsync(pathToUpload, message, messageReference: replyTo, embed: embed);
+		{
+			sentMessage = await channel.SendFileAsync(
+				pathToUpload,
+				message,
+				messageReference: replyTo,
+				embed: embed,
+				allowedMentions: new AllowedMentions { MentionRepliedUser = replyPing }
+			);
+		}
 		else
 		{
-			await channel.SendMessageAsync(message, messageReference: replyTo, components: component, embed: embed);
+			sentMessage = await channel.SendMessageAsync(
+				message,
+				messageReference: replyTo,
+				components: component,
+				embed: embed,
+				allowedMentions: new AllowedMentions { MentionRepliedUser = replyPing }
+			);
 		}
 
 		if (sentMessage != null)
@@ -186,6 +201,7 @@ public partial class Fishley
 			return false;
 		}
 	}
+
 
 	private static async void DeleteMessageAsync(Discord.Rest.RestUserMessage message, float seconds)
 	{
