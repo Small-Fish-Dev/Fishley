@@ -325,7 +325,7 @@ public partial class Fishley
 			var receiver = await GetOrCreateUser(targetUser.Id);
 			receiver.Money += toGive;
 			await UpdateOrCreateUser(receiver);
-			await command.RespondAsync($"<@{command.User.Id}> gave {NiceMoney( (float)toGive )} to <@{targetUser.Id}>\n**Reason:** {reason}", ephemeral: true);
+			await command.RespondAsync($"<@{command.User.Id}> gave {NiceMoney( (float)toGive )} to <@{targetUser.Id}>\n**Reason:** {reason}");
 		}
 	}
 }
