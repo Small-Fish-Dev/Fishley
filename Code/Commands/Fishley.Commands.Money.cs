@@ -268,4 +268,64 @@ public partial class Fishley
 			await command.RespondAsync($"<@{command.User.Id}> sent <@{targetUser.Id}> an invoice.", embed: transaction.BuildEmbed(), components: transaction.BuildButtons());
 		}
 	}
+
+	public class GiveMoneyCommand : DiscordSlashCommand
+	{
+		public override SlashCommandBuilder Builder => new SlashCommandBuilder()
+		.WithName("givemoney")
+		.WithDescription("Give money to someone, will be announced")
+		.AddOption(new SlashCommandOptionBuilder()
+			.WithName("user")
+			.WithDescription("Who to give money to")
+			.WithRequired(true)
+			.WithType(ApplicationCommandOptionType.User))
+		.AddOption(new SlashCommandOptionBuilder()
+			.WithName("amount")
+			.WithDescription("How much to give")
+			.WithRequired(true)
+			.WithType(ApplicationCommandOptionType.String))
+		.AddOption(new SlashCommandOptionBuilder()
+			.WithName("reason")
+			.WithDescription("The reason that will be printed out")
+			.WithRequired(true)
+			.WithType(ApplicationCommandOptionType.String))
+		.WithDefaultMemberPermissions(GuildPermission.Administrator);
+
+		public override Func<SocketSlashCommand, Task> Function => GiveMoney;
+
+		public override bool SpamOnly => false;
+
+		public async Task GiveMoney(SocketSlashCommand command)
+		{
+			var targetUser = (SocketUser)command.Data.Options.FirstOrDefault(x => x.Name == "user")?.Value ?? null;
+			var amountString = (string)command.Data.Options.FirstOrDefault(x => x.Name == "amount")?.Value ?? null;
+			var reason = (string)command.Data.Options.FirstOrDefault(x => x.Name == "reason")?.Value ?? null;
+
+			if (!IsAdmin((SocketGuildUser)command.User))
+			{
+				await command.RespondAsync("Not an admin, bug off.", ephemeral: true);
+				return;
+			}
+
+			if (!ParseFloat(amountString, out var amount))
+			{
+				await command.RespondAsync($"Please input a real number!", ephemeral: true);
+				return;
+			}
+			if (amount < 0.01f)
+			{
+				await command.RespondAsync($"Minimum amount is 0.01!", ephemeral: true);
+				return;
+			}
+
+			amount = MathF.Round(amount, 2, MidpointRounding.AwayFromZero); // Round to two digits
+			var toGive = (decimal)amount;
+
+
+			var receiver = await GetOrCreateUser(targetUser.Id);
+			receiver.Money += toGive;
+			await UpdateOrCreateUser(receiver);
+			await command.RespondAsync($"<@{command.User.Id}> gave {NiceMoney( (float)toGive )} to <@{targetUser.Id}>\n**Reason:** {reason}", ephemeral: true);
+		}
+	}
 }
