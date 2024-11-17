@@ -377,7 +377,7 @@ public partial class Fishley
 						var response = await OpenAIChat(cleanedMessage, context, useSystemPrompt: false);
 						var reason = response.Contains("NO REASON") ? "" : $"\n**Reason:** {response}";
 
-						await AddWarn(user, textMessage, $"<@{giver.Id}> warned <@{user.Id}>\n**Reason:** {response}", warnEmoteAlreadyThere: true);
+						await GivePass(user, textMessage, $"<@{giver.Id}> gave a pass to <@{user.Id}>{reason}");
 					}
 				}
 			}

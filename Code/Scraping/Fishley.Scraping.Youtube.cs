@@ -33,6 +33,8 @@ public partial class Fishley
 						links.Add(link);
 				}
 
+				if ( links.Count() == 0 )
+					return new ScrapingResult();
 				return new ScrapingResult(links.First(), null, null);
 			}
 		}
