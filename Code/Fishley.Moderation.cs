@@ -76,6 +76,9 @@ public partial class Fishley
 		}
 
 		await socketMessage.AddReactionAsync(WarnEmoji);
+		
+		await Task.CompletedTask;
+		return;
 	}
 
 	/// <summary>
