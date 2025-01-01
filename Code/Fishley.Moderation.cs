@@ -112,14 +112,13 @@ public partial class Fishley
 	/// <param name="reply"></param>
 	/// <param name="passEmoteAlreadyThere"></param>
 	/// <returns></returns>
-	private static async Task GivePass(SocketGuildUser user, SocketMessage socketMessage = null, string message = null, bool includePassCount = true, bool reply = true, bool passEmoteAlreadyThere = false)
+	private static async Task GivePass(SocketGuildUser user, SocketMessage socketMessage = null, string message = null, bool includePassCount = true, bool reply = true)
 	{
 		var storedUser = await GetOrCreateUser(user.Id);
 
 		if (socketMessage.Channel is not SocketTextChannel channel) return;
 		if (channel == null || message == null || socketMessage == null) return;
-		if (socketMessage.Reactions.FirstOrDefault(x => x.Key.Equals(PassEmoji)).Value.ReactionCount >= (passEmoteAlreadyThere ? 2 : 1)) return; // Don't pass if this message has a pass already
-
+		
 		if (IsAdmin(user))
 		{
 			DebugSay($"Attempted to give a pass to {user.GetUsername()}({user.Id})");

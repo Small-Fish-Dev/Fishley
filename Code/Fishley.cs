@@ -349,6 +349,7 @@ public partial class Fishley
 						await SendMessage(textChannel, $"<@{giver.Id}> attempted to give a pass to <@{user.Id}> but they should just learn to follow the rules!", deleteAfterSeconds: 5f);
 					else
 					{
+						DebugSay( "need pass");
 						var context = new List<string>();
 						context.Add($"[The moderator {giver.GetUsername()} has given a pass to the following user: {message.Author.GetUsername()}. A pass is able to negate a warn and usually it means you either were wronged or did something cool. You have to come up with a reason as to why the moderator gave a pass to the user based on the message that it was given to, make sure to give a short and concise reason. If you can't find any reason then say in all caps NO REASON. Just go straight to saying the reason behind the pass, do not start by saying 'The moderator likely issued a pass because' or 'The pass was issued for' JUST SAY THE REASON FOR THE PASS AND THATS IT, nothing else.]");
 
@@ -388,6 +389,8 @@ public partial class Fishley
 			if (textMessage.Reactions.FirstOrDefault(x => x.Key.Equals(WarnEmoji)).Value.ReactionCount >= 1) return; // Don't check if it was already warned
 			if (textMessage.Reactions.FirstOrDefault(x => x.Key.Equals(MinimodEmoji)).Value.ReactionCount >= 2) return; // Don't check if it was already minimodded
 
+			await textMessage.AddReactionAsync(MinimodEmoji);
+
 			if (user.Id == Client.CurrentUser.Id)
 			{
 				await AddWarn(user, textMessage, $"<@{giver.Id}> don't try to minimod me, know your place human.", true, false);
@@ -402,8 +405,10 @@ public partial class Fishley
 				storedUser.Money -= 1;
 
 				await UpdateOrCreateUser(storedUser);
+
 				if (await ModerateMessage((SocketMessage)message, 0.75f, true))
 				{
+					DebugSay( "giving money");
 					storedUser = await GetOrCreateUser(user.Id);
 					storedUser.Money += 10;
 

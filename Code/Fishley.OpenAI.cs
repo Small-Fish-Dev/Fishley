@@ -268,7 +268,6 @@ public partial class Fishley
 
 		if (brokenModeration.Count > 0)
 		{
-
 			var context = new List<string>();
 			context.Add($"[We detected that the user {message.Author.GetUsername()} sent a message that breaks the rules. You have to come up with a reason as to why the message was warned, make sure to give a short and concise reason but also scold the user. Do not start by saying 'The warning was issued because' or 'The warning was issued for', say that they have been warned and then the reason]");
 

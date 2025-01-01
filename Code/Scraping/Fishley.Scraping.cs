@@ -27,7 +27,7 @@ public partial class Fishley
 		{ "youtube", new YoutubeScraper() },
 		{ "garry", new GarryScraper() },
 		//{ "sbox.game", new SboxGameScraper() },
-		{ "latentplaces", new LatentPlacesScrapper() },
+		//{ "latentplaces", new LatentPlacesScrapper() },
 		{ "garrytiktok", new GarryTiktokScraper() },
 		{ "fish_of_the_week", new FishOfTheWeekTikTok() }
 		//{ "mindfunk", new MindfunkScraper() }
@@ -35,6 +35,8 @@ public partial class Fishley
 
 	public static async Task ComputeScrapers()
 	{
+		if ( !Running ) return;
+
 		var file = await File.ReadAllTextAsync(_scrapedSites);
 
 		var scrapedWebsites = new Dictionary<string, List<string>>();
@@ -70,16 +72,6 @@ public partial class Fishley
 
 					await SendMessage((SocketTextChannel)scraper.Value.ChannelToPost, $"{fetched.Url}", embed: fetched.Embed, pathToUpload: fetched.Video);
 				}
-			}
-		}
-
-		var maxCount = 100;
-
-		foreach (var links in scrapedWebsites.Values)
-		{
-			if (links.Count() > maxCount)
-			{
-				links.RemoveAt(0);
 			}
 		}
 
