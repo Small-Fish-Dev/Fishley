@@ -408,7 +408,7 @@ public partial class Fishley
 				if (await ModerateMessage((SocketMessage)message, 0.75f, true))
 				{
 					storedUser = await GetOrCreateUser(giver.Id);
-					storedUser.Money += 10;
+					storedUser.Money += 11;
 
 					await UpdateOrCreateUser(storedUser);
 					return;
