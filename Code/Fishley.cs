@@ -135,15 +135,16 @@ public partial class Fishley
 			await Task.Delay(300); // Wait a bit in between
 		} // Add any new commands
 
-		var allCommandsUpdated = Commands.Values.Where(x => x.Builder != null)
+		ApplicationCommandProperties[] allSlashCommandsUpdated = Commands.Values.Where(x => x.Builder != null)
 		.Select(x => x.Builder.Build())
 			.ToArray();
-		await SmallFishServer.BulkOverwriteApplicationCommandAsync(allCommandsUpdated); // Update commands if they were modified
 
-		var allMessageCommandsUpdated = MessageCommands.Values.Where(x => x.Builder != null)
+		ApplicationCommandProperties[] allMessageCommandsUpdated = MessageCommands.Values.Where(x => x.Builder != null)
 		.Select(x => x.Builder.Build())
 			.ToArray();
-		await SmallFishServer.BulkOverwriteApplicationCommandAsync(allMessageCommandsUpdated); // Update commands if they were modified
+
+		var allCommandsUpdated = allSlashCommandsUpdated.Concat( allMessageCommandsUpdated ).ToArray();
+		await SmallFishServer.BulkOverwriteApplicationCommandAsync(allCommandsUpdated); // Update commands if they were modified
 
 		Running = true;
 		await Task.CompletedTask;
