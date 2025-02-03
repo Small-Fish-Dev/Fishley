@@ -29,8 +29,9 @@ public partial class Fishley
 		//{ "sbox.game", new SboxGameScraper() },
 		//{ "latentplaces", new LatentPlacesScrapper() },
 		{ "garrytiktok", new GarryTiktokScraper() },
-		{ "fish_of_the_week", new FishOfTheWeekTikTok() }
-		//{ "mindfunk", new MindfunkScraper() }
+		{ "fish_of_the_week", new FishOfTheWeekTikTok() },
+		//{ "mindfunk", new MindfunkScraper() },
+		{ "venus_loves_rats", new VenusLovesRatsScraper() }
 	};
 
 	public static async Task ComputeScrapers()
