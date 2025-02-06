@@ -68,7 +68,7 @@ public partial class Fishley
 			target.UnbanDate = unbanDate;
 
 			await UpdateOrCreateUser(target);
-			await SmallFishServer.AddBanAsync( targetUser, 0, reason );
+			await SmallFishServer.AddBanAsync( targetUser, 0, $"{reason} ({days.ToString()} days)" );
 			await command.RespondAsync($"<@{targetUser.Id}> has been banned.", ephemeral: true);
 			var unixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 			var sinceEpoch = unbanDate - unixEpoch;
