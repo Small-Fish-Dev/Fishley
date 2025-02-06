@@ -155,6 +155,7 @@ public partial class Fishley
 		if (!Running) return;
 
 		await WarnsDecayCheck();
+		await CheckUnbans();
 		await ComputeScrapers();
 		await HandleTransactionExpiration();
 	}
@@ -460,13 +461,30 @@ public partial class Fishley
 	/// <returns></returns>
 	private static async Task MessageUser( SocketGuildUser user, string message )
 	{
-		if (user == null)
+		try
 		{
-			Console.WriteLine("User not found!");
-			return;
-		}
+			if (user == null)
+			{
+				Console.WriteLine("User not found!");
+				return;
+			}
 
-		var dmChannel = await user.CreateDMChannelAsync();
-		await dmChannel.SendMessageAsync(message);
+			var dmChannel = await user.CreateDMChannelAsync();
+			await dmChannel.SendMessageAsync(message);
+		}
+		catch( Exception _)
+		{
+			DebugSay( "Couldn't message user" );
+		}
+	}
+
+	/// <summary>
+	/// Leave a message in the moderator log
+	/// </summary>
+	/// <param name="message"></param>
+	/// <returns></returns> 
+	private static async Task ModeratorLog( string message )
+	{
+		await SendMessage( (SocketTextChannel)ModeratorLogChannel, message );
 	}
 }

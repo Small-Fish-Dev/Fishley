@@ -11,6 +11,10 @@ public partial class Fishley
 	public static DateTime LastWarnDecayCheck;
 	public static int WarnDecaySecondsPassed => (int)(DateTime.UtcNow - LastWarnDecayCheck).TotalSeconds;
 
+	public static int UnbanCheckTimer => 3600; // 1 hour
+	public static DateTime LastUnbanCheck;
+	public static int UnbanCheckSecondsPassed => (int)(DateTime.UtcNow - LastUnbanCheck).TotalSeconds;
+
 	/// <summary>
 	/// Handle the warn through chatgpt
 	/// </summary>
@@ -238,6 +242,34 @@ public partial class Fishley
 
 						if (user != null)
 							await RemoveWarn(user);
+					}
+				}
+			}
+		}
+	}
+
+
+	private static async Task CheckUnbans()
+	{
+		if (UnbanCheckSecondsPassed >= UnbanCheckTimer)
+		{
+			DebugSay( "Checked unbans" );
+			LastUnbanCheck = DateTime.UtcNow;
+
+			using (var context = new FishleyDbContext())
+			{
+				var allBannedUsers = await context.Users.AsAsyncEnumerable()
+				.Where(x => x.Banned )
+				.ToListAsync();
+
+				foreach (var bannedUser in allBannedUsers)
+				{
+					if ( bannedUser.UnbanDate.Ticks - DateTime.UtcNow.Ticks <= 0 )
+					{
+						bannedUser.Banned = false;
+						await UpdateOrCreateUser( bannedUser );
+						await SmallFishServer.RemoveBanAsync( bannedUser.UserId );
+						await ModeratorLog( $"<@{bannedUser.UserId}> has been unbanned.");
 					}
 				}
 			}
