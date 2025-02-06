@@ -17,7 +17,8 @@ public partial class Fishley
 		{ "recap", new RecapCommand() },
 		{ "prompt", new PromptCommand() },
 		{ "yapping", new YappingCommand() },
-		{ "givemoney", new GiveMoneyCommand() }
+		{ "givemoney", new GiveMoneyCommand() },
+		{ "ban", new BanCommand() }
 	};
 
 	private static async Task SlashCommandHandler(SocketSlashCommand command)

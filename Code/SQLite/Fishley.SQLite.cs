@@ -10,5 +10,12 @@ public partial class Fishley
 		{
 			optionsBuilder.UseSqlite("Data Source=database.db");
 		}
+
+		protected override void OnModelCreating(ModelBuilder modelBuilder)
+		{
+			modelBuilder.Entity<DiscordUser>()
+				.Property(u => u.Banned)
+				.HasDefaultValue(false);
+		}
 	}
 }

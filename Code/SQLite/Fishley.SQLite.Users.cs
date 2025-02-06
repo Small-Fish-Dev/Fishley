@@ -11,6 +11,8 @@ public partial class Fishley
 		public decimal Money { get; set; }
 		public DateTime LastFish { get; set; }
 		public string CustomFishleyPrompt { get; set; }
+		public bool Banned { get; set; }
+		public DateTime UnbanDate { get; set; }
 
 		public DiscordUser(ulong userId)
 		{

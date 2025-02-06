@@ -400,15 +400,12 @@ public partial class Fishley
 		if (Emergency)
 			await ModerateEmergency(message);
 
-		if (!IsFishOfTheDay((SocketGuildUser)message.Author))
-		{
-			if (await ModerateMessage(message))
-				return;
+		if (await ModerateMessage(message))
+			return;
 
-			if (!CanModerate((SocketGuildUser)message.Author))
-				if (await HandleFilters(userMessage))
-					return;
-		}
+		if (!CanModerate((SocketGuildUser)message.Author))
+			if (await HandleFilters(userMessage))
+				return;
 
 		var mentioned = message.MentionedUsers.Any(user => user.Id == FishleyId);
 
@@ -453,5 +450,23 @@ public partial class Fishley
 		}
 
 		DebugSay($"Assigned a total of {rolesGiven} users.");
+	}
+
+	/// <summary>
+	/// Message the user privately
+	/// </summary>
+	/// <param name="user"></param>
+	/// <param name="message"></param>
+	/// <returns></returns>
+	private static async Task MessageUser( SocketGuildUser user, string message )
+	{
+		if (user == null)
+		{
+			Console.WriteLine("User not found!");
+			return;
+		}
+
+		var dmChannel = await user.CreateDMChannelAsync();
+		await dmChannel.SendMessageAsync(message);
 	}
 }
