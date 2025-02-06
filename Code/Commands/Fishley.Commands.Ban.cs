@@ -7,6 +7,7 @@ public partial class Fishley
 		public override SlashCommandBuilder Builder => new SlashCommandBuilder()
 		.WithName("ban")
 		.WithDescription("Ban someone from the server")
+		.WithDefaultMemberPermissions( GuildPermission.BanMembers )
 		.AddOption(new SlashCommandOptionBuilder()
 			.WithName("user")
 			.WithDescription("Who to ban")
