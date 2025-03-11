@@ -135,6 +135,8 @@ public partial class Fishley
 
 			if (hasWarning)
 				await AddWarn(messageAuthor, message, clearedResponse);
+			else
+				await SendMessage( messageChannel, clearedResponse, message );
 		}
 	}
 
