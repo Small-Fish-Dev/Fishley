@@ -162,12 +162,12 @@ public partial class Fishley
 	}
 
 
+	public static int GrugCounter {get; set;} = 0;
 
-	public static async void SendGrokMessage()
+	public static void SendGrugMessage()
 	{
-		DebugSay( SecondsSinceLastMessage.ToString() );
-		if ( SecondsSinceLastMessage  <= 300 ) return;
-		LastMessage = DateTime.Now;
+		if ( GrugCounter  <= 60 ) return;
+		GrugCounter = 0;
 		
 		string[] prompts = new string[]
 		{
@@ -181,15 +181,19 @@ public partial class Fishley
 		// Select a random prompt from the array
 		Random random = new Random();
 		string prompt = prompts[random.Next(prompts.Length)];
+		GrugMessage( prompt, (SocketTextChannel)GeneralTalkChannel );
+	}
 
+	public static async void GrugMessage( string prompt, SocketTextChannel channel )
+	{
 		var image = await OpenAIImage( prompt );
 
 		if ( image == null ) return;
 
 		var embed = new EmbedBuilder().WithImageUrl( image ).Build();
-		var response = await OpenAIChat($"[CONTEXT: You are responding as if you were Grug and you just witnessed the following happen: {prompt}. If someone got hurt it was probably your friend.]");
+		var response = await OpenAIChat($"[CONTEXT: You are responding as if you were Grug this just happened: {prompt}. You're in the photo if you're directly mentioned in it or there's a neanderthal/paleolitic/ancient man, in that case you speak in first person, otherwise speak in third person.]");
 
-		await SendMessage((SocketTextChannel)GeneralTalkChannel, response, embed: embed);
+		await SendMessage( channel, response, embed: embed);
 	}
 
 	/// <summary>
@@ -448,11 +452,11 @@ public partial class Fishley
 			return;
 		}
 
-		DebugSay("we got here" );
+		GrugCounter++;
+
 		if ( message.Channel == (ISocketMessageChannel)GeneralTalkChannel )
 		{
-			DebugSay("sending grok" );
-			SendGrokMessage();
+			SendGrugMessage();
 		}
 	}
 
