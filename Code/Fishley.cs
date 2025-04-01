@@ -24,6 +24,7 @@ global using SboxGame;
 global using Animals;
 global using OpenAI.Chat;
 global using OpenAI;
+global using OpenAI.Moderations;
 global using System.Text;
 
 namespace Fishley;

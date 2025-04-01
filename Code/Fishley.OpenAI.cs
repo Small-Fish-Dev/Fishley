@@ -1,4 +1,5 @@
 namespace Fishley;
+using OpenAI.Images;
 
 public partial class Fishley
 {
@@ -65,6 +66,31 @@ public partial class Fishley
 		var chatCompletion = await chat.CompleteChatAsync(chatMessages);
 
 		return chatCompletion.Value.Content.First().Text;
+	}
+
+	/// <summary>
+	/// Generate an image using OpenAI's latest image generation model.
+	/// </summary>
+	/// <param name="prompt">The text prompt for generating the image.</param>
+	/// <param name="size">The desired image size (e.g., "1024x1024").</param>
+	/// <returns>The URL of the first generated image.</returns>
+	public static async Task<string> OpenAIImage(string prompt )
+	{
+		var imageClient = OpenAIClient.GetImageClient( "dall-e-3" );
+
+		ImageGenerationOptions options = new()
+		{
+			Quality = GeneratedImageQuality.High,
+			Size = GeneratedImageSize.W1792xH1024,
+			Style = GeneratedImageStyle.Vivid,
+			ResponseFormat = GeneratedImageFormat.Uri
+		};
+
+		var imageResponse = await imageClient.GenerateImageAsync( prompt, options );
+
+		if ( imageResponse == null ) return null;
+
+		return imageResponse.Value.ImageUri.AbsoluteUri;
 	}
 
 	/// <summary>
