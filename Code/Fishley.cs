@@ -46,7 +46,7 @@ public partial class Fishley
 	}
 	public static long Punishment { get; set; } = 0;
 	public static bool UsePrompt { get; set; } = false;
-	public static DateTime LastMessage { get; set; } = DateTime.UtcNow;
+	public static DateTime LastMessage { get; set; } = DateTime.UnixEpoch;
 	public static int SecondsSinceLastMessage => (int)(DateTime.UtcNow - LastMessage).TotalSeconds;
 	public static HttpClient HttpClient { get; set; } = new HttpClient();
 	public static Random Random { get; set; } = new Random((int)DateTime.UtcNow.Ticks);
@@ -159,6 +159,37 @@ public partial class Fishley
 		await CheckUnbans();
 		await ComputeScrapers();
 		await HandleTransactionExpiration();
+	}
+
+
+
+	public static async void SendGrokMessage()
+	{
+		DebugSay( SecondsSinceLastMessage.ToString() );
+		if ( SecondsSinceLastMessage  <= 300 ) return;
+		LastMessage = DateTime.Now;
+		
+		string[] prompts = new string[]
+		{
+			"A neanderthal man being lifted off the ground by a giant dragonfly. The primitive man has fur clothing and is struggling to free himself from the giant dragonfly. Green field with trees in the distance",
+			"A neanderthal man being attacked by a giant ground sloth while trying to fight back with a spear. The man is desperately trying to fight it off. Green field with trees in the distance.",
+			"A neanderthal man hitting a tree with his rudimentary stone axe. There's a few logs next to the man. Green field with trees in the distance.",
+			"A neanderthal man hitting a boulder with a rudimentary stone pick. There's a few stones next to the man. Green field with trees in the distance.",
+			"A neanderthal man sitting next to a campfire and eating a cartoonish piece of bone-in meat that has been roasted. Green field with trees in the distance. The sun is starting to lower into the horizon.",
+		};
+
+		// Select a random prompt from the array
+		Random random = new Random();
+		string prompt = prompts[random.Next(prompts.Length)];
+
+		var image = await OpenAIImage( prompt );
+
+		if ( image == null ) return;
+
+		var embed = new EmbedBuilder().WithImageUrl( image ).Build();
+		var response = await OpenAIChat($"[CONTEXT: You are responding as if you were Grug and you just witnessed the following happen: {prompt}. If someone got hurt it was probably your friend.]");
+
+		await SendMessage((SocketTextChannel)GeneralTalkChannel, response, embed: embed);
 	}
 
 	/// <summary>
@@ -415,6 +446,13 @@ public partial class Fishley
 		{
 			OpenAIRespond(message); // Let's try not awaiting it
 			return;
+		}
+
+		DebugSay("we got here" );
+		if ( message.Channel == (ISocketMessageChannel)GeneralTalkChannel )
+		{
+			DebugSay("sending grok" );
+			SendGrokMessage();
 		}
 	}
 
