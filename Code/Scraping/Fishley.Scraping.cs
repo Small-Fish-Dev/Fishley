@@ -31,7 +31,8 @@ public partial class Fishley
 		{ "garrytiktok", new GarryTiktokScraper() },
 		//{ "fish_of_the_week", new FishOfTheWeekTikTok() },
 		//{ "mindfunk", new MindfunkScraper() },
-		{ "venus_loves_rats", new VenusLovesRatsScraper() }
+		{ "venus_loves_rats", new VenusLovesRatsScraper() },
+		{ "sbox_ugc_news", new SboxUgcNewsScraper() }
 	};
 
 	public static async Task ComputeScrapers()
