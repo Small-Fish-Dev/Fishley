@@ -437,11 +437,8 @@ public partial class Fishley
 		if (Emergency)
 			await ModerateEmergency(message);
 
-		if (await ModerateMessage(message))
-			return;
-
 		if (!CanModerate((SocketGuildUser)message.Author))
-			if (await HandleFilters(userMessage))
+			if ( await ModerateMessage( message) || await HandleFilters(userMessage))
 				return;
 
 		var mentioned = message.MentionedUsers.Any(user => user.Id == FishleyId);
