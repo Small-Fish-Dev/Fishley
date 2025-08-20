@@ -448,13 +448,6 @@ public partial class Fishley
 			OpenAIRespond(message); // Let's try not awaiting it
 			return;
 		}
-
-		GrugCounter++;
-
-		if ( message.Channel == (ISocketMessageChannel)GeneralTalkChannel )
-		{
-			SendGrugMessage();
-		}
 	}
 
 	private static async Task MessageUpdated(Cacheable<IMessage, ulong> before, SocketMessage after, ISocketMessageChannel channel)
