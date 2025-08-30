@@ -55,7 +55,7 @@ public partial class Fishley
 	/// <param name="model"></param>
 	/// <param name="useSystemPrompt"></param>
 	/// <returns></returns>
-	public static async Task<string> OpenAIChat(string input, List<string> context = null, GPTModel model = GPTModel.GPT5_nano, bool useSystemPrompt = true)
+	public static async Task<string> OpenAIChat(string input, List<string> context = null, GPTModel model = GPTModel.GPT4o_mini, bool useSystemPrompt = true)
 	{
 		var chat = OpenAIClient.GetChatClient(GetModelName(model));
 		List<ChatMessage> chatMessages = new();
@@ -105,7 +105,7 @@ public partial class Fishley
 	/// <param name="message"></param>
 	/// <param name="model"></param>
 	/// <returns></returns>
-	public static async Task OpenAIRespond(SocketMessage message, GPTModel model = GPTModel.GPT5_nano)
+	public static async Task OpenAIRespond(SocketMessage message, GPTModel model = GPTModel.GPT4o_mini)
 	{
 		var messageAuthor = (SocketGuildUser)message.Author;
 		var messageChannel = (SocketTextChannel)message.Channel;
