@@ -9,6 +9,9 @@ public partial class Fishley
 
 	public enum GPTModel
 	{
+		GPT5,
+		GPT5_mini,
+		GPT5_nano,
 		GPT4o,
 		GPT4o_mini,
 		GPTo1,
@@ -25,6 +28,9 @@ public partial class Fishley
 	{
 		return model switch
 		{
+			GPTModel.GPT5 => "gpt-5",
+			GPTModel.GPT5_mini => "gpt-5-mini",
+			GPTModel.GPT5_nano => "gpt-5-nano",
 			GPTModel.GPT4o => "gpt-4o",
 			GPTModel.GPT4o_mini => "gpt-4o-mini",
 			GPTModel.GPTo1 => "o1-preview",
@@ -49,7 +55,7 @@ public partial class Fishley
 	/// <param name="model"></param>
 	/// <param name="useSystemPrompt"></param>
 	/// <returns></returns>
-	public static async Task<string> OpenAIChat(string input, List<string> context = null, GPTModel model = GPTModel.GPT4o_mini, bool useSystemPrompt = true)
+	public static async Task<string> OpenAIChat(string input, List<string> context = null, GPTModel model = GPTModel.GPT5_nano, bool useSystemPrompt = true)
 	{
 		var chat = OpenAIClient.GetChatClient(GetModelName(model));
 		List<ChatMessage> chatMessages = new();
@@ -99,7 +105,7 @@ public partial class Fishley
 	/// <param name="message"></param>
 	/// <param name="model"></param>
 	/// <returns></returns>
-	public static async Task OpenAIRespond(SocketMessage message, GPTModel model = GPTModel.GPT4o_mini)
+	public static async Task OpenAIRespond(SocketMessage message, GPTModel model = GPTModel.GPT5_nano)
 	{
 		var messageAuthor = (SocketGuildUser)message.Author;
 		var messageChannel = (SocketTextChannel)message.Channel;
