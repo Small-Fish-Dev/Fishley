@@ -7,7 +7,7 @@ public partial class Fishley
 		public override SlashCommandBuilder Builder => new SlashCommandBuilder()
 		.WithName("shutdown")
 		.WithDescription("Emergency shutdown for Fishley")
-		.WithDefaultMemberPermissions(GuildPermission.Administrator);
+		.WithDefaultMemberPermissions(GuildPermission.BanMembers);
 
 		public override Func<SocketSlashCommand, Task> Function => Shutdown;
 
@@ -16,10 +16,11 @@ public partial class Fishley
 		public async Task Shutdown(SocketSlashCommand command)
 		{
 
-			if (IsAdmin((SocketGuildUser)command.User))
+			if (IsSmallFish((SocketGuildUser)command.User))
 			{
 				await command.RespondAsync($"Emergency shutdown activated, shutting down.");
 				Running = false;
+				DebugSay( command.User.GetUsername() + " used shutdown" );
 			}
 			else
 				await command.RespondAsync($"You can't use this command?", ephemeral: true);
@@ -31,7 +32,7 @@ public partial class Fishley
 		public override SlashCommandBuilder Builder => new SlashCommandBuilder()
 		.WithName("restart")
 		.WithDescription("Restart Fishley")
-		.WithDefaultMemberPermissions(GuildPermission.Administrator);
+		.WithDefaultMemberPermissions(GuildPermission.BanMembers);
 
 		public override Func<SocketSlashCommand, Task> Function => Restart;
 
@@ -40,9 +41,10 @@ public partial class Fishley
 		public async Task Restart(SocketSlashCommand command)
 		{
 
-			if (IsAdmin((SocketGuildUser)command.User))
+			if (IsSmallFish((SocketGuildUser)command.User))
 			{
 				await command.RespondAsync($"Restarting protocol initiated. Restarting.");
+				DebugSay( command.User.GetUsername() + " used restart" );
 				Environment.Exit(127);
 			}
 			else
@@ -76,7 +78,7 @@ public partial class Fishley
 			.WithDescription("Does Fishley need his prompt to understand the context of the rule?")
 			.WithRequired(false)
 			.WithType(ApplicationCommandOptionType.Boolean))
-		.WithDefaultMemberPermissions(GuildPermission.Administrator);
+		.WithDefaultMemberPermissions(GuildPermission.BanMembers);
 
 		public override Func<SocketSlashCommand, Task> Function => Emergancy;
 
@@ -85,9 +87,10 @@ public partial class Fishley
 		public async Task Emergancy(SocketSlashCommand command)
 		{
 
-			if (IsAdmin((SocketGuildUser)command.User))
+			if (IsSmallFish((SocketGuildUser)command.User))
 			{
 				var enabled = !Emergency;
+				DebugSay( command.User.GetUsername() + " used emergency mode" );
 
 				if (enabled)
 				{

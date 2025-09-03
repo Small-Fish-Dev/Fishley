@@ -67,7 +67,7 @@ public partial class Fishley
 
 				var maxLuckTime = 60f * 60f * 12f; // 12 hours
 				var luck = (int)(Math.Min((float)passed, maxLuckTime) / maxLuckTime) * 15 - (badLuck ? 1 : 0);
-				var luckModifier = (IsSmallFish((SocketGuildUser)command.User) ? 1.5f : 1f) * (IsClambassador((SocketGuildUser)command.User) ? 1.2f : 1f) * (IsConchtributor((SocketGuildUser)command.User) ? 1.3f : 1f) * (IsFishOfTheDay((SocketGuildUser)command.User) ? 1.5f : 1f);
+				var luckModifier = (IsSmallFish((SocketGuildUser)command.User) ? 1.5f : 1f) * (IsClambassador((SocketGuildUser)command.User) ? 1.2f : 1f) * (IsConchtributor((SocketGuildUser)command.User) ? 1.3f : 1f);
 				var randomAnimal = await GetRandomAnimalFromRarity(new ListSelector().SelectItem(AnimalRarities, 3 + luck * luckModifier, 7));
 				var embedTitle = $"{command.User.GetUsername()} caught: {randomAnimal.CommonName}!";
 

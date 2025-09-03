@@ -348,14 +348,10 @@ public partial class Fishley
 			}
 			else
 			{
-				if (IsAdmin(user))
+				if (IsSmallFish(user))
 					await SendMessage(textChannel, $"<@{giver.Id}> attempted to give a pass to <@{user.Id}> but they don't need it!", deleteAfterSeconds: 5f);
 				else
 				{
-					if (IsSmallFish(user) && !IsAdmin(giver))
-						await SendMessage(textChannel, $"<@{giver.Id}> attempted to give a pass to <@{user.Id}> but they should just learn to follow the rules!", deleteAfterSeconds: 5f);
-					else
-					{
 						var context = new List<string>();
 						context.Add($"[The moderator {giver.GetUsername()} has given a pass to the following user: {message.Author.GetUsername()}. A pass is able to negate a warn and usually it means you either were wronged or did something cool. You have to come up with a reason as to why the moderator gave a pass to the user based on the message that it was given to, make sure to give a short and concise reason. If you can't find any reason then say in all caps NO REASON. Just go straight to saying the reason behind the pass, do not start by saying 'The moderator likely issued a pass because' or 'The pass was issued for' JUST SAY THE REASON FOR THE PASS AND THATS IT, nothing else.]");
 
@@ -385,7 +381,6 @@ public partial class Fishley
 						var reason = response.Contains("NO REASON") ? "" : $"\n**Reason:** {response}";
 
 						await GivePass(user, textMessage, $"<@{giver.Id}> gave a pass to <@{user.Id}>{reason}");
-					}
 				}
 			}
 		}

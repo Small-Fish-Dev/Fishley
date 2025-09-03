@@ -289,7 +289,7 @@ public partial class Fishley
 			.WithDescription("The reason that will be printed out")
 			.WithRequired(true)
 			.WithType(ApplicationCommandOptionType.String))
-		.WithDefaultMemberPermissions(GuildPermission.Administrator);
+		.WithDefaultMemberPermissions(GuildPermission.BanMembers);
 
 		public override Func<SocketSlashCommand, Task> Function => GiveMoney;
 
@@ -301,9 +301,9 @@ public partial class Fishley
 			var amountString = (string)command.Data.Options.FirstOrDefault(x => x.Name == "amount")?.Value ?? null;
 			var reason = (string)command.Data.Options.FirstOrDefault(x => x.Name == "reason")?.Value ?? null;
 
-			if (!IsAdmin((SocketGuildUser)command.User))
+			if (!IsSmallFish((SocketGuildUser)command.User))
 			{
-				await command.RespondAsync("Not an admin, bug off.", ephemeral: true);
+				await command.RespondAsync("Not small fish, bug off.", ephemeral: true);
 				return;
 			}
 

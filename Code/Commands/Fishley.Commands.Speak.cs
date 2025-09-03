@@ -17,7 +17,7 @@ public partial class Fishley
 			.WithDescription("What to say")
 			.WithRequired(true)
 			.WithType(ApplicationCommandOptionType.String))
-		.WithDefaultMemberPermissions(GuildPermission.Administrator);
+		.WithDefaultMemberPermissions(GuildPermission.BanMembers);
 
 		public override Func<SocketSlashCommand, Task> Function => Speak;
 
@@ -30,8 +30,11 @@ public partial class Fishley
 
 			var sent = false;
 
-			if (IsAdmin((SocketGuildUser)command.User))
+			if (IsSmallFish((SocketGuildUser)command.User))
+			{
 				sent = await SendMessage(channel, text);
+				DebugSay( command.User.GetUsername() + " made me say " + text);
+			}
 
 			await command.RespondAsync($"Message {(sent ? "sent!" : "not sent...")}", ephemeral: true);
 		}

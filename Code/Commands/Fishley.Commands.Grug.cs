@@ -23,11 +23,7 @@ public partial class Fishley
 
 		public async Task GrugImage(SocketSlashCommand command)
 		{
-			if ( SecondsSinceLastGrug <= 60 )
-				await command.RespondAsync( $"Grug on cooldown, can use in {60 - SecondsSinceLastGrug} seconds", ephemeral: true );
-			else
-				await command.RespondAsync( "Grugging it up...", ephemeral: true );
-		
+			await command.RespondAsync( "Grugging it up...", ephemeral: true );
 			LastGrug = DateTime.Now;
 			var prompt = (string)command.Data.Options.First().Value;
 			GrugMessage( prompt, (SocketTextChannel)command.Channel );

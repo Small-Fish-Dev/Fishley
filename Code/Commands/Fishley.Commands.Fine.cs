@@ -17,7 +17,7 @@ public partial class Fishley
 			var warnCount = int.Parse(data[3]);
 			var targetIsPayee = component.User.Id == targetId;
 
-			if (component.User.Id != targetId && !IsAdmin((SocketGuildUser)component.User))
+			if (component.User.Id != targetId && !IsSmallFish((SocketGuildUser)component.User))
 			{
 				await component.RespondAsync("You can't pay someone else's fine.", ephemeral: true);
 				return;
@@ -33,7 +33,7 @@ public partial class Fishley
 
 			var target = await GetOrCreateUser(targetId);
 			var targetDiscord = SmallFishServer.GetUser(targetId);
-			var targetPronouns = IsAdmin((SocketGuildUser)component.User) ? "They" : "You";
+			var targetPronouns = IsSmallFish((SocketGuildUser)component.User) ? "They" : "You";
 
 			if (target.Warnings <= 0 || !targetDiscord.Roles.Any(x => x == Warning1Role || x == Warning2Role || x == Warning3Role))
 			{

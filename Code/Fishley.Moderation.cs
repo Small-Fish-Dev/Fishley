@@ -34,11 +34,11 @@ public partial class Fishley
 			}
 			else
 			{
-				if (IsAdmin(user))
+				if (IsSmallFish(user))
 					await SendMessage(textChannel, $"<@{giver.Id}> attempted to warn <@{user.Id}> but I'm not powerful enough to do it.", deleteAfterSeconds: 5f);
 				else
 				{
-					if (IsSmallFish(user) && !IsAdmin(user) && !IsAdmin(giver))
+					if (IsSmallFish(user) && !IsSmallFish(user) && !IsSmallFish(giver))
 						await SendMessage(textChannel, $"<@{giver.Id}> attempted to warn <@{user.Id}> but they're not powerful enough to do it.", deleteAfterSeconds: 5f);
 					else
 					{
@@ -94,7 +94,7 @@ public partial class Fishley
 		if (channel == null || message == null || socketMessage == null) return;
 		if (socketMessage.Reactions.FirstOrDefault(x => x.Key.Equals(WarnEmoji)).Value.ReactionCount >= (warnEmoteAlreadyThere ? 2 : 1)) return; // Don't warn if this message led to a warn already
 
-		if (IsAdmin(user))
+		if (IsSmallFish(user))
 		{
 			DebugSay($"Attempted to give warning to {user.GetUsername()}({user.Id})");
 			await SendMessage(channel, $"{message}\nI can't warn you so please don't do it again.", reply ? socketMessage : null, 5f);
@@ -186,7 +186,7 @@ public partial class Fishley
 		if (socketMessage.Channel is not SocketTextChannel channel) return;
 		if (channel == null || message == null || socketMessage == null) return;
 		
-		if (IsAdmin(user))
+		if (IsSmallFish(user))
 		{
 			DebugSay($"Attempted to give a pass to {user.GetUsername()}({user.Id})");
 			await SendMessage(channel, $"{message} You don't need passes.", reply ? socketMessage : null, 5f);
