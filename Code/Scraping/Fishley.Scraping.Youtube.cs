@@ -4,7 +4,24 @@ public partial class Fishley
 {
 	public class YoutubeScraper : WebsiteScraper
 	{
-		public override string Url => "https://www.youtube.com/results?search_query=s%26box+-ragdoll&sp=EgQIAhAB";
+		public virtual string SearchTerm => "s&box";
+		public virtual List<string> Blacklist { get; } = new()
+		{
+			"ragdoll",
+			"pixelcat"
+		};
+
+		public override string Url
+		{
+			get
+			{
+				string blacklistQuery = string.Join(" ", Blacklist.Select(b => "-" + b));
+				string query = $"{SearchTerm} {blacklistQuery}".Trim();
+				string encoded = Uri.EscapeDataString(query);
+
+				return $"https://www.youtube.com/results?search_query={encoded}&sp=EgQIAhAB";
+			}
+		}
 		public override int SecondsCooldown => 60 + 7;
 		public override SocketGuildChannel ChannelToPost => SboxFeedChannel;
 
