@@ -8,7 +8,8 @@ public partial class Fishley
 		public virtual List<string> Blacklist { get; } = new()
 		{
 			"ragdoll",
-			"pixelcat"
+			"pixelcat",
+			"ekaj"
 		};
 
 		public override string Url
