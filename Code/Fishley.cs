@@ -203,6 +203,14 @@ public partial class Fishley
 	private static async Task OnUserJoined(SocketGuildUser user)
 	{
 		_joinTimes[user.Id] = DateTimeOffset.UtcNow;
+		
+		var storedUser = await GetOrCreateUser(user.Id);
+
+		if ( storedUser.Warnings > 0 && (DateTimeOffset.UtcNow - storedUser.LastWarn ) < TimeSpan.FromSeconds( WarnRole3DecaySeconds ) )
+		{
+			AddWarn( user, warnCount: storedUser.Warnings );
+			await ModeratorLog( $"Gave <@{user.Id}> {storedUser.Warnings.ToString()} warnings after they left and rejoined." );
+		}
 	}
 
 	/// <summary>

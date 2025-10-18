@@ -88,16 +88,15 @@ public partial class Fishley
 	/// <returns></returns>
 	private static async Task AddWarn(SocketGuildUser user, SocketMessage socketMessage = null, string message = null, bool includeWarnCount = true, bool reply = true, bool warnEmoteAlreadyThere = false, int warnCount = 1)
 	{
+		var channel = socketMessage == null ? null : (SocketTextChannel)socketMessage.Channel;
 		var storedUser = await GetOrCreateUser(user.Id);
-
-		if (socketMessage.Channel is not SocketTextChannel channel) return;
-		if (channel == null || message == null || socketMessage == null) return;
 		if (socketMessage.Reactions.FirstOrDefault(x => x.Key.Equals(WarnEmoji)).Value.ReactionCount >= (warnEmoteAlreadyThere ? 2 : 1)) return; // Don't warn if this message led to a warn already
 
 		if (IsSmallFish(user))
 		{
 			DebugSay($"Attempted to give warning to {user.GetUsername()}({user.Id})");
-			await SendMessage(channel, $"{message}\nI can't warn you so please don't do it again.", reply ? socketMessage : null, 5f);
+			if ( socketMessage != null && message != null )
+				await SendMessage(channel, $"{message}\nI can't warn you so please don't do it again.", reply ? socketMessage : null, 5f);
 			return;
 		}
 
@@ -125,21 +124,25 @@ public partial class Fishley
 
 		DebugSay($"Given {warnCount} warnings to {user.GetUsername()}({user.Id})");
 
-		if (storedUser.Warnings > 0)
-		{
-			var component = new ComponentBuilder()
-				.WithButton($"Remove Warn (${warnPrice}.00)", $"fine_paid-{warnPrice}-{user.Id}-{warnCount}", ButtonStyle.Danger)
-				.Build();
 
-			await SendMessage(channel, $"{message}{(includeWarnCount ? $"\n__({(timedOut ? "Timed Out" : $"Warning {storedUser.Warnings}/3")})" : "")}__", reply ? socketMessage : null, component: component);
-		}
-		else
+		if ( socketMessage != null && message != null )
 		{
-			var passesLeft = -storedUser.Warnings;
-			await SendMessage(channel, $"{message}{(includeWarnCount ? $"\n__({($"{passesLeft} passes left")})" : "")}__", reply ? socketMessage : null);
-		}
+			if (storedUser.Warnings > 0)
+			{
+				var component = new ComponentBuilder()
+					.WithButton($"Remove Warn (${warnPrice}.00)", $"fine_paid-{warnPrice}-{user.Id}-{warnCount}", ButtonStyle.Danger)
+					.Build();
 
-		await socketMessage.AddReactionAsync(WarnEmoji);
+				await SendMessage(channel, $"{message}{(includeWarnCount ? $"\n__({(timedOut ? "Timed Out" : $"Warning {storedUser.Warnings}/3")})" : "")}__", reply ? socketMessage : null, component: component);
+			}
+			else
+			{
+				var passesLeft = -storedUser.Warnings;
+				await SendMessage(channel, $"{message}{(includeWarnCount ? $"\n__({($"{passesLeft} passes left")})" : "")}__", reply ? socketMessage : null);
+			}
+
+			await socketMessage.AddReactionAsync(WarnEmoji);
+		}
 		
 		await Task.CompletedTask;
 		return;
