@@ -68,13 +68,17 @@ public partial class Fishley
 			target.UnbanDate = unbanDate;
 
 			await UpdateOrCreateUser(target);
-			await SmallFishServer.AddBanAsync( targetUser, 0, $"{reason} ({days.ToString()} days)" );
 			await command.RespondAsync($"<@{targetUser.Id}> has been banned.", ephemeral: true);
 			var unixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 			var sinceEpoch = unbanDate - unixEpoch;
 			var unbanRelative = $"<t:{(int)sinceEpoch.TotalSeconds}:R>";
-			await MessageUser( targetUser, $"You have been banned from Small Fish for `{days.ToString()} days`\nReason: `{reason}`\nYour unban date is {unbanRelative}" );
-			await ModeratorLog( $"<@{command.User.Id}> banned <@{targetUser.Id}> for `{days} days`\nReason: `{reason}`\nThe unban date is {unbanRelative}" );
+			try
+			{
+				await MessageUser( targetUser, $"You have been banned from Small Fish for `{days.ToString()} days`\nReason: `{reason}`\nYour unban date is {unbanRelative}" );
+				await ModeratorLog( $"<@{command.User.Id}> banned <@{targetUser.Id}> for `{days} days`\nReason: `{reason}`\nThe unban date is {unbanRelative}" );
+			}
+			catch ( Exception _ ) {}
+			await SmallFishServer.AddBanAsync( targetUser, 0, $"{reason} ({days.ToString()} days)" );
 		}
 	}
 }

@@ -82,6 +82,7 @@ public partial class Fishley
 		Client.MessageUpdated += MessageUpdated;
 		Client.MessageReceived += MessageReceived;
 		Client.ReactionAdded += ReactionAdded;
+		Client.GuildMemberUpdated += OnGuildMemberUpdated;
 		Client.Ready += OnReady;
 		Client.SlashCommandExecuted += SlashCommandHandler;
 		Client.MessageCommandExecuted += MessageCommandHandler;
@@ -306,6 +307,49 @@ public partial class Fishley
 	{
 		DebugSay(msg.ToString());
 		return Task.CompletedTask;
+	}
+
+	private static async Task OnGuildMemberUpdated(Cacheable<SocketGuildUser, ulong> beforeCache, SocketGuildUser after)
+	{
+		var before = beforeCache.HasValue ? beforeCache.Value : null;
+
+		if (before != null)
+		{
+			// Compare old and new role sets
+			var oldRoles = before.Roles.Select(r => r.Id).ToHashSet();
+			var newRoles = after.Roles.Select(r => r.Id).ToHashSet();
+
+			var addedRoles = newRoles.Except(oldRoles);
+			var removedRoles = oldRoles.Except(newRoles);
+
+			if (addedRoles.Any())
+			{
+				DebugSay($"{after.GetUsername()} received new roles: {string.Join(", ", addedRoles)}");
+
+				if ( after.Roles.Any( x => x == DirtyApeRole ) )
+				{
+					var target = await GetOrCreateUser(after.Id);
+					target.Banned = true;
+					var unbanDate = DateTime.UtcNow.AddDays( 7 );
+					target.UnbanDate = unbanDate;
+					await UpdateOrCreateUser(target);
+					var unixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+					var sinceEpoch = unbanDate - unixEpoch;
+					var unbanRelative = $"<t:{(int)sinceEpoch.TotalSeconds}:R>";
+					try
+					{
+						await MessageUser( after, $"You have been banned from Small Fish for `7 days`\nReason: `Failed CAPTCHA`\nYour unban date is {unbanRelative}" );
+						await ModeratorLog( $"Banned <@{after.Id}> for `7 days`\nReason: `Failed CAPTCHA`\nThe unban date is {unbanRelative}" );
+					}
+					catch ( Exception _ ) {}
+					await SmallFishServer.AddBanAsync( after, 0, $"Failed CAPTCHA (7 days)" );
+				}
+			}
+			if (removedRoles.Any())
+			{
+				DebugSay($"{after.GetUsername()} lost roles: {string.Join(", ", removedRoles)}");
+			}
+		}
 	}
 
 	private static async Task ReactionAdded(Cacheable<IUserMessage, ulong> cacheableMessage, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
