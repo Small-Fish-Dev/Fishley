@@ -82,6 +82,7 @@ public partial class Fishley
 		Client.MessageUpdated += MessageUpdated;
 		Client.MessageReceived += MessageReceived;
 		Client.ReactionAdded += ReactionAdded;
+		Client.UserJoined += OnUserJoined;
 		Client.GuildMemberUpdated += OnGuildMemberUpdated;
 		Client.Ready += OnReady;
 		Client.SlashCommandExecuted += SlashCommandHandler;
@@ -195,6 +196,13 @@ public partial class Fishley
 		var response = await OpenAIChat($"[CONTEXT: You are responding as if you were Grug this just happened: {prompt}. You're in the photo if you're directly mentioned in it or there's a neanderthal/paleolitic/ancient man, in that case you speak in first person, otherwise speak in third person.]");
 
 		await SendMessage( channel, response, embed: embed);
+	}
+	
+	private static Dictionary<ulong, DateTimeOffset> _joinTimes = new();
+
+	private static async Task OnUserJoined(SocketGuildUser user)
+	{
+		_joinTimes[user.Id] = DateTimeOffset.UtcNow;
 	}
 
 	/// <summary>
@@ -311,6 +319,15 @@ public partial class Fishley
 
 	private static async Task OnGuildMemberUpdated(Cacheable<SocketGuildUser, ulong> beforeCache, SocketGuildUser after)
 	{
+        if (!_joinTimes.TryGetValue(after.Id, out var joinTime)) // They joined before we started
+            return;
+
+        if (DateTimeOffset.UtcNow - joinTime > TimeSpan.FromMinutes(5)) // They joined more than 5 minutes ago
+        {
+            _joinTimes.Remove(after.Id); // stop tracking
+            return;
+        }
+
 		var before = beforeCache.HasValue ? beforeCache.Value : null;
 
 		if (before != null)
