@@ -203,14 +203,6 @@ public partial class Fishley
 	private static async Task OnUserJoined(SocketGuildUser user)
 	{
 		_joinTimes[user.Id] = DateTimeOffset.UtcNow;
-		
-		var storedUser = await GetOrCreateUser(user.Id);
-
-		if ( storedUser.Warnings > 0 && (DateTimeOffset.UtcNow - storedUser.LastWarn ) < TimeSpan.FromSeconds( WarnRole3DecaySeconds ) )
-		{
-			AddWarn( user, warnCount: storedUser.Warnings );
-			await ModeratorLog( $"Gave <@{user.Id}> {storedUser.Warnings.ToString()} warnings after they left and rejoined." );
-		}
 	}
 
 	/// <summary>
@@ -330,7 +322,7 @@ public partial class Fishley
         if (!_joinTimes.TryGetValue(after.Id, out var joinTime)) // They joined before we started
             return;
 
-        if (DateTimeOffset.UtcNow - joinTime > TimeSpan.FromMinutes(5)) // They joined more than 5 minutes ago
+        if (DateTimeOffset.UtcNow - joinTime > TimeSpan.FromMinutes(60)) // They joined more than 60 minutes ago
         {
             _joinTimes.Remove(after.Id); // stop tracking
             return;
@@ -351,9 +343,10 @@ public partial class Fishley
 			{
 				DebugSay($"{after.GetUsername()} received new roles: {string.Join(", ", addedRoles)}");
 
+				var target = await GetOrCreateUser(after.Id);
+
 				if ( after.Roles.Any( x => x == DirtyApeRole ) )
 				{
-					var target = await GetOrCreateUser(after.Id);
 					target.Banned = true;
 					var unbanDate = DateTime.UtcNow.AddDays( 7 );
 					target.UnbanDate = unbanDate;
@@ -368,6 +361,15 @@ public partial class Fishley
 					}
 					catch ( Exception _ ) {}
 					await SmallFishServer.AddBanAsync( after, 0, $"Failed CAPTCHA (7 days)" );
+				}
+
+				if ( after.Roles.Any( x => x == CertifiedFishRole ) )
+				{
+					if ( target.Warnings > 0 && (DateTimeOffset.UtcNow - target.LastWarn ) < TimeSpan.FromSeconds( WarnRole3DecaySeconds ) )
+					{
+						AddWarn( after, warnCount: target.Warnings );
+						await ModeratorLog( $"Gave <@{after.Id}> {target.Warnings.ToString()} warnings after they left and rejoined." );
+					}
 				}
 			}
 			if (removedRoles.Any())
