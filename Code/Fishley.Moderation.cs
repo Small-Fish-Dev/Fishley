@@ -11,7 +11,7 @@ public partial class Fishley
 	public static DateTime LastWarnDecayCheck;
 	public static int WarnDecaySecondsPassed => (int)(DateTime.UtcNow - LastWarnDecayCheck).TotalSeconds;
 
-	public static int UnbanCheckTimer => 3600; // 1 hour
+	public static int UnbanCheckTimer => 300; // 5 minutes
 	public static DateTime LastUnbanCheck;
 	public static int UnbanCheckSecondsPassed => (int)(DateTime.UtcNow - LastUnbanCheck).TotalSeconds;
 
