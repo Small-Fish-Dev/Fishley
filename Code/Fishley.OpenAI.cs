@@ -74,19 +74,22 @@ public partial class Fishley
 
 		// Auto-detect if we should perform web search
 		bool shouldSearch = enableWebSearch;
+		string searchQuery = input;
+
 		if (autoDetectSearch && !enableWebSearch)
 		{
-			shouldSearch = await ShouldPerformWebSearch(input);
+			var (needsSearch, reformulatedQuery) = await ShouldPerformWebSearch(input);
+			shouldSearch = needsSearch;
 			if (shouldSearch)
 			{
-				DebugSay($"Auto-detected web search needed for: {input.Substring(0, Math.Min(50, input.Length))}...");
+				searchQuery = reformulatedQuery;
 			}
 		}
 
 		// If web search is enabled or auto-detected, perform search
 		if (shouldSearch)
 		{
-			var searchResults = await PerformWebSearch(input);
+			var searchResults = await PerformWebSearch(searchQuery);
 			if (!string.IsNullOrEmpty(searchResults))
 			{
 				chatMessages.Add(new SystemChatMessage($"[Web Search Results - Use these to provide a comprehensive answer while maintaining your personality]: {searchResults}"));
@@ -99,19 +102,25 @@ public partial class Fishley
 	}
 
 	/// <summary>
-	/// Determine if a question requires a web search
+	/// Determine if a question requires a web search and reformulate it if needed
 	/// </summary>
 	/// <param name="question"></param>
-	/// <returns></returns>
-	private static async Task<bool> ShouldPerformWebSearch(string question)
+	/// <returns>Tuple of (shouldSearch, reformulatedQuery)</returns>
+	private static async Task<(bool shouldSearch, string reformulatedQuery)> ShouldPerformWebSearch(string question)
 	{
 		try
 		{
 			var context = new List<string>();
 			context.Add("[You are a classifier that determines if a question requires real-time web search to answer accurately.]");
-			context.Add("[Respond with ONLY 'YES' or 'NO'. Nothing else.]");
+			context.Add("[You must respond in this EXACT format: 'YES|search query here' or 'NO']");
+			context.Add("[If YES: reformulate the question into a clear, concise search query that will return good results. Remove any Discord mentions, formatting, or unnecessary words.]");
+			context.Add("[If NO: just respond with 'NO']");
 			context.Add("[Answer YES if the question asks about: current events, recent news, live data, specific facts you might not know, weather, sports scores, stock prices, or anything time-sensitive.]");
 			context.Add("[Answer NO if the question is: casual conversation, opinion-based, about you (the bot), or can be answered with general knowledge.]");
+			context.Add("[Examples:]");
+			context.Add("[Input: '@Fishley what's the biggest news of today?' -> Output: 'YES|biggest news today']");
+			context.Add("[Input: 'what's the weather in Paris?' -> Output: 'YES|weather Paris today']");
+			context.Add("[Input: 'how are you?' -> Output: 'NO']");
 			context.Add("[The question to evaluate is:]");
 
 			var chat = OpenAIClient.GetChatClient(GetModelName(GPTModel.GPT4o_mini));
@@ -122,14 +131,21 @@ public partial class Fishley
 
 			chatMessages.Add(new UserChatMessage(question));
 			var chatCompletion = await chat.CompleteChatAsync(chatMessages);
-			var response = chatCompletion.Value.Content.First().Text.Trim().ToUpper();
+			var response = chatCompletion.Value.Content.First().Text.Trim();
 
-			return response.Contains("YES");
+			if (response.StartsWith("YES|", StringComparison.OrdinalIgnoreCase))
+			{
+				var reformulated = response.Substring(4).Trim();
+				DebugSay($"Search needed. Original: '{question.Substring(0, Math.Min(50, question.Length))}' -> Reformulated: '{reformulated}'");
+				return (true, reformulated);
+			}
+
+			return (false, question);
 		}
 		catch (Exception ex)
 		{
 			DebugSay($"Search detection failed: {ex.Message}");
-			return false;
+			return (false, question);
 		}
 	}
 
@@ -162,20 +178,33 @@ public partial class Fishley
 
 				if (resultNodes != null && resultNodes.Count > 0)
 				{
+					DebugSay($"Found {resultNodes.Count} search results");
+
 					// Take top 10 results for more depth
 					foreach (var node in resultNodes.Take(10))
 					{
-						var titleNode = node.SelectSingleNode(".//a[@class='result__a']");
+						var titleNode = node.SelectSingleNode(".//h2[@class='result__title']/a[@class='result__a']");
 						var snippetNode = node.SelectSingleNode(".//a[@class='result__snippet']");
 
 						if (titleNode != null)
 						{
 							var title = HtmlAgilityPack.HtmlEntity.DeEntitize(titleNode.InnerText.Trim());
 							var url = titleNode.GetAttributeValue("href", "");
+
+							// Extract actual URL from DuckDuckGo redirect
+							if (url.Contains("uddg="))
+							{
+								var match = System.Text.RegularExpressions.Regex.Match(url, @"uddg=([^&]+)");
+								if (match.Success)
+								{
+									url = Uri.UnescapeDataString(match.Groups[1].Value);
+								}
+							}
+
 							var snippet = snippetNode != null ? HtmlAgilityPack.HtmlEntity.DeEntitize(snippetNode.InnerText.Trim()) : "";
 
 							// Try to fetch more content from the first 3 results for deeper context
-							if (results.Count < 3 && !string.IsNullOrEmpty(url))
+							if (results.Count < 3 && !string.IsNullOrEmpty(url) && url.StartsWith("http"))
 							{
 								try
 								{
@@ -185,15 +214,21 @@ public partial class Fishley
 										snippet = $"{snippet}\n[Detailed Content]: {pageContent}";
 									}
 								}
-								catch
+								catch (Exception ex)
 								{
-									// If fetching fails, just use the snippet
+									DebugSay($"Failed to fetch page content from {url}: {ex.Message}");
 								}
 							}
 
 							results.Add($"[Source {results.Count + 1}]\nTitle: {title}\nURL: {url}\nContent: {snippet}");
 						}
 					}
+
+					DebugSay($"Successfully extracted {results.Count} results");
+				}
+				else
+				{
+					DebugSay("No result nodes found in HTML");
 				}
 
 				if (results.Count > 0)
