@@ -150,11 +150,65 @@ public partial class Fishley
 	}
 
 	/// <summary>
-	/// Perform a web search using DuckDuckGo HTML scraping - Enhanced version with more depth
+	/// Perform a web search using both DuckDuckGo and Reddit in parallel
 	/// </summary>
 	/// <param name="query"></param>
 	/// <returns></returns>
 	private static async Task<string> PerformWebSearch(string query)
+	{
+		// Run both searches in parallel
+		var duckDuckGoTask = SearchDuckDuckGo(query);
+		var redditTask = SearchReddit(query);
+
+		await Task.WhenAll(duckDuckGoTask, redditTask);
+
+		var duckDuckGoResults = await duckDuckGoTask;
+		var redditResults = await redditTask;
+
+		var allResults = new List<string>();
+
+		// Combine results, prioritizing based on which returned better results
+		if (duckDuckGoResults != null && duckDuckGoResults.Count > 0)
+		{
+			DebugSay($"DuckDuckGo returned {duckDuckGoResults.Count} results");
+			allResults.AddRange(duckDuckGoResults);
+		}
+		else
+		{
+			DebugSay("DuckDuckGo returned no results");
+		}
+
+		if (redditResults != null && redditResults.Count > 0)
+		{
+			DebugSay($"Reddit returned {redditResults.Count} results");
+			allResults.AddRange(redditResults);
+		}
+		else
+		{
+			DebugSay("Reddit returned no results");
+		}
+
+		if (allResults.Count == 0)
+		{
+			DebugSay("Both search sources failed");
+			return null;
+		}
+
+		// Take top 10 results total, format with source numbers
+		var finalResults = allResults.Take(10)
+			.Select((result, index) => result.Replace("[Source ", $"[Source {index + 1}"))
+			.ToList();
+
+		DebugSay($"Returning {finalResults.Count} combined results");
+		return string.Join("\n\n", finalResults);
+	}
+
+	/// <summary>
+	/// Search DuckDuckGo HTML scraping
+	/// </summary>
+	/// <param name="query"></param>
+	/// <returns></returns>
+	private static async Task<List<string>> SearchDuckDuckGo(string query)
 	{
 		try
 		{
@@ -179,10 +233,8 @@ public partial class Fishley
 
 				if (resultNodes != null && resultNodes.Count > 0)
 				{
-					DebugSay($"Found {resultNodes.Count} search results");
-
-					// Take top 10 results for more depth
-					foreach (var node in resultNodes.Take(10))
+					// Take top 7 results from DuckDuckGo
+					foreach (var node in resultNodes.Take(7))
 					{
 						var titleNode = node.SelectSingleNode(".//h2[@class='result__title']/a[@class='result__a']");
 						var snippetNode = node.SelectSingleNode(".//a[@class='result__snippet']");
@@ -204,8 +256,8 @@ public partial class Fishley
 
 							var snippet = snippetNode != null ? HtmlAgilityPack.HtmlEntity.DeEntitize(snippetNode.InnerText.Trim()) : "";
 
-							// Try to fetch more content from the first 3 results for deeper context
-							if (results.Count < 3 && !string.IsNullOrEmpty(url) && url.StartsWith("http"))
+							// Try to fetch more content from the first 2 DuckDuckGo results
+							if (results.Count < 2 && !string.IsNullOrEmpty(url) && url.StartsWith("http"))
 							{
 								try
 								{
@@ -217,33 +269,98 @@ public partial class Fishley
 								}
 								catch (Exception ex)
 								{
-									DebugSay($"Failed to fetch page content from {url}: {ex.Message}");
+									DebugSay($"Failed to fetch DuckDuckGo page content from {url}: {ex.Message}");
 								}
 							}
 
-							results.Add($"[Source {results.Count + 1}]\nTitle: {title}\nURL: {url}\nContent: {snippet}");
+							results.Add($"[Source DDG]\nTitle: {title}\nURL: {url}\nContent: {snippet}");
 						}
 					}
-
-					DebugSay($"Successfully extracted {results.Count} results");
-				}
-				else
-				{
-					DebugSay("No result nodes found in HTML");
 				}
 
-				if (results.Count > 0)
-				{
-					return string.Join("\n\n", results);
-				}
+				return results;
 			}
 		}
 		catch (Exception ex)
 		{
-			DebugSay($"Web search failed: {ex.Message}");
+			DebugSay($"DuckDuckGo search failed: {ex.Message}");
+			return new List<string>();
 		}
+	}
 
-		return null;
+	/// <summary>
+	/// Search Reddit using RSS feed (sorted by relevance)
+	/// </summary>
+	/// <param name="query"></param>
+	/// <returns></returns>
+	private static async Task<List<string>> SearchReddit(string query)
+	{
+		try
+		{
+			var encodedQuery = Uri.EscapeDataString(query);
+			// Search Reddit, sorted by relevance, past day
+			var searchUrl = $"https://www.reddit.com/search.rss?q={encodedQuery}&sort=relevance&t=day";
+
+			using (var client = new HttpClient())
+			{
+				client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36");
+				client.Timeout = TimeSpan.FromSeconds(10);
+
+				var response = await client.GetAsync(searchUrl);
+				response.EnsureSuccessStatusCode();
+
+				string rssContent = await response.Content.ReadAsStringAsync();
+
+				if (string.IsNullOrEmpty(rssContent))
+				{
+					return new List<string>();
+				}
+
+				var results = new List<string>();
+
+				// Parse RSS feed
+				using (System.Xml.XmlReader reader = System.Xml.XmlReader.Create(new System.IO.StringReader(rssContent)))
+				{
+					var feed = System.ServiceModel.Syndication.SyndicationFeed.Load(reader);
+
+					if (feed?.Items == null)
+					{
+						return new List<string>();
+					}
+
+					// Take top 5 Reddit results
+					foreach (var item in feed.Items.Take(5))
+					{
+						var title = item.Title?.Text ?? "No title";
+						var summary = item.Summary?.Text ?? "";
+						var url = item.Links?.FirstOrDefault()?.Uri?.ToString() ?? "";
+
+						// Clean up HTML entities in summary
+						summary = HtmlAgilityPack.HtmlEntity.DeEntitize(summary);
+
+						// Remove HTML tags from summary
+						var summaryDoc = new HtmlAgilityPack.HtmlDocument();
+						summaryDoc.LoadHtml(summary);
+						summary = summaryDoc.DocumentNode.InnerText.Trim();
+
+						// Limit summary length
+						if (summary.Length > 500)
+						{
+							summary = summary.Substring(0, 500) + "...";
+						}
+
+						results.Add($"[Source Reddit]\nTitle: {title}\nURL: {url}\nContent: {summary}");
+					}
+				}
+
+				return results;
+			}
+		}
+		catch (Exception ex)
+		{
+			DebugSay($"Reddit search failed: {ex.Message}");
+			return new List<string>();
+		}
 	}
 
 	/// <summary>
