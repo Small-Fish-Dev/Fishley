@@ -80,9 +80,9 @@ public partial class Fishley
 	/// <param name="prompt">The text prompt for generating the image.</param>
 	/// <param name="size">The desired image size (e.g., "1024x1024").</param>
 	/// <returns>The URL of the first generated image.</returns>
-	public static async Task<string> OpenAIImage(string prompt )
+	public static async Task<string> OpenAIImage(string prompt)
 	{
-		var imageClient = OpenAIClient.GetImageClient( "dall-e-3" );
+		var imageClient = OpenAIClient.GetImageClient("dall-e-3");
 
 		ImageGenerationOptions options = new()
 		{
@@ -92,9 +92,9 @@ public partial class Fishley
 			ResponseFormat = GeneratedImageFormat.Uri
 		};
 
-		var imageResponse = await imageClient.GenerateImageAsync( prompt, options );
+		var imageResponse = await imageClient.GenerateImageAsync(prompt, options);
 
-		if ( imageResponse == null ) return null;
+		if (imageResponse == null) return null;
 
 		return imageResponse.Value.ImageUri.AbsoluteUri;
 	}
@@ -162,7 +162,7 @@ public partial class Fishley
 			if (hasWarning)
 				await AddWarn(messageAuthor, message, clearedResponse);
 			else
-				await SendMessage( messageChannel, clearedResponse, message );
+				await SendMessage(messageChannel, clearedResponse, message);
 		}
 	}
 
@@ -185,14 +185,18 @@ public partial class Fishley
 		{ "default", 70f }
 	};
 
-	public static bool AgainstModeration(OpenAI.Moderations.ModerationCategory category, string name, float sensitivity, SocketGuildUser user, out string moderationString, out int totalWarns)
+	public static bool AgainstModeration(OpenAI.Moderations.ModerationCategory category, string name, float sensitivity, SocketGuildUser user, ulong messageId, out string moderationString, out int totalWarns)
 	{
-
 		var value = MathF.Round(category.Score * 100f, 1);
 
-		if ( user.Id == 149809710458077190 && Random.Next( 30 ) == 1 )
-			value = MathF.Min(MathF.Max(value + 95f, 0f), 100f);
-			
+		if (user.Id == 149809710458077190)
+		{
+			var random = new Random((int)((messageId + (ulong)name.GetHashCode()) % int.MaxValue));
+			var randomValue = random.Next( 15 );
+			if (randomValue == 0)
+				value = MathF.Min(MathF.Max(value + random.Next( 70 ) + 30, 0f), 100f);
+		}
+
 		var rulesBroken = false;
 		var categoryFound = ModerationThresholds.ContainsKey(name) ? ModerationThresholds[name] : ModerationThresholds["default"];
 		moderationString = "";
@@ -248,7 +252,7 @@ public partial class Fishley
 
 			void ProcessModeration(OpenAI.Moderations.ModerationCategory category, string name, float sensitivity)
 			{
-				if (AgainstModeration(category, name, sensitivity, messageAuthor, out var moderationString, out var totalWarns) || postStats)
+				if (AgainstModeration(category, name, sensitivity, messageAuthor, message.Id, out var moderationString, out var totalWarns) || postStats)
 				{
 					if (totalWarns > 0)
 						brokenModeration.Add(moderationString, totalWarns);
@@ -266,9 +270,9 @@ public partial class Fishley
 			ProcessModeration(mod.Violence, "violence", sensitivity);
 			ProcessModeration(mod.ViolenceGraphic, "violence/graphic", sensitivity);
 			ProcessModeration(mod.Illicit, "illicit", sensitivity);
-			ProcessModeration(mod.IllicitViolent, "illicit / violent", sensitivity);
+			ProcessModeration(mod.IllicitViolent, "illicit/violent", sensitivity);
 
-			if (AgainstModeration(mod.SelfHarmIntent, "self-harm/intent", sensitivity, messageAuthor, out var _, out var _) || AgainstModeration(mod.SelfHarm, "self-harm", sensitivity, messageAuthor, out var _, out var _))
+			if (AgainstModeration(mod.SelfHarmIntent, "self-harm/intent", sensitivity, messageAuthor, message.Id, out var _, out var _) || AgainstModeration(mod.SelfHarm, "self-harm", sensitivity, messageAuthor, message.Id, out var _, out var _))
 			{
 				var selfHarmContext = new List<string>();
 				selfHarmContext.Add($"[The user {message.Author.GetUsername()} has sent a concherning message regarding their safety, please reach out to them and make sure they're ok.");
@@ -288,7 +292,7 @@ public partial class Fishley
 				if (message.Embeds != null && message.Embeds.Count() > 0)
 					context.Add("The message also contained an embed which may have been the reason for the warn. It most likely was if the message is empty.");
 
-				context.Add("[If you believe the warn was given by accident or was missing context from the missing reply, then do not write anything except for the word FALSE in all caps. Always assume warns need to be checked twice before writing a reason behind it.]");
+				//context.Add("[If you believe the warn was given by accident or was missing context from the missing reply, then do not write anything except for the word FALSE in all caps. Always assume warns need to be checked twice before writing a reason behind it.]");
 
 				var reference = message.Reference;
 				SocketMessage reply = null;
@@ -354,9 +358,9 @@ public partial class Fishley
 				await SendMessage((SocketTextChannel)message.Channel, response, message, 10f, replyPing: false);
 			}
 		}
-		catch( Exception ex )
+		catch (Exception ex)
 		{
-			DebugSay( "Aborting moderation - " + ex.ToString() );
+			DebugSay("Aborting moderation - " + ex.ToString());
 			return false;
 		}
 
