@@ -174,7 +174,8 @@ public partial class Fishley
 				doc.LoadHtml(html);
 
 				var results = new List<string>();
-				var resultNodes = doc.DocumentNode.SelectNodes("//div[@class='result']");
+				// Use contains() because the class attribute has multiple classes
+				var resultNodes = doc.DocumentNode.SelectNodes("//div[contains(@class, 'result')]");
 
 				if (resultNodes != null && resultNodes.Count > 0)
 				{
