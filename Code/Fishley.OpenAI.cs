@@ -150,24 +150,26 @@ public partial class Fishley
 	}
 
 	/// <summary>
-	/// Perform a web search using both DuckDuckGo and Reddit in parallel
+	/// Perform a web search using DuckDuckGo and Reddit (relevance + recency) in parallel
 	/// </summary>
 	/// <param name="query"></param>
 	/// <returns></returns>
 	private static async Task<string> PerformWebSearch(string query)
 	{
-		// Run both searches in parallel
+		// Run all searches in parallel: DDG, Reddit (relevance), Reddit (new)
 		var duckDuckGoTask = SearchDuckDuckGo(query);
-		var redditTask = SearchReddit(query);
+		var redditRelevanceTask = SearchReddit(query, sortBy: "relevance");
+		var redditNewTask = SearchReddit(query, sortBy: "new");
 
-		await Task.WhenAll(duckDuckGoTask, redditTask);
+		await Task.WhenAll(duckDuckGoTask, redditRelevanceTask, redditNewTask);
 
 		var duckDuckGoResults = await duckDuckGoTask;
-		var redditResults = await redditTask;
+		var redditRelevanceResults = await redditRelevanceTask;
+		var redditNewResults = await redditNewTask;
 
 		var allResults = new List<string>();
 
-		// Combine results, prioritizing based on which returned better results
+		// Combine results from all sources
 		if (duckDuckGoResults != null && duckDuckGoResults.Count > 0)
 		{
 			DebugSay($"DuckDuckGo returned {duckDuckGoResults.Count} results");
@@ -178,19 +180,37 @@ public partial class Fishley
 			DebugSay("DuckDuckGo returned no results");
 		}
 
-		if (redditResults != null && redditResults.Count > 0)
+		if (redditRelevanceResults != null && redditRelevanceResults.Count > 0)
 		{
-			DebugSay($"Reddit returned {redditResults.Count} results");
-			allResults.AddRange(redditResults);
+			DebugSay($"Reddit (relevance) returned {redditRelevanceResults.Count} results");
+			allResults.AddRange(redditRelevanceResults);
 		}
 		else
 		{
-			DebugSay("Reddit returned no results");
+			DebugSay("Reddit (relevance) returned no results");
+		}
+
+		if (redditNewResults != null && redditNewResults.Count > 0)
+		{
+			DebugSay($"Reddit (new) returned {redditNewResults.Count} results");
+			// Deduplicate - don't add if URL already exists
+			foreach (var newResult in redditNewResults)
+			{
+				var newUrl = ExtractUrlFromResult(newResult);
+				if (!allResults.Any(r => ExtractUrlFromResult(r) == newUrl))
+				{
+					allResults.Add(newResult);
+				}
+			}
+		}
+		else
+		{
+			DebugSay("Reddit (new) returned no results");
 		}
 
 		if (allResults.Count == 0)
 		{
-			DebugSay("Both search sources failed");
+			DebugSay("All search sources failed");
 			return null;
 		}
 
@@ -201,6 +221,15 @@ public partial class Fishley
 
 		DebugSay($"Returning {finalResults.Count} combined results");
 		return string.Join("\n\n", finalResults);
+	}
+
+	/// <summary>
+	/// Extract URL from a search result for deduplication
+	/// </summary>
+	private static string ExtractUrlFromResult(string result)
+	{
+		var urlMatch = System.Text.RegularExpressions.Regex.Match(result, @"URL: (.+?)\n");
+		return urlMatch.Success ? urlMatch.Groups[1].Value : "";
 	}
 
 	/// <summary>
@@ -289,17 +318,18 @@ public partial class Fishley
 	}
 
 	/// <summary>
-	/// Search Reddit using RSS feed (sorted by relevance) and fetch post/comment content
+	/// Search Reddit using RSS feed and fetch post/comment content
 	/// </summary>
 	/// <param name="query"></param>
+	/// <param name="sortBy">Sort method: "relevance" or "new"</param>
 	/// <returns></returns>
-	private static async Task<List<string>> SearchReddit(string query)
+	private static async Task<List<string>> SearchReddit(string query, string sortBy = "relevance")
 	{
 		try
 		{
 			var encodedQuery = Uri.EscapeDataString(query);
-			// Search Reddit, sorted by relevance, past year
-			var searchUrl = $"https://www.reddit.com/search.rss?q={encodedQuery}&sort=relevance&t=year";
+			// Search Reddit with specified sort, past year
+			var searchUrl = $"https://www.reddit.com/search.rss?q={encodedQuery}&sort={sortBy}&t=year";
 
 			using (var client = new HttpClient())
 			{
@@ -328,8 +358,8 @@ public partial class Fishley
 						return new List<string>();
 					}
 
-					// Take top 5 Reddit results
-					foreach (var item in feed.Items.Take(5))
+					// Take top 3 Reddit results per sort type (to make room for both sorts)
+					foreach (var item in feed.Items.Take(3))
 					{
 						var title = item.Title?.Text ?? "No title";
 						var summary = item.Summary?.Text ?? "";
@@ -356,7 +386,9 @@ public partial class Fishley
 							summary = summary.Substring(0, 1000) + "...";
 						}
 
-						results.Add($"[Source Reddit]\nTitle: {title}\nURL: {url}\nContent: {summary}");
+						// Tag with sort method for transparency
+						var sortTag = sortBy == "new" ? "Reddit-New" : "Reddit";
+						results.Add($"[Source {sortTag}]\nTitle: {title}\nURL: {url}\nContent: {summary}");
 					}
 				}
 
@@ -365,7 +397,7 @@ public partial class Fishley
 		}
 		catch (Exception ex)
 		{
-			DebugSay($"Reddit search failed: {ex.Message}");
+			DebugSay($"Reddit search ({sortBy}) failed: {ex.Message}");
 			return new List<string>();
 		}
 	}
