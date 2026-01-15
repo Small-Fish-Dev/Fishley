@@ -289,7 +289,7 @@ public partial class Fishley
 	}
 
 	/// <summary>
-	/// Search Reddit using RSS feed (sorted by relevance)
+	/// Search Reddit using RSS feed (sorted by relevance) and fetch post/comment content
 	/// </summary>
 	/// <param name="query"></param>
 	/// <returns></returns>
@@ -298,8 +298,8 @@ public partial class Fishley
 		try
 		{
 			var encodedQuery = Uri.EscapeDataString(query);
-			// Search Reddit, sorted by relevance, past day
-			var searchUrl = $"https://www.reddit.com/search.rss?q={encodedQuery}&sort=relevance&t=day";
+			// Search Reddit, sorted by relevance, past year
+			var searchUrl = $"https://www.reddit.com/search.rss?q={encodedQuery}&sort=relevance&t=year";
 
 			using (var client = new HttpClient())
 			{
@@ -343,10 +343,17 @@ public partial class Fishley
 						summaryDoc.LoadHtml(summary);
 						summary = summaryDoc.DocumentNode.InnerText.Trim();
 
-						// Limit summary length
-						if (summary.Length > 500)
+						// Try to fetch post content and top comments using JSON API
+						var postContent = await FetchRedditPostContent(url, client);
+						if (!string.IsNullOrEmpty(postContent))
 						{
-							summary = summary.Substring(0, 500) + "...";
+							summary = postContent;
+						}
+
+						// Limit summary length
+						if (summary.Length > 1000)
+						{
+							summary = summary.Substring(0, 1000) + "...";
 						}
 
 						results.Add($"[Source Reddit]\nTitle: {title}\nURL: {url}\nContent: {summary}");
@@ -360,6 +367,103 @@ public partial class Fishley
 		{
 			DebugSay($"Reddit search failed: {ex.Message}");
 			return new List<string>();
+		}
+	}
+
+	/// <summary>
+	/// Fetch Reddit post content and top comments using JSON API
+	/// </summary>
+	/// <param name="postUrl"></param>
+	/// <param name="client"></param>
+	/// <returns></returns>
+	private static async Task<string> FetchRedditPostContent(string postUrl, HttpClient client)
+	{
+		try
+		{
+			// Convert Reddit URL to JSON API endpoint
+			if (!postUrl.Contains("reddit.com"))
+				return null;
+
+			var jsonUrl = postUrl.TrimEnd('/') + ".json";
+
+			var response = await client.GetAsync(jsonUrl);
+			response.EnsureSuccessStatusCode();
+
+			var jsonContent = await response.Content.ReadAsStringAsync();
+
+			// Parse JSON manually to extract post and comments
+			var jsonDoc = System.Text.Json.JsonDocument.Parse(jsonContent);
+			var root = jsonDoc.RootElement;
+
+			var content = new System.Text.StringBuilder();
+
+			// Get post content
+			if (root.ValueKind == System.Text.Json.JsonValueKind.Array && root.GetArrayLength() > 0)
+			{
+				var postData = root[0];
+				if (postData.TryGetProperty("data", out var data) &&
+				    data.TryGetProperty("children", out var children) &&
+				    children.GetArrayLength() > 0)
+				{
+					var post = children[0];
+					if (post.TryGetProperty("data", out var postDataObj))
+					{
+						// Get selftext (text post content)
+						if (postDataObj.TryGetProperty("selftext", out var selftext) &&
+						    selftext.GetString()?.Length > 0)
+						{
+							var text = selftext.GetString();
+							// Remove markdown formatting
+							text = System.Text.RegularExpressions.Regex.Replace(text, @"\[([^\]]+)\]\([^\)]+\)", "$1");
+							text = System.Text.RegularExpressions.Regex.Replace(text, @"[*_~`#]", "");
+
+							content.AppendLine($"[Post]: {text}");
+						}
+					}
+				}
+
+				// Get top comments
+				if (root.GetArrayLength() > 1)
+				{
+					var commentsData = root[1];
+					if (commentsData.TryGetProperty("data", out var commentData) &&
+					    commentData.TryGetProperty("children", out var commentChildren))
+					{
+						int commentCount = 0;
+						foreach (var comment in commentChildren.EnumerateArray())
+						{
+							if (commentCount >= 3) break; // Top 3 comments
+
+							if (comment.TryGetProperty("data", out var commentDataObj))
+							{
+								if (commentDataObj.TryGetProperty("body", out var body))
+								{
+									var commentText = body.GetString();
+									if (!string.IsNullOrEmpty(commentText) && commentText != "[deleted]" && commentText != "[removed]")
+									{
+										// Clean up comment text
+										commentText = System.Text.RegularExpressions.Regex.Replace(commentText, @"\[([^\]]+)\]\([^\)]+\)", "$1");
+										commentText = System.Text.RegularExpressions.Regex.Replace(commentText, @"[*_~`]", "");
+
+										if (commentText.Length > 300)
+											commentText = commentText.Substring(0, 300) + "...";
+
+										content.AppendLine($"[Comment {commentCount + 1}]: {commentText}");
+										commentCount++;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
+			return content.Length > 0 ? content.ToString().Trim() : null;
+		}
+		catch (Exception ex)
+		{
+			DebugSay($"Failed to fetch Reddit post content: {ex.Message}");
+			return null;
 		}
 	}
 
