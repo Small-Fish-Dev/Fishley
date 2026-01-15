@@ -27,9 +27,9 @@ public partial class Fishley
 			try
 			{
 				var context = new List<string>();
-				context.Add($"[The user {user.GetUsername()} has asked you a question. You should use the web search results provided to answer their question accurately and concisely.]");
+				context.Add($"[The user {user.GetUsername()} has asked you a question. You should use the web search results provided to answer their question in detail and with depth. Make sure to cite sources when relevant and provide a comprehensive answer while maintaining your personality.]");
 
-				var response = await OpenAIChat(question, context, GPTModel.GPT4o_mini, useSystemPrompt: true, enableWebSearch: true);
+				var response = await OpenAIChat(question, context, GPTModel.GPT4o, useSystemPrompt: true, enableWebSearch: true);
 
 				await command.FollowupAsync(response);
 			}
