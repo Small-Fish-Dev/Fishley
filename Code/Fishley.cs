@@ -347,20 +347,8 @@ public partial class Fishley
 
 				if ( after.Roles.Any( x => x == DirtyApeRole ) )
 				{
-					target.Banned = true;
-					var unbanDate = DateTime.UtcNow.AddMinutes( 5 );
-					target.UnbanDate = unbanDate;
-					await UpdateOrCreateUser(target);
-					var unixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-					var sinceEpoch = unbanDate - unixEpoch;
-					var unbanRelative = $"<t:{(int)sinceEpoch.TotalSeconds}:R>";
-					try
-					{
-						await MessageUser( after, $"You have been banned from Small Fish for `5 minutes`\nReason: `Failed CAPTCHA`\nYour unban date is {unbanRelative}" );
-						await ModeratorLog( $"Banned <@{after.Id}> for `5 minutes`\nReason: `Failed CAPTCHA`\nThe unban date is {unbanRelative}" );
-					}
-					catch ( Exception _ ) {}
-					await SmallFishServer.AddBanAsync( after, 0, $"Failed CAPTCHA (5 minutes)" );
+					// No longer automatically ban - they'll be warned when they try to send messages
+					DebugSay($"{after.GetUsername()} received Dirty Ape role (failed captcha)");
 				}
 
 				if ( after.Roles.Any( x => x == CertifiedFishRole ) )
@@ -499,6 +487,24 @@ public partial class Fishley
 			return;
 
 		if (!Running) return;
+
+		// Check if user has Dirty Ape role (failed captcha)
+		var author = (SocketGuildUser)message.Author;
+		if (IsDirtyApe(author))
+		{
+			try
+			{
+				await message.DeleteAsync();
+				await SendMessage((SocketTextChannel)message.Channel,
+					$"<@{author.Id}> You're a dirty ape! You need to verify yourself by selecting the **Fish** role in the **Channels & Roles** tab at the top of the server to be able to send messages.",
+					deleteAfterSeconds: 10f);
+			}
+			catch (Exception ex)
+			{
+				DebugSay($"Failed to handle Dirty Ape message: {ex.Message}");
+			}
+			return;
+		}
 
 		if (Emergency)
 			await ModerateEmergency(message);
