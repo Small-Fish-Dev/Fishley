@@ -20,7 +20,8 @@ public partial class Fishley
 		{ "givemoney", new GiveMoneyCommand() },
 		{ "ban", new BanCommand() },
 		{ "grug", new GrugCommand() },
-		{ "search", new SearchCommand() }
+		{ "search", new SearchCommand() },
+		{ "verifyall", new VerifyAllCommand() }
 	};
 
 	private static async Task SlashCommandHandler(SocketSlashCommand command)
