@@ -31,15 +31,24 @@ public partial class Fishley
 			if (user.Id == Client.CurrentUser.Id)
 			{
 				await SendMessage(textChannel, $"<@{giver.Id}> attempted to warn... me!? What did I do???", deleteAfterSeconds: 5f);
+				var logMsg = $"<@{giver.Id}> attempted to warn Fishley in <#{textChannel.Id}>";
+				DebugSay(logMsg);
+				await ModeratorLog(logMsg);
 			}
 			else
 			{
 				if (IsSmallFish(user))
+				{
 					await SendMessage(textChannel, $"<@{giver.Id}> attempted to warn <@{user.Id}> but I'm not powerful enough to do it.", deleteAfterSeconds: 5f);
+					await ModeratorLog($"<@{giver.Id}> attempted to warn <@{user.Id}> (moderator) in <#{textChannel.Id}> - Failed (insufficient permissions)");
+				}
 				else
 				{
 					if (IsSmallFish(user) && !IsSmallFish(user) && !IsSmallFish(giver))
+					{
 						await SendMessage(textChannel, $"<@{giver.Id}> attempted to warn <@{user.Id}> but they're not powerful enough to do it.", deleteAfterSeconds: 5f);
+						await ModeratorLog($"<@{giver.Id}> attempted to warn <@{user.Id}> in <#{textChannel.Id}> - Failed (insufficient permissions)");
+					}
 					else
 					{
 						var context = new List<string>();
@@ -69,7 +78,7 @@ public partial class Fishley
 						var cleanedMessage = $"''{message.CleanContent}''";
 						var response = await OpenAIChat(cleanedMessage, context, useSystemPrompt: true);
 
-						await AddWarn(user, textMessage, $"<@{giver.Id}> warned <@{user.Id}>\n**Reason:** {response}", warnEmoteAlreadyThere: true);
+						await AddWarn(user, textMessage, $"<@{giver.Id}> warned <@{user.Id}>\n**Reason:** {response}", warnEmoteAlreadyThere: true, warnGiver: giver);
 					}
 				}
 			}
@@ -85,18 +94,22 @@ public partial class Fishley
 	/// <param name="reply"></param>
 	/// <param name="warnEmoteAlreadyThere"></param>
 	/// <param name="warnCount"></param>
+	/// <param name="warnGiver"></param>
 	/// <returns></returns>
-	private static async Task AddWarn(SocketGuildUser user, SocketMessage socketMessage = null, string message = null, bool includeWarnCount = true, bool reply = true, bool warnEmoteAlreadyThere = false, int warnCount = 1)
+	private static async Task AddWarn(SocketGuildUser user, SocketMessage socketMessage = null, string message = null, bool includeWarnCount = true, bool reply = true, bool warnEmoteAlreadyThere = false, int warnCount = 1, SocketGuildUser warnGiver = null)
 	{
 		var channel = socketMessage == null ? null : (SocketTextChannel)socketMessage.Channel;
 		var storedUser = await GetOrCreateUser(user.Id);
-		if (socketMessage.Reactions.FirstOrDefault(x => x.Key.Equals(WarnEmoji)).Value.ReactionCount >= (warnEmoteAlreadyThere ? 2 : 1)) return; // Don't warn if this message led to a warn already
+		if (socketMessage != null && socketMessage.Reactions.FirstOrDefault(x => x.Key.Equals(WarnEmoji)).Value.ReactionCount >= (warnEmoteAlreadyThere ? 2 : 1)) return; // Don't warn if this message led to a warn already
 
 		if (IsSmallFish(user))
 		{
 			DebugSay($"Attempted to give warning to {user.GetUsername()}({user.Id})");
 			if ( socketMessage != null && message != null )
+			{
 				await SendMessage(channel, $"{message}\nI can't warn you so please don't do it again.", reply ? socketMessage : null, 5f);
+				await ModeratorLog($"{(warnGiver != null ? $"<@{warnGiver.Id}>" : "System")} attempted to warn <@{user.Id}> (moderator) in <#{channel.Id}> - Failed (target is moderator)");
+			}
 			return;
 		}
 
@@ -124,6 +137,12 @@ public partial class Fishley
 
 		DebugSay($"Given {warnCount} warnings to {user.GetUsername()}({user.Id})");
 
+		// Log to moderator channel
+		var logMessage = $"{(warnGiver != null ? $"<@{warnGiver.Id}>" : "System")} warned <@{user.Id}> ({warnCount} warning{(warnCount > 1 ? "s" : "")})" +
+			$"\nNew total: {storedUser.Warnings}/3" +
+			(timedOut ? " (User was timed out)" : "") +
+			(channel != null ? $"\nChannel: <#{channel.Id}>" : "");
+		await ModeratorLog(logMessage);
 
 		if ( socketMessage != null && message != null )
 		{
@@ -153,10 +172,12 @@ public partial class Fishley
 	/// </summary>
 	/// <param name="user"></param>
 	/// <param name="warnCount"></param>
+	/// <param name="remover"></param>
 	/// <returns></returns>
-	private static async Task RemoveWarn(SocketGuildUser user, int warnCount = 1)
+	private static async Task RemoveWarn(SocketGuildUser user, int warnCount = 1, SocketGuildUser remover = null)
 	{
 		var storedUser = await GetOrCreateUser(user.Id);
+		var previousWarns = storedUser.Warnings;
 		storedUser.Warnings = Math.Max(storedUser.Warnings - warnCount, 0);
 
 		if (storedUser.Warnings <= 0)
@@ -170,6 +191,11 @@ public partial class Fishley
 
 		DebugSay($"Removed {warnCount} warnings from {user.GetUsername()}({user.Id})");
 		await UpdateOrCreateUser(storedUser);
+
+		// Log to moderator channel
+		var logMessage = $"{(remover != null ? $"<@{remover.Id}>" : "System")} removed {warnCount} warning{(warnCount > 1 ? "s" : "")} from <@{user.Id}>" +
+			$"\n{previousWarns} → {storedUser.Warnings}";
+		await ModeratorLog(logMessage);
 	}
 
 	/// <summary>
@@ -181,29 +207,35 @@ public partial class Fishley
 	/// <param name="includePassCount"></param>
 	/// <param name="reply"></param>
 	/// <param name="passEmoteAlreadyThere"></param>
+	/// <param name="passGiver"></param>
 	/// <returns></returns>
-	private static async Task GivePass(SocketGuildUser user, SocketMessage socketMessage = null, string message = null, bool includePassCount = true, bool reply = true)
+	private static async Task GivePass(SocketGuildUser user, SocketMessage socketMessage = null, string message = null, bool includePassCount = true, bool reply = true, SocketGuildUser passGiver = null)
 	{
 		var storedUser = await GetOrCreateUser(user.Id);
 
 		if (socketMessage.Channel is not SocketTextChannel channel) return;
 		if (channel == null || message == null || socketMessage == null) return;
-		
+
 		if (IsSmallFish(user))
 		{
 			DebugSay($"Attempted to give a pass to {user.GetUsername()}({user.Id})");
 			await SendMessage(channel, $"{message} You don't need passes.", reply ? socketMessage : null, 5f);
+			await ModeratorLog($"{(passGiver != null ? $"<@{passGiver.Id}>" : "System")} attempted to give pass to <@{user.Id}> (moderator) in <#{channel.Id}> - Failed (moderators don't need passes)");
 			return;
 		}
 
+		var previousWarns = storedUser.Warnings;
 		if (storedUser.Warnings > 0)
 		{
-			await RemoveWarn(user);
+			await RemoveWarn(user, remover: passGiver);
 		}
 		else
 		{
 			storedUser.Warnings = storedUser.Warnings - 1;
 			await UpdateOrCreateUser(storedUser);
+
+			// Log pass given
+			await ModeratorLog($"{(passGiver != null ? $"<@{passGiver.Id}>" : "System")} gave pass to <@{user.Id}> in <#{channel.Id}>\nNew total: {-storedUser.Warnings} pass{(-storedUser.Warnings != 1 ? "es" : "")}");
 		}
 
 		DebugSay($"Given pass to {user.GetUsername()}({user.Id})");

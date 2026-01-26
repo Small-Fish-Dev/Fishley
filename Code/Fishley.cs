@@ -439,7 +439,7 @@ public partial class Fishley
 						var response = await OpenAIChat(cleanedMessage, context, useSystemPrompt: false);
 						var reason = response.Contains("NO REASON") ? "" : $"\n**Reason:** {response}";
 
-						await GivePass(user, textMessage, $"<@{giver.Id}> gave a pass to <@{user.Id}>{reason}");
+						await GivePass(user, textMessage, $"<@{giver.Id}> gave a pass to <@{user.Id}>{reason}", passGiver: giver);
 				}
 			}
 		}
@@ -453,15 +453,18 @@ public partial class Fishley
 
 			if (user.Id == Client.CurrentUser.Id)
 			{
-				await AddWarn(user, textMessage, $"<@{giver.Id}> don't try to minimod me, know your place human.", true, false);
+				await AddWarn(user, textMessage, $"<@{giver.Id}> don't try to minimod me, know your place human.", true, false, warnGiver: giver);
 			}
 			else
 			{
 				var storedUser = await GetOrCreateUser(giver.Id);
 
 				if ( storedUser.Money < 1 )
+				{
+					await ModeratorLog($"<@{giver.Id}> attempted minimod on <@{user.Id}> in <#{textMessage.Channel.Id}> - Failed (insufficient money)");
 					return;
-				
+				}
+
 				storedUser.Money -= 1;
 
 				await UpdateOrCreateUser(storedUser);
@@ -472,7 +475,12 @@ public partial class Fishley
 					storedUser.Money += 11;
 
 					await UpdateOrCreateUser(storedUser);
+					await ModeratorLog($"<@{giver.Id}> minimodded <@{user.Id}> in <#{textMessage.Channel.Id}> - **Success** (+$11, now ${Math.Round(storedUser.Money, 2)})");
 					return;
+				}
+				else
+				{
+					await ModeratorLog($"<@{giver.Id}> minimodded <@{user.Id}> in <#{textMessage.Channel.Id}> - **Failed** (message not against rules, -$1, now ${Math.Round(storedUser.Money, 2)})");
 				}
 			}
 		}
