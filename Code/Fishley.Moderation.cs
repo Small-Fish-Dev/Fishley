@@ -145,7 +145,7 @@ public partial class Fishley
 
 		// Log to moderator channel
 		var logMessage = $"{(warnGiver != null ? $"<@{warnGiver.Id}>" : "System")} warned <@{user.Id}> ({warnCount} warning{(warnCount > 1 ? "s" : "")})" +
-			$"\nNew total: {storedUser.Warnings}/3" +
+			$"\nNew total: {(storedUser.Warnings > 0 ? $"{storedUser.Warnings}/3" : $"{-storedUser.Warnings} pass{(-storedUser.Warnings != 1 ? "es" : "")}")}" +
 			(timedOut ? " (User was timed out)" : "") +
 			(channel != null ? $"\nChannel: <#{channel.Id}>" : "");
 	DebugSay(logMessage);
@@ -252,14 +252,14 @@ public partial class Fishley
 
 		DebugSay($"Given pass to {user.GetUsername()}({user.Id})");
 
-		if (storedUser.Warnings - 1 >= 0)
+		if (storedUser.Warnings >= 0)
 		{
-			var warnsLeft = storedUser.Warnings - 1;
+			var warnsLeft = storedUser.Warnings;
 			await SendMessage(channel, $"{message}{(includePassCount ? $"\n__({$"{warnsLeft} warn{(warnsLeft != 1 ? "s" : "")} left"})" : "")}__", reply ? socketMessage : null);
 		}
 		else
 		{
-			var passesLeft = -(storedUser.Warnings - 1);
+			var passesLeft = -storedUser.Warnings;
 			await SendMessage(channel, $"{message}{(includePassCount ? $"\n__({$"{passesLeft} pass{(passesLeft != 1 ? "es" : "")} left"})" : "")}__", reply ? socketMessage : null);
 		}
 
