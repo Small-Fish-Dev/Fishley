@@ -394,6 +394,13 @@ public partial class Fishley
 		if (guildChannel is not SocketTextChannel textChannel) return;
 		if (message is not SocketMessage textMessage) return;
 
+	// Skip moderation actions on announcement channels
+		bool isAnnouncementChannel = guildChannel is SocketNewsChannel || (guildChannel is SocketThreadChannel newsThread && newsThread.ParentChannel is SocketNewsChannel);
+		if (isAnnouncementChannel)
+		{
+			await message.RemoveReactionAsync(reaction.Emote, reaction.UserId);
+			return;
+		}
 		if (reaction.Emote.Equals(WarnEmoji))
 		{
 			await HandleWarn( textMessage, user, textChannel, giver, message);
@@ -525,7 +532,11 @@ public partial class Fishley
 		if (Emergency)
 			await ModerateEmergency(message);
 
-		if (!CanModerate((SocketGuildUser)message.Author))
+	// Skip moderation on announcement channels
+		var channel = message.Channel as SocketGuildChannel;
+		bool isAnnouncementChannel = channel != null && (channel is SocketNewsChannel || (channel is SocketThreadChannel newsThread && newsThread.ParentChannel is SocketNewsChannel));
+
+		if (!CanModerate((SocketGuildUser)message.Author) && !isAnnouncementChannel)
 			if ( await ModerateMessage( message) || await HandleFilters(userMessage))
 				return;
 
