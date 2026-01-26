@@ -111,11 +111,11 @@ public partial class Fishley
 			{
 			}
 
-			await ModeratorLog(
-				$"<@{command.User.Id}> banned <@{foundUser.Id}> for `{days}` day(s)\n" +
+			var logMsg = $"<@{command.User.Id}> banned <@{foundUser.Id}> for `{days}` day(s)\n" +
 				$"Reason: `{reason}`\n" +
-				$"The unban date is {unbanRelative}"
-			);
+				$"The unban date is {unbanRelative}";
+			DebugSay(logMsg);
+			await ModeratorLog(logMsg);
 
 			await SmallFishServer.AddBanAsync(foundUser, pruneDays: 0, reason: $"{reason} ({days} days)");
 		}

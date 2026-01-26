@@ -80,7 +80,9 @@ public partial class Fishley
 					$"❌ Errors: {errorCount} users";
 
 				await command.FollowupAsync(responseMessage);
-				await ModeratorLog($"<@{user.Id}> used /verifyall command\n{responseMessage}");
+				var logMsg = $"<@{user.Id}> used /verifyall command\n{responseMessage}";
+			DebugSay(logMsg);
+			await ModeratorLog(logMsg);
 			}
 			catch (Exception ex)
 			{

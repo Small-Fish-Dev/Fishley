@@ -40,14 +40,18 @@ public partial class Fishley
 				if (IsSmallFish(user))
 				{
 					await SendMessage(textChannel, $"<@{giver.Id}> attempted to warn <@{user.Id}> but I'm not powerful enough to do it.", deleteAfterSeconds: 5f);
-					await ModeratorLog($"<@{giver.Id}> attempted to warn <@{user.Id}> (moderator) in <#{textChannel.Id}> - Failed (insufficient permissions)");
+					var logMsg2 = $"<@{giver.Id}> attempted to warn <@{user.Id}> (moderator) in <#{textChannel.Id}> - Failed (insufficient permissions)";
+				DebugSay(logMsg2);
+				await ModeratorLog(logMsg2);
 				}
 				else
 				{
 					if (IsSmallFish(user) && !IsSmallFish(user) && !IsSmallFish(giver))
 					{
 						await SendMessage(textChannel, $"<@{giver.Id}> attempted to warn <@{user.Id}> but they're not powerful enough to do it.", deleteAfterSeconds: 5f);
-						await ModeratorLog($"<@{giver.Id}> attempted to warn <@{user.Id}> in <#{textChannel.Id}> - Failed (insufficient permissions)");
+						var logMsg3 = $"<@{giver.Id}> attempted to warn <@{user.Id}> in <#{textChannel.Id}> - Failed (insufficient permissions)";
+					DebugSay(logMsg3);
+					await ModeratorLog(logMsg3);
 					}
 					else
 					{
@@ -108,7 +112,9 @@ public partial class Fishley
 			if ( socketMessage != null && message != null )
 			{
 				await SendMessage(channel, $"{message}\nI can't warn you so please don't do it again.", reply ? socketMessage : null, 5f);
-				await ModeratorLog($"{(warnGiver != null ? $"<@{warnGiver.Id}>" : "System")} attempted to warn <@{user.Id}> (moderator) in <#{channel.Id}> - Failed (target is moderator)");
+				var logMsg4 = $"{(warnGiver != null ? $"<@{warnGiver.Id}>" : "System")} attempted to warn <@{user.Id}> (moderator) in <#{channel.Id}> - Failed (target is moderator)";
+			DebugSay(logMsg4);
+			await ModeratorLog(logMsg4);
 			}
 			return;
 		}
@@ -142,6 +148,7 @@ public partial class Fishley
 			$"\nNew total: {storedUser.Warnings}/3" +
 			(timedOut ? " (User was timed out)" : "") +
 			(channel != null ? $"\nChannel: <#{channel.Id}>" : "");
+	DebugSay(logMessage);
 		await ModeratorLog(logMessage);
 
 		if ( socketMessage != null && message != null )
@@ -195,6 +202,7 @@ public partial class Fishley
 		// Log to moderator channel
 		var logMessage = $"{(remover != null ? $"<@{remover.Id}>" : "System")} removed {warnCount} warning{(warnCount > 1 ? "s" : "")} from <@{user.Id}>" +
 			$"\n{previousWarns} → {storedUser.Warnings}";
+	DebugSay(logMessage);
 		await ModeratorLog(logMessage);
 	}
 
@@ -220,7 +228,9 @@ public partial class Fishley
 		{
 			DebugSay($"Attempted to give a pass to {user.GetUsername()}({user.Id})");
 			await SendMessage(channel, $"{message} You don't need passes.", reply ? socketMessage : null, 5f);
-			await ModeratorLog($"{(passGiver != null ? $"<@{passGiver.Id}>" : "System")} attempted to give pass to <@{user.Id}> (moderator) in <#{channel.Id}> - Failed (moderators don't need passes)");
+			var logMsg5 = $"{(passGiver != null ? $"<@{passGiver.Id}>" : "System")} attempted to give pass to <@{user.Id}> (moderator) in <#{channel.Id}> - Failed (moderators don't need passes)";
+		DebugSay(logMsg5);
+		await ModeratorLog(logMsg5);
 			return;
 		}
 
@@ -235,7 +245,9 @@ public partial class Fishley
 			await UpdateOrCreateUser(storedUser);
 
 			// Log pass given
-			await ModeratorLog($"{(passGiver != null ? $"<@{passGiver.Id}>" : "System")} gave pass to <@{user.Id}> in <#{channel.Id}>\nNew total: {-storedUser.Warnings} pass{(-storedUser.Warnings != 1 ? "es" : "")}");
+			var logMsg6 = $"{(passGiver != null ? $"<@{passGiver.Id}>" : "System")} gave pass to <@{user.Id}> in <#{channel.Id}>\nNew total: {-storedUser.Warnings} pass{(-storedUser.Warnings != 1 ? "es" : "")}";
+			DebugSay(logMsg6);
+			await ModeratorLog(logMsg6);
 		}
 
 		DebugSay($"Given pass to {user.GetUsername()}({user.Id})");
@@ -304,7 +316,9 @@ public partial class Fishley
 						bannedUser.Banned = false;
 						await UpdateOrCreateUser( bannedUser );
 						await SmallFishServer.RemoveBanAsync( bannedUser.UserId );
-						await ModeratorLog( $"<@{bannedUser.UserId}> has been unbanned.");
+						var logMsg7 = $"<@{bannedUser.UserId}> has been unbanned.";
+					DebugSay(logMsg7);
+					await ModeratorLog(logMsg7);
 					}
 				}
 			}

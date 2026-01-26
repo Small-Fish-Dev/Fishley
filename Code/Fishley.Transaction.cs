@@ -125,11 +125,15 @@ public partial class Fishley
 			// Log to moderator channel
 			if (transaction.Type == TransactionType.Invoice)
 			{
-				await ModeratorLog($"<@{target.UserId}> paid invoice from <@{creator.UserId}>: {NiceMoney(transaction.Amount)}\n**Reason:** {transaction.Reason}\nNew balances: <@{target.UserId}> ${Math.Round(target.Money, 2)} | <@{creator.UserId}> ${Math.Round(creator.Money, 2)}");
+				var logMsg = $"<@{target.UserId}> paid invoice from <@{creator.UserId}>: {NiceMoney(transaction.Amount)}\n**Reason:** {transaction.Reason}\nNew balances: <@{target.UserId}> ${Math.Round(target.Money, 2)} | <@{creator.UserId}> ${Math.Round(creator.Money, 2)}";
+			DebugSay(logMsg);
+			await ModeratorLog(logMsg);
 			}
 			else if (transaction.Type == TransactionType.Transfer)
 			{
-				await ModeratorLog($"<@{creator.UserId}> transferred {NiceMoney(transaction.Amount)} to <@{target.UserId}>\n**Reason:** {transaction.Reason}\nNew balances: <@{creator.UserId}> ${Math.Round(creator.Money, 2)} | <@{target.UserId}> ${Math.Round(target.Money, 2)}");
+				var logMsg2 = $"<@{creator.UserId}> transferred {NiceMoney(transaction.Amount)} to <@{target.UserId}>\n**Reason:** {transaction.Reason}\nNew balances: <@{creator.UserId}> ${Math.Round(creator.Money, 2)} | <@{target.UserId}> ${Math.Round(target.Money, 2)}";
+			DebugSay(logMsg2);
+			await ModeratorLog(logMsg2);
 			}
 
 			if (transaction.Type == TransactionType.Invoice)

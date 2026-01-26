@@ -304,7 +304,9 @@ public partial class Fishley
 			if (!IsSmallFish((SocketGuildUser)command.User))
 			{
 				await command.RespondAsync("Not small fish, bug off.", ephemeral: true);
-				await ModeratorLog($"<@{command.User.Id}> attempted to use /givemoney but is not a moderator");
+				var logMsg = $"<@{command.User.Id}> attempted to use /givemoney but is not a moderator";
+			DebugSay(logMsg);
+			await ModeratorLog(logMsg);
 				return;
 			}
 
@@ -327,7 +329,9 @@ public partial class Fishley
 			receiver.Money += toGive;
 			await UpdateOrCreateUser(receiver);
 			await command.RespondAsync($"<@{command.User.Id}> gave {NiceMoney( (float)toGive )} to <@{targetUser.Id}>\n**Reason:** {reason}");
-			await ModeratorLog($"<@{command.User.Id}> gave {NiceMoney( (float)toGive )} to <@{targetUser.Id}>\n**Reason:** {reason}\nNew balance: ${Math.Round(receiver.Money, 2)}");
+			var logMsg2 = $"<@{command.User.Id}> gave {NiceMoney( (float)toGive )} to <@{targetUser.Id}>\n**Reason:** {reason}\nNew balance: ${Math.Round(receiver.Money, 2)}";
+		DebugSay(logMsg2);
+		await ModeratorLog(logMsg2);
 		}
 	}
 }

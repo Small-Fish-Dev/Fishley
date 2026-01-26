@@ -356,7 +356,9 @@ public partial class Fishley
 					if ( target.Warnings > 0 && (DateTimeOffset.UtcNow - target.LastWarn ) < TimeSpan.FromSeconds( WarnRole3DecaySeconds ) )
 					{
 						AddWarn( after, warnCount: target.Warnings );
-						await ModeratorLog( $"Gave <@{after.Id}> {target.Warnings.ToString()} warnings after they left and rejoined." );
+						var logMsg = $"Gave <@{after.Id}> {target.Warnings.ToString()} warnings after they left and rejoined.";
+					DebugSay(logMsg);
+					await ModeratorLog(logMsg);
 					}
 				}
 			}
@@ -461,7 +463,9 @@ public partial class Fishley
 
 				if ( storedUser.Money < 1 )
 				{
-					await ModeratorLog($"<@{giver.Id}> attempted minimod on <@{user.Id}> in <#{textMessage.Channel.Id}> - Failed (insufficient money)");
+					var logMsg2 = $"<@{giver.Id}> attempted minimod on <@{user.Id}> in <#{textMessage.Channel.Id}> - Failed (insufficient money)";
+			DebugSay(logMsg2);
+			await ModeratorLog(logMsg2);
 					return;
 				}
 
@@ -475,12 +479,16 @@ public partial class Fishley
 					storedUser.Money += 11;
 
 					await UpdateOrCreateUser(storedUser);
-					await ModeratorLog($"<@{giver.Id}> minimodded <@{user.Id}> in <#{textMessage.Channel.Id}> - **Success** (+$11, now ${Math.Round(storedUser.Money, 2)})");
+					var logMsg3 = $"<@{giver.Id}> minimodded <@{user.Id}> in <#{textMessage.Channel.Id}> - **Success** (+$11, now ${Math.Round(storedUser.Money, 2)})";
+				DebugSay(logMsg3);
+				await ModeratorLog(logMsg3);
 					return;
 				}
 				else
 				{
-					await ModeratorLog($"<@{giver.Id}> minimodded <@{user.Id}> in <#{textMessage.Channel.Id}> - **Failed** (message not against rules, -$1, now ${Math.Round(storedUser.Money, 2)})");
+					var logMsg4 = $"<@{giver.Id}> minimodded <@{user.Id}> in <#{textMessage.Channel.Id}> - **Failed** (message not against rules, -$1, now ${Math.Round(storedUser.Money, 2)})";
+				DebugSay(logMsg4);
+				await ModeratorLog(logMsg4);
 				}
 			}
 		}
