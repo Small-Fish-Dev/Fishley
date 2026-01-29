@@ -380,10 +380,15 @@ public partial class Fishley
 
 		var message = await cacheableMessage.GetOrDownloadAsync();
 		if (message is null) return;
+
+		// Log reaction addition
+		DebugSay($"[Reaction Added] {reaction.Emote.Name} by user {reaction.UserId} on message {message.Id} (author: {message.Author.Id}) in channel {guildChannel.Id}");
+
 		if (!reaction.Emote.Equals(WarnEmoji) && !reaction.Emote.Equals(PassEmoji) && !reaction.Emote.Equals(MinimodEmoji)) return;
 
 		if (!CanModerate(giver) && !reaction.Emote.Equals(MinimodEmoji))
 		{
+			DebugSay($"[Reaction Removed] {reaction.Emote.Name} from user {reaction.UserId} on message {message.Id} (reason: non-moderator attempted moderation)");
 			await message.RemoveReactionAsync(reaction.Emote, reaction.UserId); // Remove any non moderator warning
 			return;
 		}
@@ -398,6 +403,7 @@ public partial class Fishley
 		bool isAnnouncementChannel = guildChannel is SocketNewsChannel || (guildChannel is SocketThreadChannel newsThread && newsThread.ParentChannel is SocketNewsChannel);
 		if (isAnnouncementChannel)
 		{
+			DebugSay($"[Reaction Removed] {reaction.Emote.Name} from user {reaction.UserId} on message {message.Id} (reason: announcement channel)");
 			await message.RemoveReactionAsync(reaction.Emote, reaction.UserId);
 			return;
 		}
@@ -470,7 +476,8 @@ public partial class Fishley
 
 				if ( storedUser.Money < 1 )
 				{
-					await message.RemoveReactionAsync(reaction.Emote, reaction.UserId);
+					DebugSay($"[Reaction Removed] {reaction.Emote.Name} from user {reaction.UserId} on message {message.Id} (reason: insufficient money for minimod)");
+				await message.RemoveReactionAsync(reaction.Emote, reaction.UserId);
 				var logMsg2 = $"<@{giver.Id}> attempted minimod on <@{user.Id}> in <#{textMessage.Channel.Id}> - Failed (insufficient money)";
 			DebugSay(logMsg2);
 			await ModeratorLog(logMsg2);
