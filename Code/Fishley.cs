@@ -470,7 +470,8 @@ public partial class Fishley
 
 				if ( storedUser.Money < 1 )
 				{
-					var logMsg2 = $"<@{giver.Id}> attempted minimod on <@{user.Id}> in <#{textMessage.Channel.Id}> - Failed (insufficient money)";
+					await message.RemoveReactionAsync(reaction.Emote, reaction.UserId);
+				var logMsg2 = $"<@{giver.Id}> attempted minimod on <@{user.Id}> in <#{textMessage.Channel.Id}> - Failed (insufficient money)";
 			DebugSay(logMsg2);
 			await ModeratorLog(logMsg2);
 					return;
