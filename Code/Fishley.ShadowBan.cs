@@ -40,20 +40,22 @@ public partial class Fishley
 				avatarUrl = userMessage.Author.GetAvatarUrl() ?? avatarUrl;
 			}
 
-			// Prepare webhook payload
+			// Prepare webhook payload (without thread_id in body)
 			var payload = new
 			{
 				content = message.Content,
 				username = username,
-				avatar_url = avatarUrl,
-				thread_id = threadId.ToString()
+				avatar_url = avatarUrl
 			};
 
 			var json = System.Text.Json.JsonSerializer.Serialize(payload);
 			var content = new StringContent(json, System.Text.Encoding.UTF8, new System.Net.Http.Headers.MediaTypeHeaderValue("application/json"));
 
+			// Append thread_id as query parameter to the URL
+			var webhookUrlWithThread = $"{shadowBotUrl}?thread_id={threadId}";
+
 			using var httpClient = new HttpClient();
-			var response = await httpClient.PostAsync(shadowBotUrl, content);
+			var response = await httpClient.PostAsync(webhookUrlWithThread, content);
 
 			// Log response for debugging
 			var responseContent = await response.Content.ReadAsStringAsync();
