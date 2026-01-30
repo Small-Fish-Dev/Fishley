@@ -19,8 +19,8 @@ public partial class Fishley
 			.WithRequired(true)
 			.WithType(ApplicationCommandOptionType.String))
 		.AddOption(new SlashCommandOptionBuilder()
-			.WithName("days")
-			.WithDescription("How many days to shadowban for")
+			.WithName("hours")
+			.WithDescription("How many hours to shadowban for")
 			.WithRequired(true)
 			.WithType(ApplicationCommandOptionType.Integer));
 
@@ -33,14 +33,14 @@ public partial class Fishley
 		{
 			var userOption   = command.Data.Options.FirstOrDefault(o => o.Name == "user");
 			var reasonOption = command.Data.Options.FirstOrDefault(o => o.Name == "reason");
-			var daysOption   = command.Data.Options.FirstOrDefault(o => o.Name == "days");
+			var hoursOption   = command.Data.Options.FirstOrDefault(o => o.Name == "hours");
 
 			var foundUser = userOption?.Value as SocketUser;
 			var reason    = reasonOption?.Value as string;
 
-			int days = 0;
-			if (daysOption?.Value is long daysLong)
-				days = (int)daysLong;
+			int hours = 0;
+			if (hoursOption?.Value is long hoursLong)
+				hours = (int)hoursLong;
 
 			if (foundUser is null)
 			{
@@ -70,13 +70,13 @@ public partial class Fishley
 				return;
 			}
 
-			if (days < 1)
+			if (hours < 1)
 			{
-				await command.RespondAsync("Minimum duration is 1 day.", ephemeral: true);
+				await command.RespondAsync("Minimum duration is 1 hour.", ephemeral: true);
 				return;
 			}
 
-			if (days > 3650)
+			if (hours > 87600)
 			{
 				await command.RespondAsync("Maximum duration is 10 years.", ephemeral: true);
 				return;
@@ -85,7 +85,7 @@ public partial class Fishley
 			var target = await GetOrCreateUser(foundUser.Id);
 			target.ShadowBanned = true;
 
-			var unbanDate = DateTime.UtcNow.AddDays(days);
+			var unbanDate = DateTime.UtcNow.AddHours(hours);
 			target.ShadowUnbanDate = unbanDate;
 
 			await UpdateOrCreateUser(target);
@@ -107,7 +107,7 @@ public partial class Fishley
 			}
 
 			// Respond publicly (not ephemeral)
-			await command.RespondAsync($"<@{foundUser.Id}> has been banished to the shadow realm for {days} day(s)!\nReason: `{reason}`\nThey will return {unbanRelative}");
+			await command.RespondAsync($"<@{foundUser.Id}> has been banished to the shadow realm for {hours} hour(s)!\nReason: `{reason}`\nThey will return {unbanRelative}");
 
 			try
 			{
@@ -115,7 +115,7 @@ public partial class Fishley
 				{
 					await MessageUser(
 						targetUser,
-						$"You have been banished to the shadow realm for `{days}` day(s)\n" +
+						$"You have been banished to the shadow realm for `{hours}` hour(s)\n" +
 						$"Reason: `{reason}`\n" +
 						$"Your return date is {unbanRelative}"
 					);
@@ -125,7 +125,7 @@ public partial class Fishley
 			{
 			}
 
-			var logMsg = $"<@{command.User.Id}> shadowbanned <@{foundUser.Id}> for `{days}` day(s)\n" +
+			var logMsg = $"<@{command.User.Id}> shadowbanned <@{foundUser.Id}> for `{hours}` hour(s)\n" +
 				$"Reason: `{reason}`\n" +
 				$"The unshadowban date is {unbanRelative}";
 			DebugSay(logMsg);
