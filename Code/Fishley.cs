@@ -360,6 +360,22 @@ public partial class Fishley
 					DebugSay(logMsg);
 					await ModeratorLog(logMsg);
 					}
+
+					// Check if user is shadow banned and reapply Banished role
+					if ( target.ShadowBanned )
+					{
+						try
+						{
+							await after.AddRoleAsync(BanishedRole);
+							var logMsg2 = $"Reapplied Banished role to <@{after.Id}> after they rejoined while shadow banned.";
+							DebugSay(logMsg2);
+							await ModeratorLog(logMsg2);
+						}
+						catch (Exception ex)
+						{
+							DebugSay($"Failed to reapply Banished role to {after.GetUsername()}: {ex.Message}");
+						}
+					}
 				}
 			}
 			if (removedRoles.Any())
