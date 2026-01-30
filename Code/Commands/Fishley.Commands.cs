@@ -22,7 +22,8 @@ public partial class Fishley
 		{ "grug", new GrugCommand() },
 		{ "search", new SearchCommand() },
 		{ "verifyall", new VerifyAllCommand() },
-		{ "thread", new ThreadCommand() }
+		{ "thread", new ThreadCommand() },
+		{ "shadowban", new ShadowBanCommand() }
 	};
 
 	private static async Task SlashCommandHandler(SocketSlashCommand command)

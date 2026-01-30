@@ -12,6 +12,7 @@ public partial class Fishley
 	public static SocketRole PlaytestPenguinRole => SmallFishServer.GetRole(1197211499911991467);
 	public static SocketRole DirtyApeRole => SmallFishServer.GetRole(1429238108544700416);
 	public static SocketRole CertifiedFishRole => SmallFishServer.GetRole(1429239404987289630);
+	public static SocketRole BanishedRole => SmallFishServer.GetRole(1466909602196099224);
 
 
 	public static bool IsSmallFish(SocketGuildUser user) => user.Roles.Contains(SmallFishRole);
