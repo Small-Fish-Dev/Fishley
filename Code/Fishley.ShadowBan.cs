@@ -55,15 +55,10 @@ public partial class Fishley
 			using var httpClient = new HttpClient();
 			var response = await httpClient.PostAsync(shadowBotUrl, content);
 
-			if (!response.IsSuccessStatusCode)
-			{
-				var errorContent = await response.Content.ReadAsStringAsync();
-				DebugSay($"Failed to mirror message to shadow ban thread: {response.StatusCode} - {errorContent}");
-			}
-			else
-			{
-				DebugSay($"Mirrored message from {username} (channel {message.Channel.Id}) to thread {threadId}");
-			}
+			// Log response for debugging
+			var responseContent = await response.Content.ReadAsStringAsync();
+			DebugSay($"Shadow mirror response [{response.StatusCode}]: {responseContent}");
+			DebugSay($"Payload sent: {json}");
 		}
 		catch (Exception ex)
 		{
