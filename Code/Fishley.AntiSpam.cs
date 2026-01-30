@@ -43,12 +43,12 @@ public partial class Fishley
 		if (wasWarned)
 			spamToAdd += 2f;
 
+		// +2 if message is only emoji(s)
+		if (IsOnlyEmojis(message.Content))
+			spamToAdd += 2f;
+
 		// +3 if message is the same as last message
 		if (!string.IsNullOrEmpty(tracker.LastMessage) && tracker.LastMessage == message.Content)
-			spamToAdd += 3f;
-
-		// +3 if message is only emoji(s)
-		if (IsOnlyEmojis(message.Content))
 			spamToAdd += 3f;
 
 		// Update last message
