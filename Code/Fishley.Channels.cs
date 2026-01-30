@@ -11,12 +11,11 @@ public partial class Fishley
 	public static SocketGuildChannel SpamChannel => SmallFishServer.GetChannel(1031998162212229120);
 	public static SocketGuildChannel FishOfTheDayChannel => SmallFishServer.GetChannel(1146189225876783245);
 	public static SocketGuildChannel ModeratorLogChannel => SmallFishServer.GetChannel(1197209153278574643);
-	public static SocketGuildChannel ShadowBannedChannel => SmallFishServer.GetChannel(1466830851793752246);
 
-	// Shadow banned threads (mirrors of main channels)
-	public static SocketThreadChannel GeneralTalkThread => SmallFishServer.GetThreadChannel(1466832968277426318);
-	public static SocketThreadChannel FunnyMemesThread => SmallFishServer.GetThreadChannel(1466833014498529372);
-	public static SocketThreadChannel SboxFeedThread => SmallFishServer.GetThreadChannel(1466833091632042281);
-	public static SocketThreadChannel WaywoThread => SmallFishServer.GetThreadChannel(1466833122044805242);
-	public static SocketThreadChannel ZoologyThread => SmallFishServer.GetThreadChannel(1466833172263338188);
+	// Shadow banned channels
+	public static SocketGuildChannel GeneralTalkShadow => SmallFishServer.GetThreadChannel(1466892641135366246);
+	public static SocketGuildChannel FunnyMemesShadow => SmallFishServer.GetThreadChannel(1466893111199268895);
+	public static SocketGuildChannel SboxFeedShadow => SmallFishServer.GetThreadChannel(1466893200856715397);
+	public static SocketGuildChannel WaywoShadow => SmallFishServer.GetThreadChannel(1466893264144568482);
+	public static SocketGuildChannel ZoologyShadow => SmallFishServer.GetThreadChannel(1466893439441305875);
 }
