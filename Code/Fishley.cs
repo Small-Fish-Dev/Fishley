@@ -161,6 +161,7 @@ public partial class Fishley
 		await CheckUnbans();
 		await ComputeScrapers();
 		await HandleTransactionExpiration();
+		await DecaySpamLevels();
 	}
 
 
@@ -604,16 +605,26 @@ public partial class Fishley
 			channel.Id == 1466893439441305875    // Zoology Shadow
 		);
 
+		bool wasWarned = false;
 		if (!CanModerate((SocketGuildUser)message.Author) && !isAnnouncementChannel)
 		{
 			// Use stricter threshold for shadow threads
 			float threshold = isShadowChannel ? 0.6f : 0.8f;
-			if ( await ModerateMessage( message, threshold, false) || await HandleFilters(userMessage))
+			bool moderated = await ModerateMessage( message, threshold, false);
+			bool filtered = await HandleFilters(userMessage);
+			wasWarned = moderated || filtered;
+
+			if (wasWarned)
 			{
 				// Message was moderated/filtered, don't mirror from shadow to normal
+				// Check spam after we know if it was warned
+				await CheckSpam(userMessage, wasWarned);
 				return;
 			}
 		}
+
+		// Check for spam (message wasn't warned)
+		await CheckSpam(userMessage, wasWarned);
 
 		// If this is a shadow thread message that passed moderation, mirror it to normal channel
 		if (isShadowChannel)
