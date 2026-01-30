@@ -57,8 +57,6 @@ public partial class Fishley
 		// Add spam level
 		tracker.SpamLevel += spamToAdd;
 
-		DebugSay($"User {message.Author.GetUsername()} spam level: {tracker.SpamLevel} (+{spamToAdd})");
-
 		// Check if they hit the threshold
 		if (tracker.SpamLevel >= SpamThreshold)
 		{
