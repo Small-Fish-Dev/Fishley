@@ -347,8 +347,16 @@ public partial class Fishley
 
 				if ( after.Roles.Any( x => x == DirtyApeRole ) )
 				{
-					// No longer automatically ban - they'll be warned when they try to send messages
-					DebugSay($"{after.GetUsername()} received Dirty Ape role (failed captcha)");
+					// Give them Banished role to put them in shadow realm
+					try
+					{
+						await after.AddRoleAsync(BanishedRole);
+						DebugSay($"{after.GetUsername()} received Dirty Ape role (failed captcha) - added Banished role");
+					}
+					catch (Exception ex)
+					{
+						DebugSay($"Failed to add Banished role to {after.GetUsername()}: {ex.Message}");
+					}
 				}
 
 				if ( after.Roles.Any( x => x == CertifiedFishRole ) )
@@ -381,6 +389,30 @@ public partial class Fishley
 			if (removedRoles.Any())
 			{
 				DebugSay($"{after.GetUsername()} lost roles: {string.Join(", ", removedRoles)}");
+
+				// Check if Dirty Ape role was removed
+				if (removedRoles.Contains(DirtyApeRole.Id))
+				{
+					var target = await GetOrCreateUser(after.Id);
+
+					// Only remove Banished role if they're NOT actually shadow banned
+					if (!target.ShadowBanned)
+					{
+						try
+						{
+							await after.RemoveRoleAsync(BanishedRole);
+							DebugSay($"{after.GetUsername()} lost Dirty Ape role - removed Banished role (not shadow banned)");
+						}
+						catch (Exception ex)
+						{
+							DebugSay($"Failed to remove Banished role from {after.GetUsername()}: {ex.Message}");
+						}
+					}
+					else
+					{
+						DebugSay($"{after.GetUsername()} lost Dirty Ape role but kept Banished role (they are shadow banned)");
+					}
+				}
 			}
 		}
 	}
