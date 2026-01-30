@@ -86,12 +86,16 @@ public partial class Fishley
 			// Apply grayscale filter to avatar using TheImageView.app
 			string grayscaleAvatarUrl = $"https://theimageview.app/placeholder?url={Uri.EscapeDataString(avatarUrl)}&grayscale=1";
 
-			// Prepare webhook payload
+			// Prepare webhook payload with allowed_mentions to only allow user pings
 			var payload = new
 			{
 				content = filteredContent,
 				username = username,
-				avatar_url = grayscaleAvatarUrl
+				avatar_url = grayscaleAvatarUrl,
+				allowed_mentions = new
+				{
+					parse = new[] { "users" } // Only allow user pings, not @everyone or @here
+				}
 			};
 
 			var json = System.Text.Json.JsonSerializer.Serialize(payload);
@@ -159,7 +163,11 @@ public partial class Fishley
 				content = message.Content,
 				username = username,
 				avatar_url = avatarUrl,
-				embeds = embeds.Count > 0 ? embeds : null
+				embeds = embeds.Count > 0 ? embeds : null,
+				allowed_mentions = new
+				{
+					parse = new[] { "users" } // Only allow user pings, not @everyone or @here
+				}
 			};
 
 			var json = System.Text.Json.JsonSerializer.Serialize(payload);
