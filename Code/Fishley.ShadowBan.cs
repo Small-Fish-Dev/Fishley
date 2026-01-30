@@ -13,6 +13,96 @@ public partial class Fishley
 		{ 1005604067520823296, 1466833172263338188 }  // Zoology -> Zoology Thread
 	};
 
+	private static readonly Dictionary<ulong, ulong> ThreadToChannelMap = new()
+	{
+		{ 1466832968277426318, 1005596274004852739 }, // General Talk Thread -> General Talk
+		{ 1466833014498529372, 1020718603298930728 }, // Funny Memes Thread -> Funny Memes
+		{ 1466833091632042281, 1141117812430078022 }, // Sbox Feed Thread -> Sbox Feed
+		{ 1466833122044805242, 1263929413792301058 }, // WAYWO Thread -> WAYWO
+		{ 1466833172263338188, 1005604067520823296 }  // Zoology Thread -> Zoology
+	};
+
+	private static readonly Dictionary<ulong, string> ThreadToWebhookConfigMap = new()
+	{
+		{ 1466832968277426318, "GeneralTalkShadowBot" },
+		{ 1466833014498529372, "FunnyMemesShadowBot" },
+		{ 1466833091632042281, "SboxFeedShadowBot" },
+		{ 1466833122044805242, "WaywoShadowBot" },
+		{ 1466833172263338188, "ZoologyShadowBot" }
+	};
+
+	private static string ApplyShadowDimensionFilter(string text)
+	{
+		if (string.IsNullOrEmpty(text))
+			return text;
+
+		var random = new Random();
+		var chars = text.ToCharArray();
+
+		for (int i = 0; i < chars.Length; i++)
+		{
+			// Only replace letters (not spaces, punctuation, etc.)
+			if (char.IsLetter(chars[i]) && random.Next(0, 100) < 40) // 40% chance to replace
+			{
+				chars[i] = '.';
+				// Add second dot
+				if (i + 1 < chars.Length)
+				{
+					chars[i + 1] = '.';
+					i++; // Skip next character since we just replaced it
+				}
+			}
+		}
+
+		return new string(chars);
+	}
+
+	private static async Task MirrorMessageFromShadowToNormal(SocketMessage message)
+	{
+		try
+		{
+			// Check if this message is in one of the shadow threads
+			if (!ThreadToChannelMap.TryGetValue(message.Channel.Id, out var channelId))
+				return;
+
+			// Get the webhook URL for this thread
+			if (!ThreadToWebhookConfigMap.TryGetValue(message.Channel.Id, out var webhookConfigKey))
+				return;
+
+			var webhookUrl = ConfigGet<string>(webhookConfigKey);
+			if (string.IsNullOrEmpty(webhookUrl))
+			{
+				DebugSay($"{webhookConfigKey} not found in config!");
+				return;
+			}
+
+			// Apply shadow dimension filter to the message
+			var filteredContent = ApplyShadowDimensionFilter(message.Content);
+
+			// Get user info
+			string username = message.Author.Username;
+			string avatarUrl = message.Author.GetAvatarUrl() ?? message.Author.GetDefaultAvatarUrl();
+
+			// Prepare webhook payload
+			var payload = new
+			{
+				content = filteredContent,
+				username = username,
+				avatar_url = avatarUrl
+			};
+
+			var json = System.Text.Json.JsonSerializer.Serialize(payload);
+			var content = new StringContent(json, System.Text.Encoding.UTF8, new System.Net.Http.Headers.MediaTypeHeaderValue("application/json"));
+
+			using var httpClient = new HttpClient();
+			await httpClient.PostAsync(webhookUrl, content);
+		}
+		catch (Exception ex)
+		{
+			DebugSay($"Error mirroring message from shadow to normal: {ex.Message}");
+		}
+	}
+
 	private static async Task MirrorMessageToShadowBan(SocketMessage message)
 	{
 		try
