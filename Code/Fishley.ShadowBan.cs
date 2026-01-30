@@ -72,12 +72,7 @@ public partial class Fishley
 			var webhookUrlWithThread = $"{shadowBotUrl}?thread_id={threadId}";
 
 			using var httpClient = new HttpClient();
-			var response = await httpClient.PostAsync(webhookUrlWithThread, content);
-
-			// Log response for debugging
-			var responseContent = await response.Content.ReadAsStringAsync();
-			DebugSay($"Shadow mirror response [{response.StatusCode}]: {responseContent}");
-			DebugSay($"Payload sent: {json}");
+			await httpClient.PostAsync(webhookUrlWithThread, content);
 		}
 		catch (Exception ex)
 		{
