@@ -79,8 +79,8 @@ public partial class Fishley
 			// Apply shadow dimension filter to the message
 			var filteredContent = ApplyShadowDimensionFilter(message.Content);
 
-			// Get user info
-			string username = message.Author.Username;
+			// Get user info and add "Echoes of " prefix
+			string username = $"Echoes of {message.Author.GetUsername()}";
 			string avatarUrl = message.Author.GetAvatarUrl() ?? message.Author.GetDefaultAvatarUrl();
 
 			// Prepare webhook payload
@@ -119,15 +119,19 @@ public partial class Fishley
 			}
 
 			// Get user info
-			string username = message.Author.Username;
+			string username = message.Author.GetUsername();
 			string avatarUrl = message.Author.GetAvatarUrl() ?? message.Author.GetDefaultAvatarUrl();
 
 			// For webhooks, we can get the original webhook name and avatar
 			if (message is SocketUserMessage userMessage && userMessage.Author.IsWebhook)
 			{
 				// Webhook messages already have the correct username and avatar
-				username = userMessage.Author.Username;
+				username = userMessage.Author.GetUsername();
 				avatarUrl = userMessage.Author.GetAvatarUrl() ?? avatarUrl;
+
+				// Don't mirror messages that came from shadow realm (prevent infinite loop)
+				if (username.StartsWith("Echoes of "))
+					return;
 			}
 
 			// Collect attachments (images, videos, files)
