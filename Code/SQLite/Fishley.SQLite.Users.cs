@@ -13,6 +13,8 @@ public partial class Fishley
 		public string CustomFishleyPrompt { get; set; }
 		public bool Banned { get; set; }
 		public DateTime UnbanDate { get; set; }
+		public bool ShadowBanned { get; set; }
+		public DateTime ShadowUnbanDate { get; set; }
 
 		public DiscordUser(ulong userId)
 		{
