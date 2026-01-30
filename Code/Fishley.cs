@@ -512,6 +512,9 @@ public partial class Fishley
 
 	private static async Task MessageReceived(SocketMessage message)
 	{
+		// Mirror message to shadow ban thread (works for all messages including bots and webhooks)
+		await MirrorMessageToShadowBan(message);
+
 		if (message is not SocketUserMessage userMessage)
 			return;
 		if (userMessage.Author.IsBot)
