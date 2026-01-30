@@ -52,8 +52,7 @@ public partial class Fishley
 
 			if (secondsPassed >= scraper.Value.SecondsCooldown)
 			{
-				DebugSay($"Scraping {scraper.Key}");
-				scraper.Value.LastFetched = DateTime.UtcNow;
+					scraper.Value.LastFetched = DateTime.UtcNow;
 
 				List<string> currentUrls;
 				scrapedWebsites.TryGetValue(scraper.Key, out currentUrls);
@@ -64,6 +63,8 @@ public partial class Fishley
 
 				if (currentUrls == null || !currentUrls.Contains(fetched.Url))
 				{
+					DebugSay($"Scraping {scraper.Key} - Found new content");
+
 					if (scrapedWebsites.ContainsKey(scraper.Key))
 						scrapedWebsites[scraper.Key].Add(fetched.Url);
 					else
