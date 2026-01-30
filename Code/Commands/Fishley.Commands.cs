@@ -23,7 +23,8 @@ public partial class Fishley
 		{ "search", new SearchCommand() },
 		{ "verifyall", new VerifyAllCommand() },
 		{ "thread", new ThreadCommand() },
-		{ "shadowban", new ShadowBanCommand() }
+		{ "shadowban", new ShadowBanCommand() },
+		{ "unshadowban", new UnShadowBanCommand() }
 	};
 
 	private static async Task SlashCommandHandler(SocketSlashCommand command)
