@@ -40,12 +40,29 @@ public partial class Fishley
 				avatarUrl = userMessage.Author.GetAvatarUrl() ?? avatarUrl;
 			}
 
+			// Collect attachments (images, videos, files)
+			var embeds = new List<object>();
+			if (message.Attachments.Any())
+			{
+				foreach (var attachment in message.Attachments)
+				{
+					// Create an embed for each attachment with the URL
+					var embed = new
+					{
+						url = attachment.Url,
+						image = new { url = attachment.Url }
+					};
+					embeds.Add(embed);
+				}
+			}
+
 			// Prepare webhook payload (without thread_id in body)
 			var payload = new
 			{
 				content = message.Content,
 				username = username,
-				avatar_url = avatarUrl
+				avatar_url = avatarUrl,
+				embeds = embeds.Count > 0 ? embeds : null
 			};
 
 			var json = System.Text.Json.JsonSerializer.Serialize(payload);
