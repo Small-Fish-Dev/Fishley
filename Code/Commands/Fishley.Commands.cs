@@ -21,7 +21,8 @@ public partial class Fishley
 		{ "ban", new BanCommand() },
 		{ "grug", new GrugCommand() },
 		{ "search", new SearchCommand() },
-		{ "verifyall", new VerifyAllCommand() }
+		{ "verifyall", new VerifyAllCommand() },
+		{ "thread", new ThreadCommand() }
 	};
 
 	private static async Task SlashCommandHandler(SocketSlashCommand command)
