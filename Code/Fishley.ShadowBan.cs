@@ -83,12 +83,15 @@ public partial class Fishley
 			string username = $"Echoes of {message.Author.GetUsername()}";
 			string avatarUrl = message.Author.GetAvatarUrl() ?? message.Author.GetDefaultAvatarUrl();
 
+			// Apply grayscale filter to avatar using TheImageView.app
+			string grayscaleAvatarUrl = $"https://theimageview.app/placeholder?url={Uri.EscapeDataString(avatarUrl)}&grayscale=1";
+
 			// Prepare webhook payload
 			var payload = new
 			{
 				content = filteredContent,
 				username = username,
-				avatar_url = avatarUrl
+				avatar_url = grayscaleAvatarUrl
 			};
 
 			var json = System.Text.Json.JsonSerializer.Serialize(payload);
