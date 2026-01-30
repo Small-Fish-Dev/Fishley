@@ -24,11 +24,11 @@ public partial class Fishley
 
 	private static readonly Dictionary<ulong, string> ShadowToWebhookConfigMap = new()
 	{
-		{ 1466892641135366246, "GeneralTalkMirrorBot" },
-		{ 1466893111199268895, "FunnyMemesMirrorBot" },
-		{ 1466893200856715397, "SboxFeedMirrorBot" },
-		{ 1466893264144568482, "WaywoMirrorBot" },
-		{ 1466893439441305875, "ZoologyMirrorBot" }
+		{ 1466892641135366246, "GeneralTalkShadowBot" },
+		{ 1466893111199268895, "FunnyMemesShadowBot" },
+		{ 1466893200856715397, "SboxFeedShadowBot" },
+		{ 1466893264144568482, "WaywoShadowBot" },
+		{ 1466893439441305875, "ZoologyShadowBot" }
 	};
 
 	private static readonly Dictionary<ulong, string> ChannelToWebhookConfigMap = new()
