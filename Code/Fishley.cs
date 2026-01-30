@@ -547,13 +547,19 @@ public partial class Fishley
 		var channel = message.Channel as SocketGuildChannel;
 		bool isAnnouncementChannel = channel != null && (channel is SocketNewsChannel || (channel is SocketThreadChannel newsThread && newsThread.ParentChannel is SocketNewsChannel));
 
-		// Check if message is from a shadow thread (needs stricter moderation)
-		bool isShadowThread = channel is SocketThreadChannel && channel.Id >= 1466832968277426318 && channel.Id <= 1466833172263338188;
+		// Check if message is from a shadow channel (needs stricter moderation)
+		bool isShadowChannel = channel != null && (
+			channel.Id == 1466892641135366246 || // General Talk Shadow
+			channel.Id == 1466893111199268895 || // Funny Memes Shadow
+			channel.Id == 1466893200856715397 || // Sbox Feed Shadow
+			channel.Id == 1466893264144568482 || // WAYWO Shadow
+			channel.Id == 1466893439441305875    // Zoology Shadow
+		);
 
 		if (!CanModerate((SocketGuildUser)message.Author) && !isAnnouncementChannel)
 		{
 			// Use stricter threshold for shadow threads
-			float threshold = isShadowThread ? 0.6f : 0.8f;
+			float threshold = isShadowChannel ? 0.6f : 0.8f;
 			if ( await ModerateMessage( message, threshold, false) || await HandleFilters(userMessage))
 			{
 				// Message was moderated/filtered, don't mirror from shadow to normal
@@ -562,7 +568,7 @@ public partial class Fishley
 		}
 
 		// If this is a shadow thread message that passed moderation, mirror it to normal channel
-		if (isShadowThread)
+		if (isShadowChannel)
 			await MirrorMessageFromShadowToNormal(message);
 
 		var mentioned = message.MentionedUsers.Any(user => user.Id == FishleyId);

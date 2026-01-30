@@ -4,31 +4,40 @@ namespace Fishley;
 
 public partial class Fishley
 {
-	private static readonly Dictionary<ulong, ulong> ChannelToThreadMap = new()
+	private static readonly Dictionary<ulong, ulong> ChannelToShadowMap = new()
 	{
-		{ 1005596274004852739, 1466832968277426318 }, // General Talk -> General Talk Thread
-		{ 1020718603298930728, 1466833014498529372 }, // Funny Memes -> Funny Memes Thread
-		{ 1141117812430078022, 1466833091632042281 }, // Sbox Feed -> Sbox Feed Thread
-		{ 1263929413792301058, 1466833122044805242 }, // WAYWO -> WAYWO Thread
-		{ 1005604067520823296, 1466833172263338188 }  // Zoology -> Zoology Thread
+		{ 1005596274004852739, 1466892641135366246 }, // General Talk -> General Talk Shadow
+		{ 1020718603298930728, 1466893111199268895 }, // Funny Memes -> Funny Memes Shadow
+		{ 1141117812430078022, 1466893200856715397 }, // Sbox Feed -> Sbox Feed Shadow
+		{ 1263929413792301058, 1466893264144568482 }, // WAYWO -> WAYWO Shadow
+		{ 1005604067520823296, 1466893439441305875 }  // Zoology -> Zoology Shadow
 	};
 
-	private static readonly Dictionary<ulong, ulong> ThreadToChannelMap = new()
+	private static readonly Dictionary<ulong, ulong> ShadowToChannelMap = new()
 	{
-		{ 1466832968277426318, 1005596274004852739 }, // General Talk Thread -> General Talk
-		{ 1466833014498529372, 1020718603298930728 }, // Funny Memes Thread -> Funny Memes
-		{ 1466833091632042281, 1141117812430078022 }, // Sbox Feed Thread -> Sbox Feed
-		{ 1466833122044805242, 1263929413792301058 }, // WAYWO Thread -> WAYWO
-		{ 1466833172263338188, 1005604067520823296 }  // Zoology Thread -> Zoology
+		{ 1466892641135366246, 1005596274004852739 }, // General Talk Shadow -> General Talk
+		{ 1466893111199268895, 1020718603298930728 }, // Funny Memes Shadow -> Funny Memes
+		{ 1466893200856715397, 1141117812430078022 }, // Sbox Feed Shadow -> Sbox Feed
+		{ 1466893264144568482, 1263929413792301058 }, // WAYWO Shadow -> WAYWO
+		{ 1466893439441305875, 1005604067520823296 }  // Zoology Shadow -> Zoology
 	};
 
-	private static readonly Dictionary<ulong, string> ThreadToWebhookConfigMap = new()
+	private static readonly Dictionary<ulong, string> ShadowToWebhookConfigMap = new()
 	{
-		{ 1466832968277426318, "GeneralTalkShadowBot" },
-		{ 1466833014498529372, "FunnyMemesShadowBot" },
-		{ 1466833091632042281, "SboxFeedShadowBot" },
-		{ 1466833122044805242, "WaywoShadowBot" },
-		{ 1466833172263338188, "ZoologyShadowBot" }
+		{ 1466892641135366246, "GeneralTalkMirrorBot" },
+		{ 1466893111199268895, "FunnyMemesMirrorBot" },
+		{ 1466893200856715397, "SboxFeedMirrorBot" },
+		{ 1466893264144568482, "WaywoMirrorBot" },
+		{ 1466893439441305875, "ZoologyMirrorBot" }
+	};
+
+	private static readonly Dictionary<ulong, string> ChannelToWebhookConfigMap = new()
+	{
+		{ 1005596274004852739, "GeneralTalkMirrorBot" },
+		{ 1020718603298930728, "FunnyMemesMirrorBot" },
+		{ 1141117812430078022, "SboxFeedMirrorBot" },
+		{ 1263929413792301058, "WaywoMirrorBot" },
+		{ 1005604067520823296, "ZoologyMirrorBot" }
 	};
 
 	private static string ApplyShadowDimensionFilter(string text)
@@ -61,12 +70,12 @@ public partial class Fishley
 	{
 		try
 		{
-			// Check if this message is in one of the shadow threads
-			if (!ThreadToChannelMap.TryGetValue(message.Channel.Id, out var channelId))
+			// Check if this message is in one of the shadow channels
+			if (!ShadowToChannelMap.TryGetValue(message.Channel.Id, out var channelId))
 				return;
 
-			// Get the webhook URL for this thread
-			if (!ThreadToWebhookConfigMap.TryGetValue(message.Channel.Id, out var webhookConfigKey))
+			// Get the webhook URL for this shadow channel
+			if (!ShadowToWebhookConfigMap.TryGetValue(message.Channel.Id, out var webhookConfigKey))
 				return;
 
 			var webhookUrl = ConfigGet<string>(webhookConfigKey);
@@ -115,13 +124,17 @@ public partial class Fishley
 		try
 		{
 			// Check if this message is in one of the monitored channels
-			if (!ChannelToThreadMap.TryGetValue(message.Channel.Id, out var threadId))
+			if (!ChannelToShadowMap.TryGetValue(message.Channel.Id, out var shadowChannelId))
 				return;
 
-			var shadowBotUrl = ConfigGet<string>("ShadowBotUrl");
-			if (string.IsNullOrEmpty(shadowBotUrl))
+			// Get the webhook URL for this channel
+			if (!ChannelToWebhookConfigMap.TryGetValue(message.Channel.Id, out var webhookConfigKey))
+				return;
+
+			var webhookUrl = ConfigGet<string>(webhookConfigKey);
+			if (string.IsNullOrEmpty(webhookUrl))
 			{
-				DebugSay("ShadowBotUrl not found in config!");
+				DebugSay($"{webhookConfigKey} not found in config!");
 				return;
 			}
 
@@ -157,7 +170,7 @@ public partial class Fishley
 				}
 			}
 
-			// Prepare webhook payload (without thread_id in body)
+			// Prepare webhook payload
 			var payload = new
 			{
 				content = message.Content,
@@ -173,11 +186,8 @@ public partial class Fishley
 			var json = System.Text.Json.JsonSerializer.Serialize(payload);
 			var content = new StringContent(json, System.Text.Encoding.UTF8, new System.Net.Http.Headers.MediaTypeHeaderValue("application/json"));
 
-			// Append thread_id as query parameter to the URL
-			var webhookUrlWithThread = $"{shadowBotUrl}?thread_id={threadId}";
-
 			using var httpClient = new HttpClient();
-			await httpClient.PostAsync(webhookUrlWithThread, content);
+			await httpClient.PostAsync(webhookUrl, content);
 		}
 		catch (Exception ex)
 		{
