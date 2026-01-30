@@ -305,6 +305,7 @@ public partial class Fishley
 
 			using (var context = new FishleyDbContext())
 			{
+				// Check regular bans
 				var allBannedUsers = await context.Users.AsAsyncEnumerable()
 				.Where(x => x.Banned )
 				.ToListAsync();
@@ -319,6 +320,38 @@ public partial class Fishley
 						var logMsg7 = $"<@{bannedUser.UserId}> has been unbanned.";
 					DebugSay(logMsg7);
 					await ModeratorLog(logMsg7);
+					}
+				}
+
+				// Check shadow bans
+				var allShadowBannedUsers = await context.Users.AsAsyncEnumerable()
+				.Where(x => x.ShadowBanned )
+				.ToListAsync();
+
+				foreach (var shadowBannedUser in allShadowBannedUsers)
+				{
+					if ( shadowBannedUser.ShadowUnbanDate.Ticks - DateTime.UtcNow.Ticks <= 0 )
+					{
+						shadowBannedUser.ShadowBanned = false;
+						await UpdateOrCreateUser( shadowBannedUser );
+
+						// Remove Banished role
+						var guildUser = SmallFishServer.GetUser(shadowBannedUser.UserId);
+						if (guildUser != null)
+						{
+							try
+							{
+								await guildUser.RemoveRoleAsync(BanishedRole);
+							}
+							catch (Exception ex)
+							{
+								DebugSay($"Failed to remove Banished role from {guildUser.GetUsername()}: {ex.Message}");
+							}
+						}
+
+						var logMsg = $"<@{shadowBannedUser.UserId}> has been released from the shadow realm.";
+						DebugSay(logMsg);
+						await ModeratorLog(logMsg);
 					}
 				}
 			}
