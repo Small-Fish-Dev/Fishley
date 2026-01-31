@@ -170,7 +170,20 @@ public partial class Fishley
 				}
 			}
 
-			// Prepare webhook payload
+			// Extract mentioned user IDs and check which ones are shadow banned
+			var mentionedUserIds = message.MentionedUsers.Select(u => u.Id).ToList();
+			var shadowBannedUserIds = new List<ulong>();
+
+			foreach (var userId in mentionedUserIds)
+			{
+				var user = await GetOrCreateUser(userId);
+				if (user.ShadowBanned)
+				{
+					shadowBannedUserIds.Add(userId);
+				}
+			}
+
+			// Prepare webhook payload with allowed_mentions only for shadow banned users
 			var payload = new
 			{
 				content = message.Content,
@@ -179,7 +192,7 @@ public partial class Fishley
 				embeds = embeds.Count > 0 ? embeds : null,
 				allowed_mentions = new
 				{
-					parse = new[] { "users" } // Only allow user pings, not @everyone or @here
+					users = shadowBannedUserIds.Select(id => id.ToString()).ToArray()
 				}
 			};
 
