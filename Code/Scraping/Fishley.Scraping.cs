@@ -25,6 +25,7 @@ public partial class Fishley
 		{ "r_sandbox", new SubredditScraper() },
 		{ "twitch", new TwitchScraper() },
 		{ "youtube", new YoutubeScraper() },
+		{ "two_sentence_horror", new TwoSentenceHorrorScraper() },
 		//{ "garry", new GarryScraper() },
 		//{ "sbox.game", new SboxGameScraper() },
 		//{ "latentplaces", new LatentPlacesScrapper() },
