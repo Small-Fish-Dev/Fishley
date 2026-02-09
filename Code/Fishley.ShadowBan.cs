@@ -30,14 +30,23 @@ public partial class Fishley
 			{
 				var channel = SmallFishServer.GetTextChannel(channelId);
 				if (channel == null)
+				{
+					DebugSay($"Shadow cleanup: Could not find channel with ID {channelId}");
 					continue;
+				}
+
+				DebugSay($"Shadow cleanup: Checking channel {channel.Name} (ID: {channelId})");
 
 				// Get messages (fetch more to ensure we get all old ones)
 				var messages = await channel.GetMessagesAsync(100).FlattenAsync();
 				var cutoffTime = DateTime.UtcNow.AddHours(-24);
 
+				DebugSay($"Shadow cleanup: Found {messages.Count()} total messages in {channel.Name}");
+
 				// Filter messages older than 24 hours
 				var oldMessages = messages.Where(m => m.Timestamp.UtcDateTime < cutoffTime).ToList();
+
+				DebugSay($"Shadow cleanup: {oldMessages.Count} messages are older than 24 hours in {channel.Name}");
 
 				if (oldMessages.Count > 0)
 				{
@@ -50,20 +59,24 @@ public partial class Fishley
 						if (recentOldMessages.Count > 0)
 						{
 							await channel.DeleteMessagesAsync(recentOldMessages);
-							DebugSay($"Deleted {recentOldMessages.Count} old messages from shadow channel {channel.Name}");
+							DebugSay($"Shadow cleanup: Deleted {recentOldMessages.Count} old messages from {channel.Name}");
 						}
 
 						// For messages older than 14 days, we need to delete them individually
 						var veryOldMessages = oldMessages.Where(m => (DateTime.UtcNow - m.Timestamp.UtcDateTime).TotalDays >= 14).ToList();
-						foreach (var message in veryOldMessages)
+						if (veryOldMessages.Count > 0)
 						{
-							await message.DeleteAsync();
-							await Task.Delay(100); // Small delay for very old messages
+							DebugSay($"Shadow cleanup: Deleting {veryOldMessages.Count} very old messages individually from {channel.Name}");
+							foreach (var message in veryOldMessages)
+							{
+								await message.DeleteAsync();
+								await Task.Delay(100); // Small delay for very old messages
+							}
 						}
 					}
 					catch (Exception ex)
 					{
-						DebugSay($"Error deleting messages in shadow channel {channel.Name}: {ex.Message}");
+						DebugSay($"Shadow cleanup ERROR in {channel.Name}: {ex.Message}");
 					}
 				}
 			}
