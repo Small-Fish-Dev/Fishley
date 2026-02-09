@@ -32,24 +32,38 @@ public partial class Fishley
 				if (channel == null)
 					continue;
 
-				// Get messages from the last 24 hours + buffer
+				// Get messages (fetch more to ensure we get all old ones)
 				var messages = await channel.GetMessagesAsync(100).FlattenAsync();
 				var cutoffTime = DateTime.UtcNow.AddHours(-24);
 
-				foreach (var message in messages)
+				// Filter messages older than 24 hours
+				var oldMessages = messages.Where(m => m.Timestamp.UtcDateTime < cutoffTime).ToList();
+
+				if (oldMessages.Count > 0)
 				{
-					// Delete messages older than 24 hours
-					if (message.Timestamp.UtcDateTime < cutoffTime)
+					try
 					{
-						try
+						// Bulk delete can only delete messages less than 14 days old
+						// and max 100 messages at a time
+						var recentOldMessages = oldMessages.Where(m => (DateTime.UtcNow - m.Timestamp.UtcDateTime).TotalDays < 14).ToList();
+
+						if (recentOldMessages.Count > 0)
+						{
+							await channel.DeleteMessagesAsync(recentOldMessages);
+							DebugSay($"Deleted {recentOldMessages.Count} old messages from shadow channel {channel.Name}");
+						}
+
+						// For messages older than 14 days, we need to delete them individually
+						var veryOldMessages = oldMessages.Where(m => (DateTime.UtcNow - m.Timestamp.UtcDateTime).TotalDays >= 14).ToList();
+						foreach (var message in veryOldMessages)
 						{
 							await message.DeleteAsync();
-							await Task.Delay(1000); // Rate limit: 1 second between deletions
+							await Task.Delay(100); // Small delay for very old messages
 						}
-						catch (Exception ex)
-						{
-							DebugSay($"Error deleting message {message.Id} in shadow channel: {ex.Message}");
-						}
+					}
+					catch (Exception ex)
+					{
+						DebugSay($"Error deleting messages in shadow channel {channel.Name}: {ex.Message}");
 					}
 				}
 			}
