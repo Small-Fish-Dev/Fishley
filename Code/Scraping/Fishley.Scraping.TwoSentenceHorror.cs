@@ -5,7 +5,7 @@ public partial class Fishley
 	public class TwoSentenceHorrorScraper : WebsiteScraper
 	{
 		public override string Url => "https://www.reddit.com/r/TwoSentenceHorror/new/.rss";
-		public override int SecondsCooldown => 60 * 10; // Every 10 minutes
+		public override int SecondsCooldown => 60 * 60 * 4; // Every 4 hours
 		public override SocketGuildChannel ChannelToPost => null; // Not used, we use webhooks instead
 
 		public override async Task<ScrapingResult> Fetch()
