@@ -162,6 +162,7 @@ public partial class Fishley
 		await ComputeScrapers();
 		await HandleTransactionExpiration();
 		await DecaySpamLevels();
+		await CleanupOldShadowMessages();
 	}
 
 

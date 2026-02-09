@@ -4,6 +4,63 @@ namespace Fishley;
 
 public partial class Fishley
 {
+	private static DateTime _lastShadowCleanup = DateTime.MinValue;
+
+	private static async Task CleanupOldShadowMessages()
+	{
+		try
+		{
+			// Only run once per hour to avoid API spam
+			if ((DateTime.UtcNow - _lastShadowCleanup).TotalHours < 1)
+				return;
+
+			_lastShadowCleanup = DateTime.UtcNow;
+
+			// Get all shadow channel IDs
+			var shadowChannelIds = new[]
+			{
+				1466892641135366246ul, // General Talk Shadow
+				1466893111199268895ul, // Funny Memes Shadow
+				1466893200856715397ul, // Sbox Feed Shadow
+				1466893264144568482ul, // WAYWO Shadow
+				1466893439441305875ul  // Zoology Shadow
+			};
+
+			foreach (var channelId in shadowChannelIds)
+			{
+				var channel = SmallFishServer.GetTextChannel(channelId);
+				if (channel == null)
+					continue;
+
+				// Get messages from the last 24 hours + buffer
+				var messages = await channel.GetMessagesAsync(100).FlattenAsync();
+				var cutoffTime = DateTime.UtcNow.AddHours(-24);
+
+				foreach (var message in messages)
+				{
+					// Delete messages older than 24 hours
+					if (message.Timestamp.UtcDateTime < cutoffTime)
+					{
+						try
+						{
+							await message.DeleteAsync();
+							await Task.Delay(1000); // Rate limit: 1 second between deletions
+						}
+						catch (Exception ex)
+						{
+							DebugSay($"Error deleting message {message.Id} in shadow channel: {ex.Message}");
+						}
+					}
+				}
+			}
+		}
+		catch (Exception ex)
+		{
+			DebugSay($"Error cleaning up shadow messages: {ex.Message}");
+		}
+	}
+
+
 	private static readonly Dictionary<ulong, ulong> ChannelToShadowMap = new()
 	{
 		{ 1005596274004852739, 1466892641135366246 }, // General Talk -> General Talk Shadow
