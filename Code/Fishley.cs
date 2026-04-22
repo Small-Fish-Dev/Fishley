@@ -190,14 +190,17 @@ public partial class Fishley
 
 	public static async void GrugMessage( string prompt, SocketTextChannel channel )
 	{
-		var image = await OpenAIImage( prompt );
+		var imageBytes = await OpenAIImage( prompt );
 
-		if ( image == null ) return;
+		if ( imageBytes == null ) return;
 
-		var embed = new EmbedBuilder().WithImageUrl( image ).Build();
+		var tempPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "grug.png");
+		await System.IO.File.WriteAllBytesAsync(tempPath, imageBytes.ToArray());
+
+		var embed = new EmbedBuilder().WithImageUrl( "attachment://grug.png" ).Build();
 		var response = await OpenAIChat($"[CONTEXT: You are responding as if you were Grug this just happened: {prompt}. You're in the photo if you're directly mentioned in it or there's a neanderthal/paleolitic/ancient man, in that case you speak in first person, otherwise speak in third person.]");
 
-		await SendMessage( channel, response, embed: embed);
+		await SendMessage( channel, response, embed: embed, pathToUpload: tempPath);
 	}
 	
 	private static Dictionary<ulong, DateTimeOffset> _joinTimes = new();

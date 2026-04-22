@@ -1,4 +1,4 @@
-namespace Fishley;
+﻿namespace Fishley;
 using OpenAI.Images;
 
 public partial class Fishley
@@ -568,23 +568,21 @@ public partial class Fishley
 	/// <param name="prompt">The text prompt for generating the image.</param>
 	/// <param name="size">The desired image size (e.g., "1024x1024").</param>
 	/// <returns>The URL of the first generated image.</returns>
-	public static async Task<string> OpenAIImage(string prompt)
+	public static async Task<BinaryData> OpenAIImage(string prompt)
 	{
-		var imageClient = OpenAIClient.GetImageClient("dall-e-3");
+		var imageClient = OpenAIClient.GetImageClient("gpt-image-2");
 
 		ImageGenerationOptions options = new()
 		{
 			Quality = GeneratedImageQuality.High,
-			Size = GeneratedImageSize.W1792xH1024,
-			Style = GeneratedImageStyle.Vivid,
-			ResponseFormat = GeneratedImageFormat.Uri
+			Size = GeneratedImageSize.W1536xH1024,
 		};
 
 		var imageResponse = await imageClient.GenerateImageAsync(prompt, options);
 
 		if (imageResponse == null) return null;
 
-		return imageResponse.Value.ImageUri.AbsoluteUri;
+		return imageResponse.Value.ImageBytes;
 	}
 
 	/// <summary>
