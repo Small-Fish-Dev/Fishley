@@ -570,11 +570,11 @@ public partial class Fishley
 	/// <returns>The URL of the first generated image.</returns>
 	public static async Task<BinaryData> OpenAIImage(string prompt)
 	{
-		var imageClient = OpenAIClient.GetImageClient("gpt-image-2");
+		var imageClient = OpenAIClient.GetImageClient("gpt-image-1.5");
 
 		ImageGenerationOptions options = new()
 		{
-			Quality = GeneratedImageQuality.Auto,
+			Quality = "auto",
 		};
 
 		var imageResponse = await imageClient.GenerateImageAsync(prompt, options);
