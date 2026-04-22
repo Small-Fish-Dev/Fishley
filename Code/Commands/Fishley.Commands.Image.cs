@@ -25,12 +25,15 @@ public partial class Fishley
 
 				await command.RespondAsync($"Generating an image depicting: '{prompt}'");
 
-				var image = await OpenAIImage(prompt );
+				var imageBytes = await OpenAIImage(prompt);
 
-				if ( image == null ) return;
+				if ( imageBytes == null ) return;
 
-				var embed = new EmbedBuilder().WithImageUrl( image ).Build();
-				await SendMessage((SocketTextChannel)command.Channel, $"Here's what <@{command.User.Id}> asked: '{prompt}'", embed: embed);
+				var tempPath = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "generate.png");
+				await System.IO.File.WriteAllBytesAsync(tempPath, imageBytes.ToArray());
+
+				var embed = new EmbedBuilder().WithImageUrl( "attachment://generate.png" ).Build();
+				await SendMessage((SocketTextChannel)command.Channel, $"Here's what <@{command.User.Id}> asked: '{prompt}'", embed: embed, pathToUpload: tempPath);
 			}
 		}
 	}

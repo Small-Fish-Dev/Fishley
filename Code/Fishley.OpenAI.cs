@@ -575,7 +575,6 @@ public partial class Fishley
 		ImageGenerationOptions options = new()
 		{
 			Quality = GeneratedImageQuality.High,
-			Size = GeneratedImageSize.W1536xH1024,
 		};
 
 		var imageResponse = await imageClient.GenerateImageAsync(prompt, options);
