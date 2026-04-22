@@ -574,7 +574,7 @@ public partial class Fishley
 
 		ImageGenerationOptions options = new()
 		{
-			Quality = GeneratedImageQuality.High,
+			Quality = GeneratedImageQuality.Auto,
 		};
 
 		var imageResponse = await imageClient.GenerateImageAsync(prompt, options);
