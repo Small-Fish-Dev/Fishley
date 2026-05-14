@@ -434,10 +434,9 @@ public partial class Fishley
 		var message = await cacheableMessage.GetOrDownloadAsync();
 		if (message is null) return;
 
-		// Log reaction addition
-		DebugSay($"[Reaction Added] {reaction.Emote.Name} by user {reaction.UserId} on message {message.Id} (author: {message.Author.Id}) in channel {guildChannel.Id}");
-
 		if (!reaction.Emote.Equals(WarnEmoji) && !reaction.Emote.Equals(PassEmoji) && !reaction.Emote.Equals(MinimodEmoji)) return;
+
+		DebugSay($"{giver.GetUsername()} reacted {reaction.Emote.Name} on a message by {message.Author.GetUsername()} in #{guildChannel.Name}");
 
 		if (!CanModerate(giver) && !reaction.Emote.Equals(MinimodEmoji))
 		{
