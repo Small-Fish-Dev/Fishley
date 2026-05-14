@@ -30,61 +30,36 @@ public partial class Fishley
 			{
 				var channel = SmallFishServer.GetTextChannel(channelId);
 				if (channel == null)
-				{
-					DebugSay($"Shadow cleanup: Could not find channel with ID {channelId}");
 					continue;
-				}
 
-				DebugSay($"Shadow cleanup: Checking channel {channel.Name} (ID: {channelId})");
-
-				// Get messages (fetch more to ensure we get all old ones)
 				var messages = await channel.GetMessagesAsync(100).FlattenAsync();
 				var cutoffTime = DateTime.UtcNow.AddHours(-24);
 
-				DebugSay($"Shadow cleanup: Found {messages.Count()} total messages in {channel.Name}");
-
-				// Filter messages older than 24 hours
-				var oldMessages = messages.Where(m => m.Timestamp.UtcDateTime < cutoffTime).ToList();
-
-				DebugSay($"Shadow cleanup: {oldMessages.Count} messages are older than 24 hours in {channel.Name}");
+				var oldMessages = messages.Where(m => m.Timestamp.UtcDateTime < cutoffTime
+					&& m.Author is IWebhookUser
+					&& m.Author.Username.StartsWith("Echoes of ")).ToList();
 
 				if (oldMessages.Count > 0)
 				{
 					try
 					{
-						// Bulk delete can only delete messages less than 14 days old
-						// and max 100 messages at a time
 						var recentOldMessages = oldMessages.Where(m => (DateTime.UtcNow - m.Timestamp.UtcDateTime).TotalDays < 14).ToList();
 
 						if (recentOldMessages.Count > 0)
-						{
 							await channel.DeleteMessagesAsync(recentOldMessages);
-							DebugSay($"Shadow cleanup: Deleted {recentOldMessages.Count} old messages from {channel.Name}");
-						}
 
-						// For messages older than 14 days, we need to delete them individually
 						var veryOldMessages = oldMessages.Where(m => (DateTime.UtcNow - m.Timestamp.UtcDateTime).TotalDays >= 14).ToList();
-						if (veryOldMessages.Count > 0)
+						foreach (var message in veryOldMessages)
 						{
-							DebugSay($"Shadow cleanup: Deleting {veryOldMessages.Count} very old messages individually from {channel.Name}");
-							foreach (var message in veryOldMessages)
-							{
-								await message.DeleteAsync();
-								await Task.Delay(100); // Small delay for very old messages
-							}
+							await message.DeleteAsync();
+							await Task.Delay(100);
 						}
 					}
-					catch (Exception ex)
-					{
-						DebugSay($"Shadow cleanup ERROR in {channel.Name}: {ex.Message}");
-					}
+					catch { }
 				}
 			}
 		}
-		catch (Exception ex)
-		{
-			DebugSay($"Error cleaning up shadow messages: {ex.Message}");
-		}
+		catch { }
 	}
 
 
