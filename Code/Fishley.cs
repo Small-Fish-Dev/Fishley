@@ -82,6 +82,7 @@ public partial class Fishley
 		Client.MessageUpdated += MessageUpdated;
 		Client.MessageReceived += MessageReceived;
 		Client.ReactionAdded += ReactionAdded;
+		Client.ReactionRemoved += ReactionRemoved;
 		Client.UserJoined += OnUserJoined;
 		Client.GuildMemberUpdated += OnGuildMemberUpdated;
 		Client.Ready += OnReady;
@@ -560,6 +561,18 @@ public partial class Fishley
 			}
 		}
 
+	}
+
+	private static async Task ReactionRemoved(Cacheable<IUserMessage, ulong> cacheableMessage, Cacheable<IMessageChannel, ulong> channel, SocketReaction reaction)
+	{
+		if (reaction.Channel is not SocketGuildChannel guildChannel) return;
+		var remover = guildChannel.GetUser(reaction.UserId);
+		if (remover is null || remover.IsBot) return;
+
+		var message = await cacheableMessage.GetOrDownloadAsync();
+		if (message is null) return;
+
+		DebugSay($"{remover.GetUsername()} removed reaction {reaction.Emote.Name} from a message by {message.Author.GetUsername()} in #{guildChannel.Name}");
 	}
 
 	private static async Task MessageReceived(SocketMessage message)
