@@ -21,7 +21,6 @@ public partial class Fishley
 			{
 				1466892641135366246ul, // General Talk Shadow
 				1466893111199268895ul, // Funny Memes Shadow
-				1466893264144568482ul, // WAYWO Shadow
 				1466893439441305875ul  // Zoology Shadow
 			};
 
@@ -66,7 +65,6 @@ public partial class Fishley
 	{
 		{ 1005596274004852739, 1466892641135366246 }, // General Talk -> General Talk Shadow
 		{ 1020718603298930728, 1466893111199268895 }, // Funny Memes -> Funny Memes Shadow
-		{ 1263929413792301058, 1466893264144568482 }, // WAYWO -> WAYWO Shadow
 		{ 1005604067520823296, 1466893439441305875 }  // Zoology -> Zoology Shadow
 	};
 
@@ -74,7 +72,6 @@ public partial class Fishley
 	{
 		{ 1466892641135366246, 1005596274004852739 }, // General Talk Shadow -> General Talk
 		{ 1466893111199268895, 1020718603298930728 }, // Funny Memes Shadow -> Funny Memes
-		{ 1466893264144568482, 1263929413792301058 }, // WAYWO Shadow -> WAYWO
 		{ 1466893439441305875, 1005604067520823296 }  // Zoology Shadow -> Zoology
 	};
 
@@ -82,7 +79,6 @@ public partial class Fishley
 	{
 		{ 1466892641135366246, "GeneralTalkShadowBot" },
 		{ 1466893111199268895, "FunnyMemesShadowBot" },
-		{ 1466893264144568482, "WaywoShadowBot" },
 		{ 1466893439441305875, "ZoologyShadowBot" }
 	};
 
@@ -90,7 +86,6 @@ public partial class Fishley
 	{
 		{ 1005596274004852739, "GeneralTalkMirrorBot" },
 		{ 1020718603298930728, "FunnyMemesMirrorBot" },
-		{ 1263929413792301058, "WaywoMirrorBot" },
 		{ 1005604067520823296, "ZoologyMirrorBot" }
 	};
 
