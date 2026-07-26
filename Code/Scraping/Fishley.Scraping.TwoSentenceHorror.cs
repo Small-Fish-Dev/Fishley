@@ -106,7 +106,6 @@ public partial class Fishley
 			{
 				"GeneralTalkMirrorBot",
 				"FunnyMemesMirrorBot",
-				"SboxFeedMirrorBot",
 				"WaywoMirrorBot",
 				"ZoologyMirrorBot"
 			};

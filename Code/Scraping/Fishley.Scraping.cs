@@ -22,18 +22,11 @@ public partial class Fishley
 
 	public static Dictionary<string, WebsiteScraper> WebsitesToCheck = new()
 	{
-		{ "r_sandbox", new SubredditScraper() },
-		{ "twitch", new TwitchScraper() },
-		{ "youtube", new YoutubeScraper() },
 		{ "two_sentence_horror", new TwoSentenceHorrorScraper() },
-		//{ "garry", new GarryScraper() },
-		//{ "sbox.game", new SboxGameScraper() },
 		//{ "latentplaces", new LatentPlacesScrapper() },
-		//{ "garrytiktok", new GarryTiktokScraper() },
 		//{ "fish_of_the_week", new FishOfTheWeekTikTok() },
 		//{ "mindfunk", new MindfunkScraper() },
 		//{ "venus_loves_rats", new VenusLovesRatsScraper() },
-		//{ "sbox_ugc_news", new SboxUgcNewsScraper() }
 	};
 
 	public static async Task ComputeScrapers()
